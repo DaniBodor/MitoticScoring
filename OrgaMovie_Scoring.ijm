@@ -4,6 +4,11 @@ notes_lines = 3;
 A = getTitle();
 
 
+
+setTool("rectangle");
+waitForUser("Draw a box around a cell at NEBD of a mitotic event.");				coord_NEBD = getXYT("NEBD");
+waitForUser("Draw a box around the same cell at anaphase onset.");					coord_AnaOn = getXYT("AnaOn");
+waitForUser("Draw a box around the same cell when decondensation is complete.");	coord_Decond = getXYT("Decond");
 observations = GUI(notes_lines);
 
 for(i = 0; i < observations.length; i++){
@@ -76,3 +81,13 @@ function GUI(nNotes){
 
 	return GUI_result;
 }
+
+
+function getXYT(label){
+	getSelectionBounds(x, y, w, h);
+	t = getSliceNumber();
+
+	xywht = newArray(x, y, w, h, t, label);
+	return xywht;
+}
+
