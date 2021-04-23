@@ -1,33 +1,65 @@
-print("\\Clear");
 notes_lines = 3;
+surrounding_box = 8;	// in pixels
 
-A = getTitle();
+print("\\Clear");
+print(getTitle);
 
-
+headers = newArray("cell #",
+	"NEBD time","Anaph onset time", "mitotic duration",
+	"x0","y0","width","height",
+	"skip","highlight","lagger","bridge",
+	"multipolar","# poles","micronucleated","# micronuclei","micronuclei before/after mitosis",
+	"multinucleated","# nuclei","multinucleated before/after mitosis",
+	"other","namely",
+	"notes");
+header_line = arrayToString(headers,"\t");
+print(header_line);
 
 setTool("rectangle");
-waitForUser("Draw a box around a cell at NEBD of a mitotic event.");				coord_NEBD = getXYT("NEBD");
-waitForUser("Draw a box around the same cell at anaphase onset.");					coord_AnaOn = getXYT("AnaOn");
-waitForUser("Draw a box around the same cell when decondensation is complete.");	coord_Decond = getXYT("Decond");
-observations = GUI(notes_lines);
 
-for(i = 0; i < observations.length; i++){
-	print(i, observations[i]);
+for (c = 0; 1==1; c++){
+	
+	waitForUser("Draw a box around a cell at NEBD of a mitotic event.");				xywht_NEBD = getXYWHT("NEBD");
+	waitForUser("Draw a box around the same cell at anaphase onset.");					xywht_AnaOn = getXYWHT("AnaOn");
+	//waitForUser("Draw a box around the same cell when decondensation is complete.");	xywht_Decond = getXYWHT("Decond");
+
+	events = GUI(notes_lines);
+	interval = xywht_AnaOn[4] - xywht_NEBD[4];
+	
+	x_min = minOf( xywht_NEBD[0] , xywht_AnaOn[0]);
+	x_max = maxOf( xywht_NEBD[0] + xywht_NEBD[2] , xywht_AnaOn[0] + xywht_AnaOn[2]);
+	y_min = minOf( xywht_NEBD[1] , xywht_AnaOn[1]);
+	y_max = maxOf( xywht_NEBD[2] + xywht_NEBD[4] , xywht_AnaOn[2] + xywht_AnaOn[4]);
+	w_tot = x_max - x_min;
+	h_tot = y_max - y_min;
+
+	coordinates = newArray(c,
+		xywht_NEBD[4], xywht_AnaOn[4],interval,
+		x_min,y_min,w_tot,h_tot);
+	
+	results = Array.concat(coordinates,events);
+	results_line = arrayToString(results,"\t");
+	print(results_line);
+	
+
 }
+
 
 
 
 
 function GUI(nNotes){
 	time_option = newArray("","before div","after div","both");
-	skip_option = newArray("NO","YES");
+	no_yes = newArray("NO","YES");
 	notes = newArray(nNotes);
 	
 	Dialog.createNonBlocking("Observations checklist");
 		Dialog.addMessage("Do you want to skip analysis for this cell?");
-		Dialog.addChoice("SKIP THIS CELL?", skip_option);
-		Dialog.addMessage("If not, register observations for this mitosis below:");
+		Dialog.addChoice("SKIP THIS CELL?", no_yes);
 		
+		Dialog.addMessage("If not, register observations for this mitosis below:");
+		Dialog.addChoice("Highlight cell", no_yes);
+		Dialog.addMessage("");
 		Dialog.addCheckbox("Lagger", 0);
 		Dialog.addCheckbox("Bridge", 0);
 		Dialog.addCheckbox("Multipolar", 0);
@@ -51,6 +83,7 @@ function GUI(nNotes){
 		
 	Dialog.show();
 		skip = Dialog.getChoice;
+		highlighted = Dialog.getChoice;
 		lag = Dialog.getCheckbox;
 		bridge = Dialog.getCheckbox;
 		multipole = Dialog.getCheckbox;
@@ -64,12 +97,10 @@ function GUI(nNotes){
 		other_obs = Dialog.getCheckbox;
 			other_type = Dialog.getString;
 		for (i = 0; i < nNotes; i++) 	notes[i] = Dialog.getString;
-		
 
 	GUI_result = newArray(
-		skip,
-		lag,
-		bridge,
+		skip,		highlighted,
+		lag,		bridge,
 		multipole,	pole_number,
 		micronuc,	micronuc_number,	micronuc_timing,
 		multinuc,	multinuc_number,	multinuc_timing,
@@ -83,7 +114,7 @@ function GUI(nNotes){
 }
 
 
-function getXYT(label){
+function getXYWHT(label){
 	getSelectionBounds(x, y, w, h);
 	t = getSliceNumber();
 
@@ -91,3 +122,10 @@ function getXYT(label){
 	return xywht;
 }
 
+function arrayToString(A,splitter){
+	string = "";
+	for (i = 0; i < A.length; i++) {
+		string = string + A[i] + splitter;
+	}
+	return string;
+}
