@@ -4,20 +4,36 @@ surrounding_box = 8;	// in pixels
 print("\\Clear");
 print(getTitle);
 
-headers = newArray("cell #",
+mitotic_stages = newArray(
+	"NEBD",
+	"Metaphase",
+	"Anaphase onset",
+	"Decondensation",
+	"G1",
+	"");
+mitotic_stages = Array.trim(mitotic_stages, mitotic_stages.length-1);
+
+
+
+
+headers = newArray(
+	"cell #",
 	"NEBD time","Anaph onset time", "mitotic duration",
 	"x0","y0","width","height",
-	"skip","highlight","lagger","bridge",
+	"skip","highlight",
+	"lagger","bridge",
 	"multipolar","# poles","micronucleated","# micronuclei","micronuclei before/after mitosis",
 	"multinucleated","# nuclei","multinucleated before/after mitosis",
 	"other","namely",
-	"notes");
+	"notes"
+	);
 header_line = arrayToString(headers,"\t");
 print(header_line);
 
 setTool("rectangle");
 
-for (c = 0; 1==1; c++){
+// loop per cell/event
+for (c = 1; c > 0; c++){
 	
 	waitForUser("Draw a box around a cell at NEBD of a mitotic event.");				xywht_NEBD = getXYWHT("NEBD");
 	waitForUser("Draw a box around the same cell at anaphase onset.");					xywht_AnaOn = getXYWHT("AnaOn");
@@ -26,10 +42,10 @@ for (c = 0; 1==1; c++){
 	events = GUI(notes_lines);
 	interval = xywht_AnaOn[4] - xywht_NEBD[4];
 	
-	x_min = minOf( xywht_NEBD[0] , xywht_AnaOn[0]);
-	x_max = maxOf( xywht_NEBD[0] + xywht_NEBD[2] , xywht_AnaOn[0] + xywht_AnaOn[2]);
-	y_min = minOf( xywht_NEBD[1] , xywht_AnaOn[1]);
-	y_max = maxOf( xywht_NEBD[2] + xywht_NEBD[4] , xywht_AnaOn[2] + xywht_AnaOn[4]);
+	x_min = minOf( xywht_NEBD[0] , xywht_AnaOn[0] );
+	x_max = maxOf( xywht_NEBD[0] + xywht_NEBD[2] , xywht_AnaOn[0] + xywht_AnaOn[2] );
+	y_min = minOf( xywht_NEBD[1] , xywht_AnaOn[1] );
+	y_max = maxOf( xywht_NEBD[2] + xywht_NEBD[4] , xywht_AnaOn[2] + xywht_AnaOn[4] );
 	w_tot = x_max - x_min;
 	h_tot = y_max - y_min;
 
@@ -104,10 +120,9 @@ function GUI(nNotes){
 		multipole,	pole_number,
 		micronuc,	micronuc_number,	micronuc_timing,
 		multinuc,	multinuc_number,	multinuc_timing,
-		other_obs,	other_type,
-		"");
+		other_obs,	other_type
+		);
 	
-	GUI_result = Array.slice(GUI_result, 0, GUI_result.length-1);
 	GUI_result = Array.concat(GUI_result, notes);
 
 	return GUI_result;
