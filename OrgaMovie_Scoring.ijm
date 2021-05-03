@@ -2,9 +2,9 @@ notes_lines = 3;
 surrounding_box = 8;	// in pixels
 requires("1.53d");
 
-//print("\\Clear");
 if(nImages > 0)		Overlay.remove;
 else				open();
+
 
 mitotic_stages = newArray("NEBD", "Metaphase", "Anaphase_onset", "Decondensation", "Telophase", "G1");
 totStages = mitotic_stages.length;
@@ -47,60 +47,36 @@ for (i = 0; i < totStages; i++) {
 		t++;
 	}
 }
-// load previous
-results_logfile = saveloc + "Scoring_" + expname + ".csv";
-if (File.exists(results_logfile)){
-	prev_log = File.openAsString(results_logfile);
-	print(prev_log);
-}
-
-overlay_file = saveloc + getTitle() + "_overlay.zip";
-if (File.exists(overlay_file)){
-	roiManager("Open", overlay_file);
-	run("From ROI Manager");
-	roiManager("delete");
-}
-
-
-// save settings for next time
-
+// save defaults for next time
 Array.show(new_default);
 selectWindow("new_default");
 saveAs("Text", defaults_path);
 run("Close");
 nStages = stages_used.length;
-//Array.print(stages_used);
 
-
-// create and print headers for output
-print(getTitle);
-
-headers = newArray("cell#");	// first entry of headers
-for (s = 1; s < nStages; s++) {		// then add the individual intervals
-	t_header = "time_t" + s-1 + "-->t" + s;
-	headers = Array.concat(headers,t_header);
+// load progress
+table = "Scoring_" + expname + ".csv";
+_table_ = "["+table+"]";
+results_file = saveloc + table;
+overlay_file = saveloc + getTitle() + "_overlay.zip";
+loadPreviousProgress();
+if	(Table.size > 0){
+	prev_im =	Table.getString	("movie", Table.size-1);
+	prev_c =	Table.get		("cell#", Table.size-1);
+}
+else{
+	prev_im = "";
+	prev_c = 0;
 }
 
-headers = Array.concat(headers,	// then add the possible events
-	newArray(	
-		"skip","highlight",
-		"lagger","bridge","misaligned",
-		"multipolar","#_poles","micronucleated","#_micronuclei","micronuclei_before/after_mitosis",
-		"multinucleated","#_nuclei","multinucleated_before/after_mitosis",
-		"other","namely",
-		"unclear"));
-
-for (nl = 0; nl < notes_lines; nl++) headers = Array.concat(headers,"notes");	// then add lines for notes
-headers = Array.concat(headers,stages_used);		// then coordinates of each mitotic stage
-headers = Array.concat(headers, "extract_code");	// then a code to allow for quick extraction (Gaby request)
-
-Array.print(headers);
-
-
 // analyze individual events
-setTool("rectangle");
-for (c = 1; c > 0; c++){	// loop through cells
 
+setTool("rectangle");
+for (c = prev_c+1; c > 0; c++){	// loop through cells
+	im = getTitle();
+	if (im != prev_im)	c = 1;
+	prev_im = im;
+	
 	coordinates_array = newArray(0);
 	// for each time point included, pause to allow user to define coordinates
 	for (tp = 0; tp < nStages; tp++) {
@@ -141,7 +117,7 @@ for (c = 1; c > 0; c++){	// loop through cells
 	events = GUI(notes_lines);
 
 	// create and print results line
-	results = Array.concat(c,intervals);
+	results = Array.concat(im, c, intervals);
 	results = Array.concat(results,events);
 	
 	for (i = 0; i < nStages; i++){
@@ -152,11 +128,13 @@ for (c = 1; c > 0; c++){	// loop through cells
 	xywhtt_string = arrayToString(xywhtt,"_");
 	results = Array.concat(results,xywhtt_string);
 
-	Array.print(results);
+	//Array.print(results);
+	results_str = arrayToString(results,"\t");
+	print(_table_, results_str);
 	
-	// save log
-	selectWindow("Log");
-	saveAs("Text", results_logfile);
+	// save results progress
+	selectWindow(table);
+	saveAs("Text", results_file);
 
 	// save overlay
 	run("To ROI Manager");
@@ -231,6 +209,7 @@ function GUI(nNotes){
 			multinuc_timing = Dialog.getChoice;
 		other_obs = Dialog.getCheckbox;
 			other_type = Dialog.getString;
+		unclear = Dialog.getCheckbox;
 		for (i = 0; i < nNotes; i++) 	notes[i] = Dialog.getString;
 
 	GUI_result = newArray(
@@ -239,13 +218,11 @@ function GUI(nNotes){
 		multipole,	pole_number,
 		micronuc,	micronuc_number,	micronuc_timing,
 		multinuc,	multinuc_number,	multinuc_timing,
-		other_obs,	other_type
+		other_obs,	other_type,
+		unclear
 		);
 	
 	GUI_result = Array.concat(GUI_result, notes);
-	for (r = 0; r < GUI_result.length; r++) {
-		if (GUI_result[r] == "")	GUI_result[r] = "_";
-	}
 
 	return GUI_result;
 }
@@ -311,7 +288,6 @@ function arrayToString(A,splitter){
 	return string;
 }
 
-
 function makeDateOrTimeString(DorT){
 	getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
 
@@ -341,4 +317,66 @@ function makeDateOrTimeString(DorT){
 	}
 
 	return string;
+}
+
+function generateHeaders(){
+	// create and print headers for output
+	headers = newArray("movie","cell#");	// first entry of headers
+	for (s = 1; s < nStages; s++) {		// then add the individual intervals
+		t_header = "time_t" + s-1 + "-->t" + s;
+		headers = Array.concat(headers,t_header);
+	}
+	
+	headers = Array.concat(headers,	// then add the possible events
+		newArray(	
+			"skip","highlight",
+			"lagger","bridge","misaligned",
+			"multipolar","#_poles","micronucleated","#_micronuclei","micronuclei_before/after_mitosis",
+			"multinucleated","#_nuclei","multinucleated_before/after_mitosis",
+			"other","namely",
+			"unclear"));
+	
+	for (nl = 0; nl < notes_lines; nl++) headers = Array.concat(headers,"notes"+nl);	// then add lines for notes
+	headers = Array.concat(headers,stages_used);		// then coordinates of each mitotic stage
+	headers = Array.concat(headers, "extract_code");	// then a code to allow for quick extraction (Gaby request)
+	
+	//Array.print(headers);
+	headers = arrayToString(headers,"\t");
+	return headers;
+}
+
+function checkHeaders(new){
+//	selectWindow(table);
+	old = Table.headings(table);
+
+	if (old != new){
+		exit("***ERROR***\n" + 
+		"Previous settings of mitotic stages to include for this experiment do not match current settings.\n" +
+		"Please manually move/rename/delete the file and restart macro, or restart macro with identical settings as before.\n\n" + 
+		"Results file: " + results_file);
+	}
+}
+
+function loadPreviousProgress(){
+	headers = generateHeaders();
+
+	// find previous logfile
+	if (File.exists(results_file)){
+		Table.open(results_file);
+		checkHeaders(headers);
+	}
+	else if (isOpen(table)){	// if no previous log file, but scoring table is open
+		checkHeaders(headers);
+	}
+	else{						// no previous log file and no current open scoring table
+		run("Table...", "name="+_table_+" width=1200 height=300");
+		print(_table_, "\\Headings:" + headers);
+	}
+	
+	// find previous overlay
+	if (File.exists(overlay_file)){
+		roiManager("Open", overlay_file);
+		run("From ROI Manager");
+		roiManager("delete");
+	}
 }
