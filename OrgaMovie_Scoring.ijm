@@ -2,8 +2,11 @@ notes_lines = 3;
 surrounding_box = 8;	// in pixels
 
 
-print("\\Clear");
-mitotic_stages = newArray("NEBD", "Metaphase", "Anaphase onset", "Decondensation", "G1");
+
+//print("\\Clear");
+Overlay.remove;
+
+mitotic_stages = newArray("NEBD", "Metaphase", "Anaphase_onset", "Decondensation", "G1");
 totStages = mitotic_stages.length;
 stages_used = newArray(0);
 
@@ -12,88 +15,111 @@ default = newArray(totStages);
 def_stages = getDirectory("macros") + "OrgaMovie_Scoring_defaultStages.txt";
 if (File.exists(def_stages)){
 	str = File.openAsString(def_stages);
-	lines = split(str, ", ");
-	if (lines.length == totStages)	default = lines; 
+	lines = split(str, "\n");
+	lines = Array.slice(lines,1,lines.length);
+	if (lines.length == totStages)	default = lines;
 }
 
 // open dialog to ask which stages to inlcude
+t=0;
 Dialog.create("Mitotic stages");
 	Dialog.setInsets(0, 15, 0)
 	Dialog.addCheckboxGroup(totStages, 1, mitotic_stages,default);
 //Dialog.show();
-t=0;
-	for (i = 0; i < totStages; i++) {
-		default[i] = Dialog.getCheckbox();
-		if (default[i])	{
-			curr_header = "t" + t + " (" + mitotic_stages[i] + ")";
-			stages_used = Array.concat(stages_used, curr_header);
-			t++;
-		}
+for (i = 0; i < totStages; i++) {
+	default[i] = Dialog.getCheckbox();
+	if (default[i])	{
+		curr_header = "t" + t + "_" + mitotic_stages[i];
+		stages_used = Array.concat(stages_used, curr_header);
+		t++;
 	}
-
+}
 // save settings for next time
-Array.print(default);
-selectWindow("Log");
+
+Array.show(default);
+selectWindow("default");
 saveAs("Text", def_stages);
-print("\\Clear");
-
+run("Close");
 nStages = stages_used.length;
-Array.print(stages_used);
+//Array.print(stages_used);
 
+
+// create and print headers for output
 print(getTitle);
 
+headers = newArray("cell#");	// first entry of headers
+for (s = 1; s < nStages; s++) {		// then add the individual intervals
+	t_header = "time_t" + s-1 + "-->t" + s;
+	headers = Array.concat(headers,t_header);
+}
 
-
-headers = newArray(
-	"cell #",
-	"NEBD time","Anaph onset time", "mitotic duration",
-	"x0","y0","width","height",
+headers = Array.concat(headers,newArray(	// then add the possible events
 	"skip","highlight",
-	"lagger","bridge",
-	"multipolar","# poles","micronucleated","# micronuclei","micronuclei before/after mitosis",
-	"multinucleated","# nuclei","multinucleated before/after mitosis",
-	"other","namely",
-	"notes"
-	);
-header_line = arrayToString(headers,"\t");
-print(header_line);
+	"lagger","bridge","misaligned",
+	"multipolar","#_poles","micronucleated","#_micronuclei","micronuclei_before/after_mitosis",
+	"multinucleated","#_nuclei","multinucleated_before/after_mitosis",
+	"other","namely"));
 
+for (nl = 0; nl < notes_lines; nl++) headers = Array.concat(headers,"notes");	// then add lines for notes
+headers = Array.concat(headers,stages_used);		// then coordinates of each mitotic stage
+headers = Array.concat(headers, "extract_code");	// then a code to allow for quick extraction (Gaby request)
+
+Array.print(headers);
+
+
+// analyze individual events
 setTool("rectangle");
-
-// loop per cell/event
-for (c = 1; c > 0; c++){
+for (c = 1; c > 0; c++){	// loop through cells
 
 	coordinates_array = newArray(0);
-	for (t = 0; t < nStages; t++) {
-		waitForUser("Draw a box around a cell at " + stages_used[t] + " of mitotic event.");
-		current_xywht = getXYWHT();
-		coordinates_array = Array.concat(coordinates_array, current_xywht);
+	// for each time point included, pause to allow user to define coordinates
+	for (tp = 0; tp < nStages; tp++) {
+		getRawStatistics(area);
+		waitForUser("Draw a box around a cell at " + stages_used[tp] + " of mitotic event.");
+		current_coord = getCoordinates();
+		coordinates_array = Array.concat(coordinates_array, current_coord);
+
+		// create overlay of cells already analyzed
+		setColor("red");
+		x_mid = (current_coord[0] + current_coord[2])/2;
+		Overlay.drawString("t"+tp, x_mid-6, current_coord[1]-1);
+		Overlay.setPosition(getSliceNumber());
 	}
-	Array.print(coordinates_array);
-	coord_reorganized = reorganizeXYWHT(coordinates_array);
-	Array.print(coord_reorganized);
-vkldsngl
+	run("Select None");
 
-
+	// extract coordinates for output
+	reorganized_coord_array = reorganizeCoord(coordinates_array);
+	xywhtt = getFullSelectionBounds(reorganized_coord_array);
+	
+	intervals = newArray(nStages-1);
+	for (i = 0; i < intervals.length; i++) {
+		intervals[i] = reorganized_coord_array[4*nStages+i+1] - reorganized_coord_array[4*nStages+i];
+	}
+	
+	setColor("white");
+	for (t = xywhtt[4]; t <= xywhtt[5]; t++) {
+		Overlay.drawRect(xywhtt[0], xywhtt[1], xywhtt[2], xywhtt[3]);
+		Overlay.setPosition(t);
+		Overlay.add;
+	}
+	Overlay.show;
+	
+	// run function to determine mitotic events
 	events = GUI(notes_lines);
-	
-	
-	x_min = minOf( xywht_NEBD[0] , xywht_AnaOn[0] );
-	x_max = maxOf( xywht_NEBD[0] + xywht_NEBD[2] , xywht_AnaOn[0] + xywht_AnaOn[2] );
-	y_min = minOf( xywht_NEBD[1] , xywht_AnaOn[1] );
-	y_max = maxOf( xywht_NEBD[2] + xywht_NEBD[4] , xywht_AnaOn[2] + xywht_AnaOn[4] );
-	w_tot = x_max - x_min;
-	h_tot = y_max - y_min;
 
-	coordinates = newArray(c,
-		xywht_NEBD[4], xywht_AnaOn[4],interval,
-		x_min,y_min,w_tot,h_tot);
+	// create and print results line
+	results = Array.concat(c,intervals);
+	results = Array.concat(results,events);
 	
-	results = Array.concat(coordinates,events);
-	results_line = arrayToString(results,"\t");
-	print(results_line);
-	
+	for (i = 0; i < nStages; i++){
+		curr_coord = Array.slice(coordinates_array, i*5, i*5+5);
+		coord_string = arrayToString(curr_coord,"_");
+		results = Array.concat(results,coord_string);
+	}
+	xywhtt_string = arrayToString(xywhtt,"_");
+	results = Array.concat(results,xywhtt_string);
 
+	Array.print(results);
 }
 
 
@@ -101,7 +127,7 @@ vkldsngl
 
 
 function GUI(nNotes){
-	time_option = newArray("","before div","after div","both");
+	time_option = newArray("","before_div","after_div","both");
 	no_yes = newArray("NO","YES");
 	notes = newArray(nNotes);
 	
@@ -114,6 +140,7 @@ function GUI(nNotes){
 		Dialog.addMessage("");
 		Dialog.addCheckbox("Lagger", 0);
 		Dialog.addCheckbox("Bridge", 0);
+		Dialog.addCheckbox("Misaligned", 0);
 		Dialog.addCheckbox("Multipolar", 0);
 			Dialog.setInsets(-20,120,0);
 			Dialog.addString("#","",1);
@@ -138,6 +165,7 @@ function GUI(nNotes){
 		highlighted = Dialog.getChoice;
 		lag = Dialog.getCheckbox;
 		bridge = Dialog.getCheckbox;
+		misaligned = Dialog.getCheckbox;
 		multipole = Dialog.getCheckbox;
 			pole_number = Dialog.getString;
 		micronuc = Dialog.getCheckbox;
@@ -152,7 +180,7 @@ function GUI(nNotes){
 
 	GUI_result = newArray(
 		skip,		highlighted,
-		lag,		bridge,
+		lag,		bridge,				misaligned,
 		multipole,	pole_number,
 		micronuc,	micronuc_number,	micronuc_timing,
 		multinuc,	multinuc_number,	multinuc_timing,
@@ -160,43 +188,40 @@ function GUI(nNotes){
 		);
 	
 	GUI_result = Array.concat(GUI_result, notes);
+	for (r = 0; r < GUI_result.length; r++) {
+		if (GUI_result[r] == "")	GUI_result[r] = "_";
+	}
 
 	return GUI_result;
 }
 
 
-function getXYWHT(){
+function getCoordinates(){
 	getSelectionBounds(x, y, w, h);
 	t = getSliceNumber();
 
-	xywht = newArray(x, y, w, h, t);
-	return xywht;
+	coord = newArray(x, y, x+w, y+h, t);
+	return coord;
 }
 
-function reorganizeXYWHT(xywht_group){
+function reorganizeCoord(coord_group){
 	reorganized = newArray(0);
-	for (j = 0; j < xywht_group.length/nStages; j++) {
-		for (i = 0; i < xywht_group.length; i+=5) {
-			reorganized = Array.concat(reorganized, xywht_group[i+j]);
+	for (j = 0; j < coord_group.length/nStages; j++) {
+		for (i = 0; i < coord_group.length; i+=5) {
+			reorganized = Array.concat(reorganized, coord_group[i+j]);
 		}
 	}
 	return reorganized;
 }
 
-
-function getMaxXYWH(xywht_group){
-	xywht_group = reorganizeXYWHT(xywht_group);
-	for (i = 1; i < xywht_group/5; i++) {
-		
-	}
-}
-
 function getMinOrMaxOfMultiple(array,MinOrMax){
+	// find out whether min or max
 	if		(MinOrMax == "min" || MinOrMax == "MIN" || MinOrMax == "Min" || MinOrMax == "-" || MinOrMax == "--") multipl = -1;
 	else if (MinOrMax == "max" || MinOrMax == "MAX" || MinOrMax == "Max" || MinOrMax == "+" || MinOrMax == "++") multipl =  1;
 	else if (MinOrMax == -1 || MinOrMax == 1)	multipl = MinOrMax;
 	else	exit("MinOrMax set incorrectly, as: " + MinOrMax);
-	
+
+	// find max value (or lowest negative value)
 	return_value = array[0] * multipl;
 	for (i = 1; i < array.length; i++) {
 		current_test = array[i] * multipl;
@@ -206,12 +231,27 @@ function getMinOrMaxOfMultiple(array,MinOrMax){
 	return return_value;
 }
 
+function getFullSelectionBounds(A){
+	x_min = getMinOrMaxOfMultiple( Array.slice( A, nStages*0, nStages*1), "min");
+	y_min = getMinOrMaxOfMultiple( Array.slice( A, nStages*1, nStages*2), "min");
+	x_max = getMinOrMaxOfMultiple( Array.slice( A, nStages*2, nStages*3), "max");
+	y_max = getMinOrMaxOfMultiple( Array.slice( A, nStages*3, nStages*4), "max");
+	
+	t_min = getMinOrMaxOfMultiple( Array.slice( A, nStages*4, nStages*5), "min");
+	t_max = getMinOrMaxOfMultiple( Array.slice( A, nStages*4, nStages*5), "max");
 
+	w = x_max - x_min;
+	h = y_max - y_min;
+
+	xywhtt = newArray(x_min,y_min,w,h,t_min,t_max);
+	return xywhtt;
+}
 
 function arrayToString(A,splitter){
 	string = "";
 	for (i = 0; i < A.length; i++) {
 		string = string + A[i] + splitter;
 	}
+	string = substring(string, 0, lastIndexOf(string, splitter));
 	return string;
 }
