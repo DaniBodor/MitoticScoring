@@ -1,44 +1,72 @@
 notes_lines = 3;
 surrounding_box = 8;	// in pixels
-
-
+requires("1.53d");
 
 //print("\\Clear");
-Overlay.remove;
+if(nImages > 0)		Overlay.remove;
+else				open();
 
-mitotic_stages = newArray("NEBD", "Metaphase", "Anaphase_onset", "Decondensation", "G1");
+mitotic_stages = newArray("NEBD", "Metaphase", "Anaphase_onset", "Decondensation", "Telophase", "G1");
 totStages = mitotic_stages.length;
 stages_used = newArray(0);
 
 // load previous defaults (if any)
-default = newArray(totStages);
-def_stages = getDirectory("macros") + "OrgaMovie_Scoring_defaultStages.txt";
-if (File.exists(def_stages)){
-	str = File.openAsString(def_stages);
-	lines = split(str, "\n");
-	lines = Array.slice(lines,1,lines.length);
-	if (lines.length == totStages)	default = lines;
+default_saveloc = "";
+default_expname = "";
+default_stages = newArray(1,0,1,0,0,0);
+defaults_path = getDirectory("macros") + "OrgaMovie_Scoring_defaults.txt";
+if (File.exists(defaults_path)){
+	loaded_str = File.openAsString(defaults_path);
+	loaded_array = split(loaded_str, "\n");
+	default_saveloc = loaded_array[1];
+	default_expname = loaded_array[2];
+	loaded_stages = Array.slice(loaded_array, 3, totStages+4);
+	if (loaded_stages.length == totStages)	default_stages = loaded_stages;
 }
 
 // open dialog to ask which stages to inlcude
 t=0;
-Dialog.create("Mitotic stages");
-	Dialog.setInsets(0, 15, 0)
-	Dialog.addCheckboxGroup(totStages, 1, mitotic_stages,default);
-//Dialog.show();
-for (i = 0; i < totStages; i++) {
-	default[i] = Dialog.getCheckbox();
-	if (default[i])	{
+Dialog.create("Setup");
+	Dialog.setInsets(0, 0, 0);
+	Dialog.addDirectory("Save location", default_saveloc);
+	Dialog.addString("Experiment name",  default_expname);
+	Dialog.setInsets(20, 0, 0);
+	Dialog.addMessage("Which mitotic stages should be monitored?")
+	Dialog.setInsets(0, 0, 0);
+	Dialog.addCheckboxGroup(2, 3, mitotic_stages, default_stages);
+Dialog.show();
+saveloc = Dialog.getString();
+expname = Dialog.getString();
+if (expname == "")	expname = "AnalysisOf" + makeDateOrTimeString("d");
+new_default = newArray(saveloc, expname);
+for (i = 0; i < totStages; i++) {	
+	new_default[i+2] = Dialog.getCheckbox();
+	if (new_default[i+2])	{
 		curr_header = "t" + t + "_" + mitotic_stages[i];
 		stages_used = Array.concat(stages_used, curr_header);
 		t++;
 	}
 }
+// load previous
+results_logfile = saveloc + "Scoring_" + expname + ".csv";
+if (File.exists(results_logfile)){
+	prev_log = File.openAsString(results_logfile);
+	print(prev_log);
+}
+
+overlay_file = saveloc + getTitle() + "_overlay.zip";
+if (File.exists(overlay_file)){
+	roiManager("Open", overlay_file);
+	run("From ROI Manager");
+	roiManager("delete");
+}
+
+
 // save settings for next time
 
-Array.show(default);
-selectWindow("default");
-saveAs("Text", def_stages);
+Array.show(new_default);
+selectWindow("new_default");
+saveAs("Text", defaults_path);
 run("Close");
 nStages = stages_used.length;
 //Array.print(stages_used);
@@ -53,12 +81,14 @@ for (s = 1; s < nStages; s++) {		// then add the individual intervals
 	headers = Array.concat(headers,t_header);
 }
 
-headers = Array.concat(headers,newArray(	// then add the possible events
-	"skip","highlight",
-	"lagger","bridge","misaligned",
-	"multipolar","#_poles","micronucleated","#_micronuclei","micronuclei_before/after_mitosis",
-	"multinucleated","#_nuclei","multinucleated_before/after_mitosis",
-	"other","namely"));
+headers = Array.concat(headers,	// then add the possible events
+	newArray(	
+		"skip","highlight",
+		"lagger","bridge","misaligned",
+		"multipolar","#_poles","micronucleated","#_micronuclei","micronuclei_before/after_mitosis",
+		"multinucleated","#_nuclei","multinucleated_before/after_mitosis",
+		"other","namely",
+		"unclear"));
 
 for (nl = 0; nl < notes_lines; nl++) headers = Array.concat(headers,"notes");	// then add lines for notes
 headers = Array.concat(headers,stages_used);		// then coordinates of each mitotic stage
@@ -74,12 +104,14 @@ for (c = 1; c > 0; c++){	// loop through cells
 	coordinates_array = newArray(0);
 	// for each time point included, pause to allow user to define coordinates
 	for (tp = 0; tp < nStages; tp++) {
-		getRawStatistics(area);
+		// allow user to box mitotic cell
 		waitForUser("Draw a box around a cell at " + stages_used[tp] + " of mitotic event.");
+
+		// get coordinates
 		current_coord = getCoordinates();
 		coordinates_array = Array.concat(coordinates_array, current_coord);
 
-		// create overlay of cells already analyzed
+		// create overlay of mitotic timepoint (t0, t1, etc)
 		setColor("red");
 		x_mid = (current_coord[0] + current_coord[2])/2;
 		Overlay.drawString("t"+tp, x_mid-6, current_coord[1]-1);
@@ -87,7 +119,7 @@ for (c = 1; c > 0; c++){	// loop through cells
 	}
 	run("Select None");
 
-	// extract coordinates for output
+	// reorganize coordinates for output
 	reorganized_coord_array = reorganizeCoord(coordinates_array);
 	xywhtt = getFullSelectionBounds(reorganized_coord_array);
 	
@@ -96,6 +128,7 @@ for (c = 1; c > 0; c++){	// loop through cells
 		intervals[i] = reorganized_coord_array[4*nStages+i+1] - reorganized_coord_array[4*nStages+i];
 	}
 	
+	// create box overlay of cells already analyzed (only on relevant slices)
 	setColor("white");
 	for (t = xywhtt[4]; t <= xywhtt[5]; t++) {
 		Overlay.drawRect(xywhtt[0], xywhtt[1], xywhtt[2], xywhtt[3]);
@@ -104,7 +137,7 @@ for (c = 1; c > 0; c++){	// loop through cells
 	}
 	Overlay.show;
 	
-	// run function to determine mitotic events
+	// custom function to ask for manual input on mitotic events
 	events = GUI(notes_lines);
 
 	// create and print results line
@@ -120,23 +153,44 @@ for (c = 1; c > 0; c++){	// loop through cells
 	results = Array.concat(results,xywhtt_string);
 
 	Array.print(results);
+	
+	// save log
+	selectWindow("Log");
+	saveAs("Text", results_logfile);
+
+	// save overlay
+	run("To ROI Manager");
+	roiManager("Show All without labels");
+	roiManager("deselect");
+	roiManager("save", saveloc + getTitle() + "_overlay.zip");
+	run("From ROI Manager");
+	roiManager("delete");
 }
 
 
+////////////////////////////// CUSTOM FUNCTIONS ////////////////////////////////////
+////////////////////////////// CUSTOM FUNCTIONS ////////////////////////////////////
+////////////////////////////// CUSTOM FUNCTIONS ////////////////////////////////////
 
-
-
-function GUI(nNotes){
+function GUI(nNotes){	
+	/* 
+	 *  This function creates a dialog window to generate manual input on mitotic events occuring in this cell.
+	 *  This is ugly and non-modular and requires manual tinkering whenever things change. 
+	 *  Don't have a good idea how to easily fix this without screwing up the formatting.
+	 */
+	
+	// pre-sets
 	time_option = newArray("","before_div","after_div","both");
 	no_yes = newArray("NO","YES");
 	notes = newArray(nNotes);
-	
+
+	// actual dialog/GUI
 	Dialog.createNonBlocking("Observations checklist");
 		Dialog.addMessage("Do you want to skip analysis for this cell?");
 		Dialog.addChoice("SKIP THIS CELL?", no_yes);
-		
 		Dialog.addMessage("If not, register observations for this mitosis below:");
 		Dialog.addChoice("Highlight cell", no_yes);
+		
 		Dialog.addMessage("");
 		Dialog.addCheckbox("Lagger", 0);
 		Dialog.addCheckbox("Bridge", 0);
@@ -157,7 +211,8 @@ function GUI(nNotes){
 		Dialog.addCheckbox("Other:", 0);
 			Dialog.setInsets(-20,-100,0);
 			Dialog.addString("","",22);
-		Dialog.addMessage("");
+		Dialog.addCheckbox("Unclear", 0);
+		//Dialog.addMessage("");
 		for (i = 0; i < nNotes; i++) Dialog.addString("Notes","",22);
 		
 	Dialog.show();
@@ -253,5 +308,37 @@ function arrayToString(A,splitter){
 		string = string + A[i] + splitter;
 	}
 	string = substring(string, 0, lastIndexOf(string, splitter));
+	return string;
+}
+
+
+function makeDateOrTimeString(DorT){
+	getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
+
+	if(DorT == "date" || DorT == "Date" || DorT == "DATE" || DorT == "D" || DorT == "d"){
+		y = substring (d2s(year,0),2);
+
+		if (month > 8)	m = d2s(month+1,0);
+		else			m = "0" + d2s(month+1,0);
+
+		if (dayOfMonth > 9)		d = d2s(dayOfMonth,0);
+		else					d = "0" + d2s(dayOfMonth,0);
+
+		string = y + m + d;
+	}
+
+	if(DorT == "time" || DorT == "Time" || DorT == "TIME" || DorT == "T" || DorT == "t"){
+		if (hour > 9)	h = d2s(hour,0);
+		else			h = "0" + d2s(hour,0);
+
+		if (minute > 9)	m = d2s(minute,0);
+		else			m = "0" + d2s(minute,0);
+
+		if (second > 9)	s = d2s(second,0);
+		else			s = "0" + d2s(second,0);
+
+		string = h + ":" + m + ":" + s;
+	}
+
 	return string;
 }
