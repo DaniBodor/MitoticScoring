@@ -1,18 +1,49 @@
 notes_lines = 3;
 surrounding_box = 8;	// in pixels
 
+
 print("\\Clear");
+mitotic_stages = newArray("NEBD", "Metaphase", "Anaphase onset", "Decondensation", "G1");
+nStages = mitotic_stages.length;
+stages_used = newArray(0);
+
+// load previous defaults (if any)
+default = newArray(nStages);
+def_stages = getDirectory("macros") + "OrgaMovie_Scoring_defaultStages.txt";
+if (File.exists(def_stages)){
+	str = File.openAsString(def_stages);
+	lines = split(str, ", ");
+	if (lines.length == nStages)	default = lines; 
+}
+
+// open dialog to ask which stages to inlcude
+Dialog.create("Mitotic stages");
+	Dialog.setInsets(0, 15, 0)
+	Dialog.addCheckboxGroup(nStages, 1, mitotic_stages,default);
+Dialog.show();
+t=0;
+	for (i = 0; i < nStages; i++) {
+		default[i] = Dialog.getCheckbox();
+		if (default[i])	{
+			stages_used = Array.concat(stages_used, "t" + t + " (" + mitotic_stages[i] + ")");
+			t++;
+		}
+	}
+
+// save settings for next time
+Array.print(default);
+selectWindow("Log");
+saveAs("Text", def_stages);
+print("\\Clear");
+
+
+Array.print(stages_used);
+	
+
+
+
 print(getTitle);
-
-mitotic_stages = newArray(
-	"NEBD",
-	"Metaphase",
-	"Anaphase onset",
-	"Decondensation",
-	"G1",
-	"");
-mitotic_stages = Array.trim(mitotic_stages, mitotic_stages.length-1);
-
+klbfjkgv
 
 
 
