@@ -4,28 +4,29 @@ surrounding_box = 8;	// in pixels
 
 print("\\Clear");
 mitotic_stages = newArray("NEBD", "Metaphase", "Anaphase onset", "Decondensation", "G1");
-nStages = mitotic_stages.length;
+totStages = mitotic_stages.length;
 stages_used = newArray(0);
 
 // load previous defaults (if any)
-default = newArray(nStages);
+default = newArray(totStages);
 def_stages = getDirectory("macros") + "OrgaMovie_Scoring_defaultStages.txt";
 if (File.exists(def_stages)){
 	str = File.openAsString(def_stages);
 	lines = split(str, ", ");
-	if (lines.length == nStages)	default = lines; 
+	if (lines.length == totStages)	default = lines; 
 }
 
 // open dialog to ask which stages to inlcude
 Dialog.create("Mitotic stages");
 	Dialog.setInsets(0, 15, 0)
-	Dialog.addCheckboxGroup(nStages, 1, mitotic_stages,default);
-Dialog.show();
+	Dialog.addCheckboxGroup(totStages, 1, mitotic_stages,default);
+//Dialog.show();
 t=0;
-	for (i = 0; i < nStages; i++) {
+	for (i = 0; i < totStages; i++) {
 		default[i] = Dialog.getCheckbox();
 		if (default[i])	{
-			stages_used = Array.concat(stages_used, "t" + t + " (" + mitotic_stages[i] + ")");
+			curr_header = "t" + t + " (" + mitotic_stages[i] + ")";
+			stages_used = Array.concat(stages_used, curr_header);
 			t++;
 		}
 	}
@@ -36,14 +37,10 @@ selectWindow("Log");
 saveAs("Text", def_stages);
 print("\\Clear");
 
-
+nStages = stages_used.length;
 Array.print(stages_used);
-	
-
-
 
 print(getTitle);
-klbfjkgv
 
 
 
@@ -65,13 +62,21 @@ setTool("rectangle");
 
 // loop per cell/event
 for (c = 1; c > 0; c++){
-	
-	waitForUser("Draw a box around a cell at NEBD of a mitotic event.");				xywht_NEBD = getXYWHT("NEBD");
-	waitForUser("Draw a box around the same cell at anaphase onset.");					xywht_AnaOn = getXYWHT("AnaOn");
-	//waitForUser("Draw a box around the same cell when decondensation is complete.");	xywht_Decond = getXYWHT("Decond");
+
+	coordinates_array = newArray(0);
+	for (t = 0; t < nStages; t++) {
+		waitForUser("Draw a box around a cell at " + stages_used[t] + " of mitotic event.");
+		current_xywht = getXYWHT();
+		coordinates_array = Array.concat(coordinates_array, current_xywht);
+	}
+	Array.print(coordinates_array);
+	coord_reorganized = reorganizeXYWHT(coordinates_array);
+	Array.print(coord_reorganized);
+vkldsngl
+
 
 	events = GUI(notes_lines);
-	interval = xywht_AnaOn[4] - xywht_NEBD[4];
+	
 	
 	x_min = minOf( xywht_NEBD[0] , xywht_AnaOn[0] );
 	x_max = maxOf( xywht_NEBD[0] + xywht_NEBD[2] , xywht_AnaOn[0] + xywht_AnaOn[2] );
@@ -160,13 +165,48 @@ function GUI(nNotes){
 }
 
 
-function getXYWHT(label){
+function getXYWHT(){
 	getSelectionBounds(x, y, w, h);
 	t = getSliceNumber();
 
-	xywht = newArray(x, y, w, h, t, label);
+	xywht = newArray(x, y, w, h, t);
 	return xywht;
 }
+
+function reorganizeXYWHT(xywht_group){
+	reorganized = newArray(0);
+	for (j = 0; j < xywht_group.length/nStages; j++) {
+		for (i = 0; i < xywht_group.length; i+=5) {
+			reorganized = Array.concat(reorganized, xywht_group[i+j]);
+		}
+	}
+	return reorganized;
+}
+
+
+function getMaxXYWH(xywht_group){
+	xywht_group = reorganizeXYWHT(xywht_group);
+	for (i = 1; i < xywht_group/5; i++) {
+		
+	}
+}
+
+function getMinOrMaxOfMultiple(array,MinOrMax){
+	if		(MinOrMax == "min" || MinOrMax == "MIN" || MinOrMax == "Min" || MinOrMax == "-" || MinOrMax == "--") multipl = -1;
+	else if (MinOrMax == "max" || MinOrMax == "MAX" || MinOrMax == "Max" || MinOrMax == "+" || MinOrMax == "++") multipl =  1;
+	else if (MinOrMax == -1 || MinOrMax == 1)	multipl = MinOrMax;
+	else	exit("MinOrMax set incorrectly, as: " + MinOrMax);
+	
+	return_value = array[0] * multipl;
+	for (i = 1; i < array.length; i++) {
+		current_test = array[i] * multipl;
+		return_value = maxOf(current_test, return_value);
+	}
+	return_value = return_value * multipl;
+	return return_value;
+}
+
+
 
 function arrayToString(A,splitter){
 	string = "";
