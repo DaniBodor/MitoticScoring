@@ -6,8 +6,7 @@ surrounding_box = 1;	// in pixels
 if(nImages > 0)		Overlay.remove;
 else				open();
 
-
-mitotic_stages = newArray("NEBD", "Metaphase", "Anaphase_onset", "Decondensation", "Telophase", "G1");
+mitotic_stages = newArray("G2","NEBD", "Metaphase", "Anaphase_onset", "Decondensation", "Telophase", "G1");
 totStages = mitotic_stages.length;
 stages_used = newArray(0);
 
@@ -16,7 +15,7 @@ default_saveloc = "";
 default_expname = "";
 default_timestep = 3; //min
 default_duplic  = 1;
-default_stages = newArray(1,0,1,0,0,0);
+default_stages = newArray(0,1,0,1,0,0,0);
 defaults_path = getDirectory("macros") + "OrgaMovie_Scoring_defaults.txt";
 if (File.exists(defaults_path)){
 	loaded_str = File.openAsString(defaults_path);
@@ -42,7 +41,7 @@ Dialog.create("Setup");
 	Dialog.setInsets(20, 0, 0);
 	Dialog.addMessage("Which mitotic stages should be monitored?")
 	Dialog.setInsets(0, 0, 0);
-	Dialog.addCheckboxGroup(2, 3, mitotic_stages, default_stages);
+	Dialog.addCheckboxGroup(2, 4, mitotic_stages, default_stages);
 Dialog.show();
 	saveloc = Dialog.getString();
 	expname = Dialog.getString();
@@ -80,13 +79,13 @@ if	(Table.size > 0){
 }
 else{
 	prev_im = "";
-	prev_c = 0;
+	prev_c = 1;
 }
 
 // analyze individual events
 
 setTool("rectangle");
-for (c = prev_c+1; c > 0; c++){	// loop through cells
+for (c = prev_c; c > 0; c++){	// loop through cells
 	im = getTitle();
 	if (im != prev_im)	c = 1;
 	prev_im = im;
@@ -360,6 +359,7 @@ function generateHeaders(){
 
 function checkHeaders(new){
 	selectWindow(table);
+	old = Table.headings();
 	if (Table.size() == 0){
 		run("Close");
 		return 1;
