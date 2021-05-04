@@ -1,4 +1,6 @@
 requires("1.53d");
+setJustification("center");
+setFont("SansSerif", 9, "antialiased");
 
 notes_lines = 3;
 surrounding_box = 1;	// in pixels
@@ -16,6 +18,7 @@ default_expname = "";
 default_timestep = 3; //min
 default_duplic  = 1;
 default_stages = newArray(0,1,0,1,0,0,0);
+default_score = 1;
 defaults_path = getDirectory("macros") + "OrgaMovie_Scoring_defaults.txt";
 if (File.exists(defaults_path)){
 	loaded_str = File.openAsString(defaults_path);
@@ -24,8 +27,10 @@ if (File.exists(defaults_path)){
 	default_expname  = loaded_array[2];
 	default_timestep = loaded_array[3];
 	default_duplic   = loaded_array[4];
+	default_score	 = loaded_array[5];
 	loaded_stages = Array.slice(loaded_array, loaded_array.length-totStages, loaded_array.length);
 	if (loaded_stages.length == totStages)	default_stages = loaded_stages;
+	
 }
 
 // open dialog to ask which stages to inlcude
@@ -42,22 +47,28 @@ Dialog.create("Setup");
 	Dialog.addMessage("Which mitotic stages should be monitored?")
 	Dialog.setInsets(0, 0, 0);
 	Dialog.addCheckboxGroup(2, 4, mitotic_stages, default_stages);
+	Dialog.addMessage("");
+	Dialog.setInsets(0, 0, 0);
+	Dialog.addCheckbox("Score events?",  default_score);
 Dialog.show();
 	saveloc = Dialog.getString();
 	expname = Dialog.getString();
 	timestep = Dialog.getNumber();
 	dup_overlay = Dialog.getCheckbox();
 	if (expname == "")	expname = "AnalysisOf" + makeDateOrTimeString("d");
-	new_default = newArray(saveloc, expname, timestep, dup_overlay);
+	new_default = newArray();
 	i_0 = new_default.length;
 	for (i = 0; i < totStages; i++) {
-		new_default[i_0+i] = Dialog.getCheckbox();
-		if (new_default[i_0 + i]) {
+		default_stages[i] = Dialog.getCheckbox();
+		if (default_stages[i]) {
 			curr_header = "t" + t + "_" + mitotic_stages[i];
 			stages_used = Array.concat(stages_used, curr_header);
 			t++;
 		}
 	}
+	scoring = Dialog.getCheckbox();
+	new_default = Array.concat(saveloc, expname, timestep, scoring, dup_overlay, default_stages);
+
 
 // save defaults for next time
 Array.show(new_default);
@@ -77,15 +88,15 @@ if	(Table.size > 0){
 	prev_im =	Table.getString	("movie", Table.size-1);
 	prev_c =	Table.get		("cell#", Table.size-1);
 }
-else{
+else {
 	prev_im = "";
-	prev_c = 1;
+	prev_c = 0;
 }
 
 // analyze individual events
 
 setTool("rectangle");
-for (c = prev_c; c > 0; c++){	// loop through cells
+for (c = prev_c+1; c > 0; c++){	// loop through cells
 	
 	coordinates_array = newArray(0);
 	// for each time point included, pause to allow user to define coordinates
@@ -104,7 +115,7 @@ for (c = prev_c; c > 0; c++){	// loop through cells
 
 		// create overlay of mitotic timepoint (t0, t1, etc)
 		x_mid = current_coord[0] + current_coord[2]/2;
-		overlay = "t"+tp;
+		overlay = "c" + c + "_t"+tp;
 		makeOverlay("str", overlay, x_mid, "red");
 		makeOverlay("box", current_coord, current_coord[0], "red");
 	}
@@ -146,10 +157,6 @@ for (c = prev_c; c > 0; c++){	// loop through cells
 	results_str = arrayToString(results,"\t");
 	print(_table_, results_str);
 	
-	// save results progress
-	selectWindow(table);
-	saveAs("Text", results_file);
-
 	// save overlay
 	run("To ROI Manager");
 	roiManager("Show All without labels");
@@ -157,6 +164,11 @@ for (c = prev_c; c > 0; c++){	// loop through cells
 	roiManager("save", saveloc + getTitle() + "_overlay.zip");
 	run("From ROI Manager");
 	roiManager("delete");
+	
+	// save results progress
+	selectWindow(table);
+	saveAs("Text", results_file);
+
 }
 
 
@@ -207,7 +219,7 @@ function GUI(nNotes){
 		//Dialog.addMessage("");
 		for (i = 0; i < nNotes; i++) Dialog.addString("Notes","",22);
 		
-	Dialog.show();
+	if(scoring)		Dialog.show();
 		skip = Dialog.getCheckbox;
 		highlighted = Dialog.getCheckbox;
 		lag = Dialog.getCheckbox;
@@ -409,7 +421,7 @@ function makeOverlay(type, item, x_pos, color){
 	setColor(color);
 	
 	if(type == "str"){
-		Overlay.drawString(item, x_pos, current_coord[1]-1);
+		Overlay.drawString(item, x_pos, current_coord[1]-5);
 		Overlay.setPosition(getSliceNumber());
 
 		if (dup_overlay){
@@ -435,9 +447,7 @@ function makeOverlay(type, item, x_pos, color){
 			}
 		}
 	}
-	
 	Overlay.show;
-	Overlay.setLabelFontSize("scale");
-	Overlay.setLabelFontSize("back");
-	setJustification("center");
+	//Overlay.setLabelFontSize(6,"scale");
+	//Overlay.setLabelFontSize("back");
 }
