@@ -179,11 +179,10 @@ function GUI(nNotes){
 	// actual dialog/GUI
 	Dialog.createNonBlocking("Observations checklist");
 		Dialog.addMessage("Do you want to skip analysis for this cell?");
-		Dialog.addChoice("SKIP THIS CELL?", no_yes);
+		Dialog.addCheckbox("SKIP THIS CELL?", 0);
 		Dialog.addMessage("If not, register observations for this mitosis below:");
-		Dialog.addChoice("Highlight cell", no_yes);
+		Dialog.addCheckbox("Highlight cell", 0);
 		
-		Dialog.addMessage("");
 		Dialog.addCheckbox("Lagger", 0);
 		Dialog.addCheckbox("Bridge", 0);
 		Dialog.addCheckbox("Misaligned", 0);
@@ -209,8 +208,8 @@ function GUI(nNotes){
 		for (i = 0; i < nNotes; i++) Dialog.addString("Notes","",22);
 		
 	Dialog.show();
-		skip = Dialog.getChoice;
-		highlighted = Dialog.getChoice;
+		skip = Dialog.getCheckbox;
+		highlighted = Dialog.getCheckbox;
 		lag = Dialog.getCheckbox;
 		bridge = Dialog.getCheckbox;
 		misaligned = Dialog.getCheckbox;
