@@ -1,7 +1,7 @@
 requires("1.53d");
 
 notes_lines = 3;
-surrounding_box = 8;	// in pixels
+surrounding_box = 1;	// in pixels
 
 if(nImages > 0)		Overlay.remove;
 else				open();
@@ -36,7 +36,7 @@ Dialog.create("Setup");
 	Dialog.addDirectory("Save location", default_saveloc);
 	Dialog.addString("Experiment name",  default_expname);
 	Dialog.setInsets(0, 0, 0);
-	Dialog.addNumber("Time step", 3, 0, 2, "min");
+	Dialog.addNumber("Time step", default_timestep, 0, 2, "min");
 	Dialog.setInsets(20, 0, 0);
 	Dialog.addCheckbox("Duplicate overlay? (for OrgaMovie output that has the same organoid movie left and right)",  default_duplic);
 	Dialog.setInsets(20, 0, 0);
@@ -46,25 +46,27 @@ Dialog.create("Setup");
 Dialog.show();
 	saveloc = Dialog.getString();
 	expname = Dialog.getString();
+	timestep = Dialog.getNumber();
 	dup_overlay = Dialog.getCheckbox();
 	if (expname == "")	expname = "AnalysisOf" + makeDateOrTimeString("d");
-	new_default = newArray(saveloc, expname, dup_overlay);
-	for (i = 0; i < totStages; i++) {	
-		new_default[i+2] = Dialog.getCheckbox();
-		if (new_default[i+2])	{
+	new_default = newArray(saveloc, expname, timestep, dup_overlay);
+	i_0 = new_default.length;
+	for (i = 0; i < totStages; i++) {
+		new_default[i_0+i] = Dialog.getCheckbox();
+		if (new_default[i_0 + i]) {
 			curr_header = "t" + t + "_" + mitotic_stages[i];
 			stages_used = Array.concat(stages_used, curr_header);
 			t++;
 		}
 	}
 
-	
 // save defaults for next time
 Array.show(new_default);
 selectWindow("new_default");
 saveAs("Text", defaults_path);
 run("Close");
 nStages = stages_used.length;
+
 
 // load progress
 table = "Scoring_" + expname + ".csv";
@@ -96,13 +98,17 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		waitForUser("Draw a box around a cell at " + stages_used[tp] + " of mitotic event.");
 
 		// get coordinates
-		current_coord = getCoordinates();
-		coordinates_array = Array.concat(coordinates_array, current_coord);
+		getSelectionBounds(x, y, w, h);
+		t = getSliceNumber();
+		current_coord = newArray(x, y, w, h, t);
+		rearranged = newArray(x, y, x+w, y+h, t);
+		coordinates_array = Array.concat(coordinates_array, rearranged);
 
 		// create overlay of mitotic timepoint (t0, t1, etc)
-		x_mid = (current_coord[0] + current_coord[2])/2;
+		x_mid = current_coord[0] + current_coord[2]/2;
 		overlay = "t"+tp;
-		makeOverlay("str", overlay, x_mid);
+		makeOverlay("str", overlay, x_mid, "red");
+		makeOverlay("box", current_coord, current_coord[0], "red");
 	}
 	run("Select None");
 
@@ -114,11 +120,11 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	intervals = newArray();
 	for (i = 0; i < nStages; i++) {
 		tps[i] = reorganized_coord_array[4*nStages+i];
-		if (i>0)	intervals[i-1] = tps[i] - tps[i-1];
+		if (i>0)	intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
 	}
 	
 	// create box overlay of cells already analyzed (only on relevant slices)
-	makeOverlay("box", xywhtt, xywhtt[0]);
+	makeOverlay("box", xywhtt, xywhtt[0], "white");
 
 	// custom function to ask for manual input on mitotic events
 	events = GUI(notes_lines);
@@ -234,13 +240,7 @@ function GUI(nNotes){
 }
 
 
-function getCoordinates(){
-	getSelectionBounds(x, y, w, h);
-	t = getSliceNumber();
 
-	coord = newArray(x, y, x+w, y+h, t);
-	return coord;
-}
 
 function reorganizeCoord(coord_group){
 	reorganized = newArray(0);
@@ -270,10 +270,10 @@ function getMinOrMaxOfMultiple(array,MinOrMax){
 }
 
 function getFullSelectionBounds(A){
-	x_min = getMinOrMaxOfMultiple( Array.slice( A, nStages*0, nStages*1), "min");
-	y_min = getMinOrMaxOfMultiple( Array.slice( A, nStages*1, nStages*2), "min");
-	x_max = getMinOrMaxOfMultiple( Array.slice( A, nStages*2, nStages*3), "max");
-	y_max = getMinOrMaxOfMultiple( Array.slice( A, nStages*3, nStages*4), "max");
+	x_min = getMinOrMaxOfMultiple( Array.slice( A, nStages*0, nStages*1), "min") - surrounding_box;
+	y_min = getMinOrMaxOfMultiple( Array.slice( A, nStages*1, nStages*2), "min") - surrounding_box;
+	x_max = getMinOrMaxOfMultiple( Array.slice( A, nStages*2, nStages*3), "max") + surrounding_box;
+	y_max = getMinOrMaxOfMultiple( Array.slice( A, nStages*3, nStages*4), "max") + surrounding_box;
 	
 	t_min = getMinOrMaxOfMultiple( Array.slice( A, nStages*4, nStages*5), "min");
 	t_max = getMinOrMaxOfMultiple( Array.slice( A, nStages*4, nStages*5), "max");
@@ -360,20 +360,19 @@ function generateHeaders(){
 
 function checkHeaders(new){
 	selectWindow(table);
-	old = Table.headings(table);
-
-	if (old != new && lengthOf(old) > 0){
-		//print("_" + old);
-		//print("_" + new);
-		waitForUser("***ERROR***\n" + 
-		"Previous settings of mitotic stages to include for this experiment do not match current settings and the results table will be overwritten.\n" +
-		"Either hit 'Esc' now to abort or manually move/rename the previous results file to avoid overwriting it\n" + 
-		"Results file: " + results_file);
+	if (Table.size() == 0){
 		run("Close");
-		
 		return 1;
-	}
-	else return 0;
+	} else if (old != new){
+			//print("_" + old);
+			//print("_" + new);
+			waitForUser("***ERROR***\n" + 
+			"Previous settings of mitotic stages to include for this experiment do not match current settings and the results table will be overwritten.\n" +
+			"Either hit 'Esc' now to abort or manually move/rename the previous results file to avoid overwriting it\n" + 
+			"Results file: " + results_file);
+			run("Close");
+			return 1;
+	} else	return 0;
 }
 
 function loadPreviousProgress(){
@@ -402,11 +401,10 @@ function loadPreviousProgress(){
 	}
 }
 
-
-function makeOverlay(type, item, x_pos){
+function makeOverlay(type, item, x_pos, color){
+	setColor(color);
+	
 	if(type == "str"){
-		setColor("red");
-			
 		Overlay.drawString(item, x_pos, current_coord[1]-1);
 		Overlay.setPosition(getSliceNumber());
 
@@ -419,7 +417,7 @@ function makeOverlay(type, item, x_pos){
 	}
 	
 	else if (type == "box"){
-		setColor("white");
+		if (item.length < 6)	item[5] = item[4];
 		for (t = item[4]; t <= item[5]; t++) {
 			Overlay.drawRect(item[0], item[1], item[2], item[3]);
 			Overlay.setPosition(t);
