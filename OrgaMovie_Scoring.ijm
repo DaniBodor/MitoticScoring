@@ -14,15 +14,17 @@ stages_used = newArray(0);
 // load previous defaults (if any)
 default_saveloc = "";
 default_expname = "";
+default_timestep = 3; //min
 default_duplic  = 1;
 default_stages = newArray(1,0,1,0,0,0);
 defaults_path = getDirectory("macros") + "OrgaMovie_Scoring_defaults.txt";
 if (File.exists(defaults_path)){
 	loaded_str = File.openAsString(defaults_path);
 	loaded_array = split(loaded_str, "\n");
-	default_saveloc = loaded_array[1];
-	default_expname = loaded_array[2];
-	default_duplic  = loaded_array[3];
+	default_saveloc  = loaded_array[1];
+	default_expname  = loaded_array[2];
+	default_timestep = loaded_array[3];
+	default_duplic   = loaded_array[4];
 	loaded_stages = Array.slice(loaded_array, loaded_array.length-totStages, loaded_array.length);
 	if (loaded_stages.length == totStages)	default_stages = loaded_stages;
 }
@@ -34,6 +36,8 @@ Dialog.create("Setup");
 	Dialog.addDirectory("Save location", default_saveloc);
 	Dialog.addString("Experiment name",  default_expname);
 	Dialog.setInsets(0, 0, 0);
+	Dialog.addNumber("Time step", 3, 0, 2, "min");
+	Dialog.setInsets(20, 0, 0);
 	Dialog.addCheckbox("Duplicate overlay? (for OrgaMovie output that has the same organoid movie left and right)",  default_duplic);
 	Dialog.setInsets(20, 0, 0);
 	Dialog.addMessage("Which mitotic stages should be monitored?")
@@ -106,21 +110,21 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	reorganized_coord_array = reorganizeCoord(coordinates_array);
 	xywhtt = getFullSelectionBounds(reorganized_coord_array);
 	
-	intervals = newArray(nStages-1);
-	for (i = 0; i < intervals.length; i++) {
-		intervals[i] = reorganized_coord_array[4*nStages+i+1] - reorganized_coord_array[4*nStages+i];
+	tps = newArray();
+	intervals = newArray();
+	for (i = 0; i < nStages; i++) {
+		tps[i] = reorganized_coord_array[4*nStages+i];
+		if (i>0)	intervals[i-1] = tps[i] - tps[i-1];
 	}
 	
 	// create box overlay of cells already analyzed (only on relevant slices)
 	makeOverlay("box", xywhtt, xywhtt[0]);
 
-	
 	// custom function to ask for manual input on mitotic events
 	events = GUI(notes_lines);
 
 	// create and print results line
-	results = Array.concat(im, c, intervals);
-	results = Array.concat(results,events);
+	results = Array.concat(im, c, tps, intervals, events);
 	
 	for (i = 0; i < nStages; i++){
 		curr_coord = Array.slice(coordinates_array, i*5, i*5+5);
@@ -324,6 +328,13 @@ function makeDateOrTimeString(DorT){
 function generateHeaders(){
 	// create and print headers for output
 	headers = newArray("movie","cell#");	// first entry of headers
+
+	// add tps
+	for (s = 0; s < nStages; s++) {		// then add the individual intervals
+		tnumber = "t"+s;
+		headers = Array.concat(headers,tnumber);
+	}
+	
 	for (s = 1; s < nStages; s++) {		// then add the individual intervals
 		t_header = "time_t" + s-1 + "-->t" + s;
 		headers = Array.concat(headers,t_header);
@@ -351,13 +362,15 @@ function checkHeaders(new){
 	selectWindow(table);
 	old = Table.headings(table);
 
-	if (old != new){
+	if (old != new && lengthOf(old) > 0){
 		//print("_" + old);
 		//print("_" + new);
 		waitForUser("***ERROR***\n" + 
 		"Previous settings of mitotic stages to include for this experiment do not match current settings and the results table will be overwritten.\n" +
-		"Either cancel now or manually move/rename the previous results file to avoid overwriting it\n" + 
+		"Either hit 'Esc' now to abort or manually move/rename the previous results file to avoid overwriting it\n" + 
 		"Results file: " + results_file);
+		run("Close");
+		
 		return 1;
 	}
 	else return 0;
