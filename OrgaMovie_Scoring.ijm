@@ -8,16 +8,16 @@ surrounding_box = 1;	// in pixels
 if(nImages > 0)		Overlay.remove;
 else				open();
 
-mitotic_stages = newArray("G2","NEBD", "Metaphase", "Anaphase_onset", "Decondensation", "Telophase", "G1");
-totStages = mitotic_stages.length;
-stages_used = newArray(0);
+all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Telophase", "Decondensation", "G1");
+nAllStages = all_stages.length;
+
 
 // load previous defaults (if any)
 default_saveloc = "";
 default_expname = "";
-default_timestep = 3; //min
-default_duplic  = 1;
-default_stages = newArray(0,1,0,1,0,0,0);
+default_timestep = 3;
+default_duplic  = 0;
+default_stages = newArray(0,1,0,0,1,0,0,0);
 default_score = 1;
 defaults_path = getDirectory("macros") + "OrgaMovie_Scoring_defaults.txt";
 if (File.exists(defaults_path)){
@@ -28,54 +28,56 @@ if (File.exists(defaults_path)){
 	default_timestep = loaded_array[3];
 	default_duplic   = loaded_array[4];
 	default_score	 = loaded_array[5];
-	loaded_stages = Array.slice(loaded_array, loaded_array.length-totStages, loaded_array.length);
-	if (loaded_stages.length == totStages)	default_stages = loaded_stages;
-	
+	loaded_stages = Array.slice(loaded_array, loaded_array.length-nAllStages, loaded_array.length);
+	if (loaded_stages.length == nAllStages)	default_stages = loaded_stages;
 }
 
 // open dialog to ask which stages to inlcude
-t=0;
 Dialog.create("Setup");
 	Dialog.setInsets(0, 0, 0);
 	Dialog.addDirectory("Save location", default_saveloc);
 	Dialog.addString("Experiment name",  default_expname);
 	Dialog.setInsets(0, 0, 0);
-	Dialog.addNumber("Time step", default_timestep, 0, 2, "min");
+	Dialog.addNumber("Time step", default_timestep);
 	Dialog.setInsets(20, 0, 0);
-	Dialog.addCheckbox("Duplicate overlay? (for OrgaMovie output that has the same organoid movie left and right)",  default_duplic);
+	Dialog.addCheckbox("Duplicate tracking ROIs left and right? (for OrgaMovie output that contain the same organoid twice)",  default_duplic);
 	Dialog.setInsets(20, 0, 0);
 	Dialog.addMessage("Which mitotic stages should be monitored?")
 	Dialog.setInsets(0, 0, 0);
-	Dialog.addCheckboxGroup(2, 4, mitotic_stages, default_stages);
-	Dialog.addMessage("");
-	Dialog.setInsets(0, 0, 0);
+	Dialog.addCheckboxGroup(2, 4, all_stages, default_stages);
+	Dialog.setInsets(25, 0, 0);
 	Dialog.addCheckbox("Score events?",  default_score);
+	Dialog.addHelp("https://github.com/DaniBodor/OrgaMovie/blob/master/README.md#mitotic-scoring-macro");
 Dialog.show();
 	saveloc = Dialog.getString();
 	expname = Dialog.getString();
+		if (expname == "")	expname = "AnalysisOf" + makeDateOrTimeString("d");
 	timestep = Dialog.getNumber();
 	dup_overlay = Dialog.getCheckbox();
-	if (expname == "")	expname = "AnalysisOf" + makeDateOrTimeString("d");
-	new_default = newArray();
-	i_0 = new_default.length;
-	for (i = 0; i < totStages; i++) {
+
+	stages_used = newArray();
+	t=0;
+	for (i = 0; i < nAllStages; i++) {
 		default_stages[i] = Dialog.getCheckbox();
 		if (default_stages[i]) {
-			curr_header = "t" + t + "_" + mitotic_stages[i];
-			stages_used = Array.concat(stages_used, curr_header);
+			curr_header = "t" + t + "_" + all_stages[i];
+			stages_used[t] = curr_header;
 			t++;
 		}
 	}
 	scoring = Dialog.getCheckbox();
-	new_default = Array.concat(saveloc, expname, timestep, scoring, dup_overlay, default_stages);
+	
+new_default = Array.concat(saveloc, expname, timestep, dup_overlay, scoring, default_stages);
 
+nStages = stages_used.length;
+if (nStages == 0)	exit("Macro aborted because no stages are tracked.\nSelect at least 1 stage to track");
 
 // save defaults for next time
 Array.show(new_default);
 selectWindow("new_default");
 saveAs("Text", defaults_path);
 run("Close");
-nStages = stages_used.length;
+
 
 
 // load progress
@@ -191,10 +193,13 @@ function GUI(nNotes){
 	// actual dialog/GUI
 	Dialog.createNonBlocking("Observations checklist");
 		Dialog.addMessage("Do you want to skip analysis for this cell?");
-		Dialog.addCheckbox("SKIP THIS CELL?", 0);
+		Dialog.setInsets(0,20,0);
+		Dialog.addCheckbox("Skip this cell", 0);
 		Dialog.addMessage("If not, register observations for this mitosis below:");
+		Dialog.setInsets(0,20,0);
 		Dialog.addCheckbox("Highlight cell", 0);
 		
+		Dialog.addMessage("Record observations below");
 		Dialog.addCheckbox("Lagger", 0);
 		Dialog.addCheckbox("Bridge", 0);
 		Dialog.addCheckbox("Misaligned", 0);
@@ -356,15 +361,14 @@ function generateHeaders(){
 	}
 	
 	headers = Array.concat(headers,	// then add the possible events
-		newArray(	
 			"skip","highlight",
 			"lagger","bridge","misaligned", "cohesion defect",
 			"multipolar","#_poles","micronucleated","#_micronuclei","micronuclei_before/after_mitosis",
 			"multinucleated","#_nuclei","multinucleated_before/after_mitosis",
 			"other","namely",
-			"unclear"));
+			"unclear");
 	
-	for (nl = 0; nl < notes_lines; nl++) headers = Array.concat(headers,"notes"+nl);	// then add lines for notes
+	for (nl = 0; nl < notes_lines; nl++) headers = Array.concat(headers,"notes"+nl+1);	// then add lines for notes
 	headers = Array.concat(headers,stages_used);		// then coordinates of each mitotic stage
 	headers = Array.concat(headers, "extract_code");	// then a code to allow for quick extraction (Gaby request)
 	
@@ -383,8 +387,8 @@ function checkHeaders(new){
 			//print("_" + old);
 			//print("_" + new);
 			waitForUser("***ERROR***\n" + 
-			"Previous settings of mitotic stages to include for this experiment do not match current settings and the results table will be overwritten.\n" +
-			"Either hit 'Esc' now to abort or manually move/rename the previous results file to avoid overwriting it\n" + 
+			"Previous settings of mitotic stages to include for this experiment do not match current settings and the results table will be overwritten if the macro is not aborted.\n  \n" +
+			"Either abort macro (hit 'Esc') before analyzing any cell and restart using a different experiment name, or manually move/rename the previous results file to avoid overwriting it\n" + 
 			"Results file: " + results_file);
 			run("Close");
 			return 1;
@@ -407,10 +411,11 @@ function loadPreviousProgress(){
 	if (make_table_now){					
 		run("Table...", "name="+_table_+" width=1200 height=300");
 		print(_table_, "\\Headings:" + headers);
+		Overlay.remove();
 	}
 	
 	// find previous overlay
-	if (File.exists(overlay_file)){
+	else if (File.exists(overlay_file)){
 		roiManager("Open", overlay_file);
 		run("From ROI Manager");
 		roiManager("delete");
