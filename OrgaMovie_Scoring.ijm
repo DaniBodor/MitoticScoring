@@ -86,21 +86,20 @@ else{
 
 setTool("rectangle");
 for (c = prev_c; c > 0; c++){	// loop through cells
-	im = getTitle();
-	if (im != prev_im)	c = 1;
-	prev_im = im;
 	
 	coordinates_array = newArray(0);
 	// for each time point included, pause to allow user to define coordinates
 	for (tp = 0; tp < nStages; tp++) {
 		// allow user to box mitotic cell
-		waitForUser("Draw a box around a cell at " + stages_used[tp] + " of mitotic event.");
+		wait_string = "Draw a box around a cell at " + stages_used[tp] + " of mitotic event.";
+		if (tp>0)	wait_string = wait_string + "\n ---- t" + tp-1 + " at frame " + f;
+		waitForUser(wait_string);
 
 		// get coordinates
 		getSelectionBounds(x, y, w, h);
-		t = getSliceNumber();
-		current_coord = newArray(x, y, w, h, t);
-		rearranged = newArray(x, y, x+w, y+h, t);
+		f = getSliceNumber();
+		current_coord = newArray(x, y, w, h, f);
+		rearranged = newArray(x, y, x+w, y+h, f);
 		coordinates_array = Array.concat(coordinates_array, rearranged);
 
 		// create overlay of mitotic timepoint (t0, t1, etc)
@@ -129,6 +128,10 @@ for (c = prev_c; c > 0; c++){	// loop through cells
 	events = GUI(notes_lines);
 
 	// create and print results line
+	im = getTitle();
+	if (im != prev_im)	c = 1;
+	prev_im = im;
+	
 	results = Array.concat(im, c, tps, intervals, events);
 	
 	for (i = 0; i < nStages; i++){
@@ -184,6 +187,7 @@ function GUI(nNotes){
 		Dialog.addCheckbox("Lagger", 0);
 		Dialog.addCheckbox("Bridge", 0);
 		Dialog.addCheckbox("Misaligned", 0);
+		Dialog.addCheckbox("Cohesion_defect", 0);
 		Dialog.addCheckbox("Multipolar", 0);
 			Dialog.setInsets(-20,120,0);
 			Dialog.addString("#","",1);
@@ -210,6 +214,7 @@ function GUI(nNotes){
 		lag = Dialog.getCheckbox;
 		bridge = Dialog.getCheckbox;
 		misaligned = Dialog.getCheckbox;
+		cohesion_defect = Dialog.getCheckbox;
 		multipole = Dialog.getCheckbox;
 			pole_number = Dialog.getString;
 		micronuc = Dialog.getCheckbox;
@@ -225,7 +230,7 @@ function GUI(nNotes){
 
 	GUI_result = newArray(
 		skip,		highlighted,
-		lag,		bridge,				misaligned,
+		lag,		bridge,				misaligned,			cohesion_defect,
 		multipole,	pole_number,
 		micronuc,	micronuc_number,	micronuc_timing,
 		multinuc,	multinuc_number,	multinuc_timing,
@@ -342,7 +347,7 @@ function generateHeaders(){
 	headers = Array.concat(headers,	// then add the possible events
 		newArray(	
 			"skip","highlight",
-			"lagger","bridge","misaligned",
+			"lagger","bridge","misaligned", "cohesion defect",
 			"multipolar","#_poles","micronucleated","#_micronuclei","micronuclei_before/after_mitosis",
 			"multinucleated","#_nuclei","multinucleated_before/after_mitosis",
 			"other","namely",
@@ -418,15 +423,15 @@ function makeOverlay(type, item, x_pos, color){
 	
 	else if (type == "box"){
 		if (item.length < 6)	item[5] = item[4];
-		for (t = item[4]; t <= item[5]; t++) {
+		for (f = item[4]; f <= item[5]; f++) {
 			Overlay.drawRect(item[0], item[1], item[2], item[3]);
-			Overlay.setPosition(t);
+			Overlay.setPosition(f);
 			Overlay.add;	// not sure this command is needed.
 			if (dup_overlay){
 				offset = getWidth/2;
 				if (x_pos < offset) Overlay.drawRect(item[0] + offset, item[1], item[2], item[3]);
 				else				Overlay.drawRect(item[0] - offset, item[1], item[2], item[3]);
-				Overlay.setPosition(t);
+				Overlay.setPosition(f);
 				Overlay.add;
 			}
 		}
