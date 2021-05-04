@@ -1,6 +1,7 @@
+requires("1.53d");
+
 notes_lines = 3;
 surrounding_box = 8;	// in pixels
-requires("1.53d");
 
 if(nImages > 0)		Overlay.remove;
 else				open();
@@ -13,6 +14,7 @@ stages_used = newArray(0);
 // load previous defaults (if any)
 default_saveloc = "";
 default_expname = "";
+default_duplic  = 1;
 default_stages = newArray(1,0,1,0,0,0);
 defaults_path = getDirectory("macros") + "OrgaMovie_Scoring_defaults.txt";
 if (File.exists(defaults_path)){
@@ -20,7 +22,8 @@ if (File.exists(defaults_path)){
 	loaded_array = split(loaded_str, "\n");
 	default_saveloc = loaded_array[1];
 	default_expname = loaded_array[2];
-	loaded_stages = Array.slice(loaded_array, 3, totStages+4);
+	default_duplic  = loaded_array[3];
+	loaded_stages = Array.slice(loaded_array, loaded_array.length-totStages, loaded_array.length);
 	if (loaded_stages.length == totStages)	default_stages = loaded_stages;
 }
 
@@ -30,23 +33,28 @@ Dialog.create("Setup");
 	Dialog.setInsets(0, 0, 0);
 	Dialog.addDirectory("Save location", default_saveloc);
 	Dialog.addString("Experiment name",  default_expname);
+	Dialog.setInsets(0, 0, 0);
+	Dialog.addCheckbox("Duplicate overlay? (for OrgaMovie output that has the same organoid movie left and right)",  default_duplic);
 	Dialog.setInsets(20, 0, 0);
 	Dialog.addMessage("Which mitotic stages should be monitored?")
 	Dialog.setInsets(0, 0, 0);
 	Dialog.addCheckboxGroup(2, 3, mitotic_stages, default_stages);
 Dialog.show();
-saveloc = Dialog.getString();
-expname = Dialog.getString();
-if (expname == "")	expname = "AnalysisOf" + makeDateOrTimeString("d");
-new_default = newArray(saveloc, expname);
-for (i = 0; i < totStages; i++) {	
-	new_default[i+2] = Dialog.getCheckbox();
-	if (new_default[i+2])	{
-		curr_header = "t" + t + "_" + mitotic_stages[i];
-		stages_used = Array.concat(stages_used, curr_header);
-		t++;
+	saveloc = Dialog.getString();
+	expname = Dialog.getString();
+	dup_overlay = Dialog.getCheckbox();
+	if (expname == "")	expname = "AnalysisOf" + makeDateOrTimeString("d");
+	new_default = newArray(saveloc, expname, dup_overlay);
+	for (i = 0; i < totStages; i++) {	
+		new_default[i+2] = Dialog.getCheckbox();
+		if (new_default[i+2])	{
+			curr_header = "t" + t + "_" + mitotic_stages[i];
+			stages_used = Array.concat(stages_used, curr_header);
+			t++;
+		}
 	}
-}
+
+	
 // save defaults for next time
 Array.show(new_default);
 selectWindow("new_default");
@@ -88,10 +96,9 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		coordinates_array = Array.concat(coordinates_array, current_coord);
 
 		// create overlay of mitotic timepoint (t0, t1, etc)
-		setColor("red");
 		x_mid = (current_coord[0] + current_coord[2])/2;
-		Overlay.drawString("t"+tp, x_mid-6, current_coord[1]-1);
-		Overlay.setPosition(getSliceNumber());
+		overlay = "t"+tp;
+		makeOverlay("str", overlay, x_mid);
 	}
 	run("Select None");
 
@@ -105,13 +112,8 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	}
 	
 	// create box overlay of cells already analyzed (only on relevant slices)
-	setColor("white");
-	for (t = xywhtt[4]; t <= xywhtt[5]; t++) {
-		Overlay.drawRect(xywhtt[0], xywhtt[1], xywhtt[2], xywhtt[3]);
-		Overlay.setPosition(t);
-		Overlay.add;
-	}
-	Overlay.show;
+	makeOverlay("box", xywhtt, xywhtt[0]);
+
 	
 	// custom function to ask for manual input on mitotic events
 	events = GUI(notes_lines);
@@ -346,29 +348,35 @@ function generateHeaders(){
 }
 
 function checkHeaders(new){
-//	selectWindow(table);
+	selectWindow(table);
 	old = Table.headings(table);
 
 	if (old != new){
-		exit("***ERROR***\n" + 
-		"Previous settings of mitotic stages to include for this experiment do not match current settings.\n" +
-		"Please manually move/rename/delete the file and restart macro, or restart macro with identical settings as before.\n\n" + 
+		//print("_" + old);
+		//print("_" + new);
+		waitForUser("***ERROR***\n" + 
+		"Previous settings of mitotic stages to include for this experiment do not match current settings and the results table will be overwritten.\n" +
+		"Either cancel now or manually move/rename the previous results file to avoid overwriting it\n" + 
 		"Results file: " + results_file);
+		return 1;
 	}
+	else return 0;
 }
 
 function loadPreviousProgress(){
 	headers = generateHeaders();
 
-	// find previous logfile
+	// find previous results
 	if (File.exists(results_file)){
 		Table.open(results_file);
-		checkHeaders(headers);
+		make_table_now = checkHeaders(headers);
 	}
 	else if (isOpen(table)){	// if no previous log file, but scoring table is open
-		checkHeaders(headers);
+		make_table_now = checkHeaders(headers);
 	}
-	else{						// no previous log file and no current open scoring table
+	else make_table_now = 1; // no previous log file and no current open scoring table
+	
+	if (make_table_now){					
 		run("Table...", "name="+_table_+" width=1200 height=300");
 		print(_table_, "\\Headings:" + headers);
 	}
@@ -379,4 +387,42 @@ function loadPreviousProgress(){
 		run("From ROI Manager");
 		roiManager("delete");
 	}
+}
+
+
+function makeOverlay(type, item, x_pos){
+	if(type == "str"){
+		setColor("red");
+			
+		Overlay.drawString(item, x_pos, current_coord[1]-1);
+		Overlay.setPosition(getSliceNumber());
+
+		if (dup_overlay){
+			offset = getWidth/2;
+			if (x_pos < offset) Overlay.drawString(item, x_pos + offset, current_coord[1]-1);
+			else				Overlay.drawString(item, x_pos - offset, current_coord[1]-1);
+			Overlay.setPosition(getSliceNumber());
+		}
+	}
+	
+	else if (type == "box"){
+		setColor("white");
+		for (t = item[4]; t <= item[5]; t++) {
+			Overlay.drawRect(item[0], item[1], item[2], item[3]);
+			Overlay.setPosition(t);
+			Overlay.add;	// not sure this command is needed.
+			if (dup_overlay){
+				offset = getWidth/2;
+				if (x_pos < offset) Overlay.drawRect(item[0] + offset, item[1], item[2], item[3]);
+				else				Overlay.drawRect(item[0] - offset, item[1], item[2], item[3]);
+				Overlay.setPosition(t);
+				Overlay.add;
+			}
+		}
+	}
+	
+	Overlay.show;
+	Overlay.setLabelFontSize("scale");
+	Overlay.setLabelFontSize("back");
+	setJustification("center");
 }
