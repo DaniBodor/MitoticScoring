@@ -140,22 +140,22 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		// get coordinates
 		getSelectionBounds(x, y, w, h);
 		Stack.getPosition(_, z, f);
-		current_coord = newArray(x, y, w, h, f);
+		overlay_coord = newArray(x, y, w, h, f, f, z);
 		rearranged = newArray(x, y, x+w, y+h, f, z);
 		coordinates_array = Array.concat(coordinates_array, rearranged);
 
 		// create overlay of mitotic timepoint (t0, t1, etc)
 		overlay_name = "c" + c + "_t" + tp;
-		makeOverlay(current_coord, overlay_name, "red");
+		makeOverlay(overlay_coord, overlay_name, "red");
 	}
 	run("Select None");
 	
 	// reorganize coordinates
 	reorganized_coord_array = reorganizeCoord(coordinates_array);
-	xywhtt = getFullSelectionBounds(reorganized_coord_array);
+	xywhttz = getFullSelectionBounds(reorganized_coord_array);
 	
 	// create box overlay of cells already analyzed (only on relevant slices)
-	makeOverlay(xywhtt, "c" + c, "white");	
+	makeOverlay(xywhttz, "c" + c, "white");	
 	
 	// for manual input on observations
 	events = GUI(notes_lines);
@@ -175,8 +175,8 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		coord_string = arrayToString(curr_coord,"_");
 		results = Array.concat(results,coord_string);
 	}
-	xywhtt_string = arrayToString(xywhtt,"_");
-	results = Array.concat(results,xywhtt_string);
+	xywhttz_string = arrayToString(xywhttz,"_");
+	results = Array.concat(results,xywhttz_string);
 
 	//Array.print(results);
 	results_str = arrayToString(results,"\t");
@@ -327,8 +327,8 @@ function getFullSelectionBounds(A){
 	w = x_max - x_min;
 	h = y_max - y_min;
 
-	xywhtt = newArray(x_min, y_min, w, h, t_min, t_max, z_mean);
-	return xywhtt;
+	xywhttz = newArray(x_min, y_min, w, h, t_min, t_max, z_mean);
+	return xywhttz;
 }
 
 function arrayToString(A,splitter){
@@ -449,9 +449,6 @@ function loadPreviousProgress(){
 }
 
 function makeOverlay(coord, name, color){
-	// if single timepoint is given, make this both first and last timepoint
-	if (coord.length < 6)	coord[5] = coord[4];
-
 	// create rect at each frame
 	for (f = coord[4]; f <= coord[5]; f++) {
 		for (i = 0; i < dup_overlay+1; i++) {	// 1 or 2 boxes, depending on dup_overlay
@@ -461,8 +458,10 @@ function makeOverlay(coord, name, color){
 			Overlay.addSelection(color);
 			// unfortunately Overlay.setPosition(c, z, t) only works if there's c (or z?) > 1
 			Stack.getDimensions(_, _, ch, sl, fr);
-			if(ch*sl > 1)	Overlay.setPosition(0, 0, f);
-			else			Overlay.setPosition(f);
+			for (z = coord[6] - zboxspread; z <= coord[6] + zboxspread; z++) {
+				if (ch*sl == 1)		Overlay.setPosition(f);
+				else				Overlay.setPosition(0, z, f);
+			}
 		}
 	}
 	run("Select None");
