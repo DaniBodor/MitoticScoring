@@ -30,7 +30,7 @@ Here, you can set:
 
 Current settings will be stored and used as default next time you run the macro, so if nothing changes you can just click OK.
 
-<img src="https://user-images.githubusercontent.com/14219087/117166147-62f0a500-adc6-11eb-9d27-86342848bd39.png" width=50%>
+<img src="Images/Scoring_Macro_Setup.png" width=50%>
 
 
 ## Identify & score mitotic cells
@@ -39,10 +39,10 @@ The macro will ask you to draw a box around the mitotic cell at the for each sta
 These boxes are saved in your save location after each analyzed cell, and are automatically reloaded when you restart the macro on the same cell.
 
 Next, you will be prompted to input observations to track:  
-<img src="https://user-images.githubusercontent.com/14219087/117031513-efd12b00-ad00-11eb-8125-b4d0fecb1fce.png" width=30%>
+<img src="Images/ObservationsChecklist.png" width=30%>
 
 Then, results will be written to the scoring table, which is immediately saved (the file is overwritten after each cell) as a \*.csv, which can be read by most downstream applications (Excel, R, Python, Matlab, ...).
-<img src="https://user-images.githubusercontent.com/14219087/117033113-5f93e580-ad02-11eb-95db-e90ea82ce905.png" width=80%>
+<img src="Images/ResultsTable.png" width=80%>
 
 It then asks you to identify and box the next cell. This repeats forever, until you hit 'Esc' or in some other way quit the macro.
 
