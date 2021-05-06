@@ -12,55 +12,64 @@ all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Teloph
 nAllStages = all_stages.length;
 
 
-// load previous defaults (if any)
-default_saveloc = "";
-default_expname = "";
-default_timestep = 3;
-default_duplic  = 0;
-default_color1 = "red";
-default_color2 = "white";
-default_score = 1;
-default_stages = newArray(0,1,0,0,1,0,0,0);
-defaults_path = getDirectory("macros") + "OrgaMovie_Scoring_defaults.txt";
+// initiate defaults (if any)
+default_array = newArray(
+	// 0 keys (ignored)
+	"", //1 default_saveloc
+	"", //2 default_expname
+	3,  //3 default_timestep
+	0,  //4 default_duplic
+	0,  //5 default_zspread
+	"red", //6 default_color1
+	"white", //7 default_color2
+	1, // 8 default_score
+	newArray(0,1,0,0,1,0,0,0) ); //default_stages
+nDefaults = default_array.length;
 
+// load previous defaults (if any)
+defaults_path = getDirectory("macros") + "OrgaMovie_Scoring_defaults.txt";
 if (File.exists(defaults_path)){
 	loaded_str = File.openAsString(defaults_path);
 	loaded_array = split(loaded_str, "\n");
-	default_saveloc  = loaded_array[1];
-	default_expname  = loaded_array[2];
-	default_timestep = loaded_array[3];
-	default_duplic   = loaded_array[4];
-	default_color1	 = loaded_array[5];
-	default_color2	 = loaded_array[6];
-	default_score	 = loaded_array[7];
-	loaded_stages = Array.slice(loaded_array, loaded_array.length-nAllStages, loaded_array.length);
-	if (loaded_stages.length == nAllStages)	default_stages = loaded_stages;
+	if (loaded_array.length == nDefaults){
+		default_array = loaded_array;		
+	}
 }
+
 
 // open dialog to ask which stages to inlcude
 Dialog.create("Setup");
-	Dialog.addDirectory("Save location", default_saveloc);
-	Dialog.addString("Experiment name",  default_expname);
+	Dialog.addMessage("OUTPUT SETTINGS");
+//	Dialog.setInsets(0, 0, 0);
+	Dialog.addDirectory("Save location", default_array[1]);
+	Dialog.addString("Experiment name",  default_array[2]);
 	Dialog.setInsets(0, 0, 0);
-	Dialog.addNumber("Time step", default_timestep);
+	Dialog.addNumber("Time step", default_array[3]);
+
+	Dialog.addMessage("SETTINGS FOR VISUAL TRACKING");
 	Dialog.setInsets(20, 0, 0);
 	Dialog.addCheckbox("Duplicate tracking ROIs left and right? "+
-						"(for OrgaMovie output that contains the same organoid twice)",  default_duplic);
-	Dialog.addString("ROI color at timepoint", default_color1);
-	Dialog.addString("ROI color throughout", default_color2);
+						"(for OrgaMovie output that contains the same organoid twice)",  default_array[4]);
+	Dialog.addNumber("Put tracking box in +/-", default_array[5], 0, 1, "z-planes surrounding mean.");
+	Dialog.addString("ROI color at timepoint", default_array[6]);
+	Dialog.addString("ROI color throughout", default_array[7]);
+
+	Dialog.addMessage("SCORING SETTINGS");
 	Dialog.setInsets(20, 0, 0);
-	Dialog.addCheckbox("Score observations?",  default_score);
+	Dialog.addCheckbox("Score observations?",  default_array[8]);
 	Dialog.setInsets(0, 0, 0);
 	Dialog.addMessage("Which mitotic stages should be monitored?")
 	Dialog.setInsets(0, 0, 0);
+	default_stages = Array.slice(default_array, nDefaults - nAllStages, nDefaults);
 	Dialog.addCheckboxGroup(2, 4, all_stages, default_stages);
 	Dialog.addHelp("https://github.com/DaniBodor/MitoticScoring#setup");
 Dialog.show();
 	saveloc = Dialog.getString();
 	expname = Dialog.getString();
-		if (expname == "")	expname = "AnalysisOf" + makeDateOrTimeString("d");
+		if (expname == "")	expname = "mitotic_scoring";
 	timestep = Dialog.getNumber();
 	dup_overlay = Dialog.getCheckbox();
+	zboxspread = Dialog.getNumber();
 	overlay_color1 = Dialog.getString();
 	overlay_color2 = Dialog.getString();
 	scoring = Dialog.getCheckbox();
@@ -76,7 +85,7 @@ Dialog.show();
 	}
 	
 new_default = Array.concat(saveloc, expname, timestep, 
-							dup_overlay, overlay_color1, overlay_color2, 
+							dup_overlay, zboxspread, overlay_color1, overlay_color2, 
 							scoring, default_stages);
 
 nStages = stages_used.length;
