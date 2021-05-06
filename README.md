@@ -1,3 +1,5 @@
+[![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/sindresorhus/awesome)
+
 # Mitotic Scoring Macro
 This macro keeps track of manual scoring of mitotic events. It keeps track of timings, position, and potential mitotic errors or events.
 
