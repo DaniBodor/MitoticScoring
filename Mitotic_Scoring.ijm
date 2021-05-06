@@ -109,7 +109,7 @@ else {
 setTool("rectangle");
 for (c = prev_c+1; c > 0; c++){	// loop through cells
 	
-	coordinates_array = newArray(0);
+	coordinates_array = newArray();
 	// for each time point included, pause to allow user to define coordinates
 	for (tp = 0; tp < nStages; tp++) {
 		// allow user to box mitotic cell
@@ -130,9 +130,9 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 
 		// get coordinates
 		getSelectionBounds(x, y, w, h);
-		Stack.getPosition(_, _, f);
+		Stack.getPosition(_, z, f);
 		current_coord = newArray(x, y, w, h, f);
-		rearranged = newArray(x, y, x+w, y+h, f);
+		rearranged = newArray(x, y, x+w, y+h, f, z);
 		coordinates_array = Array.concat(coordinates_array, rearranged);
 
 		// create overlay of mitotic timepoint (t0, t1, etc)
@@ -162,7 +162,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	results = Array.concat(im, c, tps, intervals, events);
 	
 	for (i = 0; i < nStages; i++){
-		curr_coord = Array.slice(coordinates_array, i*5, i*5+5);
+		curr_coord = Array.slice(coordinates_array, i*rearranged.length, (i+1)*rearranged.length);
 		coord_string = arrayToString(curr_coord,"_");
 		results = Array.concat(results,coord_string);
 	}
@@ -184,6 +184,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	// save results progress
 	selectWindow(table);
 	saveAs("Text", results_file);
+
 
 }
 
@@ -277,9 +278,9 @@ function GUI(nNotes){
 
 
 function reorganizeCoord(coord_group){
-	reorganized = newArray(0);
+	reorganized = newArray();
 	for (j = 0; j < coord_group.length/nStages; j++) {
-		for (i = 0; i < coord_group.length; i+=5) {
+		for (i = 0; i < coord_group.length; i+=rearranged.length) {
 			reorganized = Array.concat(reorganized, coord_group[i+j]);
 		}
 	}
@@ -304,18 +305,20 @@ function getMinOrMaxOfMultiple(array,MinOrMax){
 }
 
 function getFullSelectionBounds(A){
-	x_min = getMinOrMaxOfMultiple( Array.slice( A, nStages*0, nStages*1), "min") - surrounding_box;
-	y_min = getMinOrMaxOfMultiple( Array.slice( A, nStages*1, nStages*2), "min") - surrounding_box;
-	x_max = getMinOrMaxOfMultiple( Array.slice( A, nStages*2, nStages*3), "max") + surrounding_box;
-	y_max = getMinOrMaxOfMultiple( Array.slice( A, nStages*3, nStages*4), "max") + surrounding_box;
+	xA = array.concat( Array.slice( A, nStages*0, nStages*1), Array.slice( A, nStages*2, nStages*3));	
+	yA = array.concat( Array.slice( A, nStages*1, nStages*2), Array.slice( A, nStages*3, nStages*4));
+	tA = Array.slice( A, nStages*4, nStages*5);
+	zA = Array.slice( A, nStages*5, nStages*6);
 	
-	t_min = getMinOrMaxOfMultiple( Array.slice( A, nStages*4, nStages*5), "min");
-	t_max = getMinOrMaxOfMultiple( Array.slice( A, nStages*4, nStages*5), "max");
+	Array.getStatistics(xA, x_min, x_max, _, _);
+	Array.getStatistics(yA, y_min, y_max, _, _);
+	Array.getStatistics(tA, t_min, t_max, _, _);
+	Array.getStatistics(zA, _, _, z_mean, _);
 
 	w = x_max - x_min;
 	h = y_max - y_min;
 
-	xywhtt = newArray(x_min,y_min,w,h,t_min,t_max);
+	xywhtt = newArray(x_min, y_min, w, h, t_min, t_max, z_mean);
 	return xywhtt;
 }
 
@@ -448,6 +451,7 @@ function makeOverlay(coord, name, color){
 			Roi.setName(name);
 			Overlay.addSelection(color);
 			// unfortunately Overlay.setPosition(c, z, t) only works if there's c (or z?) > 1
+			Stack.getDimensions(_, _, ch, sl, fr);
 			if(ch*sl > 1)	Overlay.setPosition(0, 0, f);
 			else			Overlay.setPosition(f);
 		}
