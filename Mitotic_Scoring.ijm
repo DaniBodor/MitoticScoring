@@ -14,7 +14,7 @@ nAllStages = all_stages.length;
 
 // initiate defaults (if any)
 default_array = newArray(
-	// 0 keys (ignored)
+	"_", // 0 keys (ignored)
 	"", //1 default_saveloc
 	"", //2 default_expname
 	3,  //3 default_timestep
@@ -23,7 +23,7 @@ default_array = newArray(
 	"red", //6 default_color1
 	"white", //7 default_color2
 	1, // 8 default_score
-	newArray(0,1,0,0,1,0,0,0) ); //default_stages
+	0,1,0,0,1,0,0,0 ); //default_stages
 nDefaults = default_array.length;
 
 // load previous defaults (if any)
@@ -90,6 +90,7 @@ new_default = Array.concat(saveloc, expname, timestep,
 
 nStages = stages_used.length;
 if (nStages == 0)	exit("Macro aborted because no stages are tracked.\nSelect at least 1 stage to track");
+if (!File.isDirectory(saveloc))		File.makeDirectory(saveloc);
 
 // save defaults for next time
 Array.show(new_default);
@@ -314,15 +315,15 @@ function getMinOrMaxOfMultiple(array,MinOrMax){
 }
 
 function getFullSelectionBounds(A){
-	xA = array.concat( Array.slice( A, nStages*0, nStages*1), Array.slice( A, nStages*2, nStages*3));	
-	yA = array.concat( Array.slice( A, nStages*1, nStages*2), Array.slice( A, nStages*3, nStages*4));
+	xA = Array.concat( Array.slice( A, nStages*0, nStages*1), Array.slice( A, nStages*2, nStages*3));	
+	yA = Array.concat( Array.slice( A, nStages*1, nStages*2), Array.slice( A, nStages*3, nStages*4));
 	tA = Array.slice( A, nStages*4, nStages*5);
 	zA = Array.slice( A, nStages*5, nStages*6);
 	
 	Array.getStatistics(xA, x_min, x_max, _, _);
 	Array.getStatistics(yA, y_min, y_max, _, _);
 	Array.getStatistics(tA, t_min, t_max, _, _);
-	Array.getStatistics(zA, _, _, z_mean, _);
+	Array.getStatistics(zA, z_min, z_max, z_mean, _);
 
 	w = x_max - x_min;
 	h = y_max - y_min;
@@ -452,13 +453,14 @@ function makeOverlay(coord, name, color){
 	// create rect at each frame
 	for (f = coord[4]; f <= coord[5]; f++) {
 		for (i = 0; i < dup_overlay+1; i++) {	// 1 or 2 boxes, depending on dup_overlay
-			x_coord = (coord[0] + getWidth()/2 * i) % getWidth();		// changes only if (i==1 && dup_coord==1)
-			makeRectangle(x_coord, coord[1], coord[2], coord[3]);
-			Roi.setName(name);
-			Overlay.addSelection(color);
-			// unfortunately Overlay.setPosition(c, z, t) only works if there's c (or z?) > 1
 			Stack.getDimensions(_, _, ch, sl, fr);
-			for (z = coord[6] - zboxspread; z <= coord[6] + zboxspread; z++) {
+			for (z = maxOf(coord[6] - zboxspread,1); z <= minOf(coord[6] + zboxspread,sl); z++) {
+				x_coord = (coord[0] + getWidth()/2 * i) % getWidth();		// changes only if (i==1 && dup_coord==1)
+				makeRectangle(x_coord, coord[1], coord[2], coord[3]);
+				Roi.setName(name);
+				Overlay.addSelection(color);
+				// unfortunately Overlay.setPosition(c, z, t) only works if there's c (or z?) > 1
+
 				if (ch*sl == 1)		Overlay.setPosition(f);
 				else				Overlay.setPosition(0, z, f);
 			}
