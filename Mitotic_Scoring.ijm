@@ -77,7 +77,7 @@ Dialog.show();
 	zboxspread = Dialog.getNumber();
 	overlay_color1 = Dialog.getChoice();
 	overlay_color2 = Dialog.getChoice();
-	OKless = 0;	// !!!!!
+	OKless = 1;	// !!!!!
 	scoring = Dialog.getCheckbox();
 	stages_used = newArray();
 	t=0;
@@ -133,17 +133,20 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		wait_string = "Draw a box around a cell at " + stages_used[tp] + " of mitotic event.";
 		if (tp > 0) wait_string = wait_string + "\n ---- t" + tp-1 + " at frame " + f;
 		
-		if (OKless == 0) 	waitForUser(wait_string);
-		else{
+		if (OKless == 0) 	waitForUser(wait_string);	// click OK to progress
+		else{	// draw box to progress
 			getRawStatistics(area);
-			
-			print(wait_string);
+
+			run("Text Window...", "name=Waiting width=72 height=8 menu");
+			print("[Waiting]", wait_string);
 			while (area == getWidth()*getHeight()){
-				print("waiting: ", IJ.currentMemory());
+				//print("waiting: ", IJ.currentMemory());
 				getRawStatistics(area);
-				wait(500);
+				wait(250);
 			}
 			run("Collect Garbage");
+			selectWindow("Waiting");
+			run("Close");
 		}
 
 		im = getTitle();
