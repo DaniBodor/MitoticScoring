@@ -233,7 +233,8 @@ function GUI(nNotes){
 		Dialog.addCheckbox("Lagger", 0);
 		Dialog.addCheckbox("Bridge", 0);
 		Dialog.addCheckbox("Misaligned", 0);
-		Dialog.addCheckbox("Cohesion_defect", 0);
+		Dialog.addCheckbox("Cohesion defect", 0);
+		Dialog.addCheckbox("Apoptosis", 0);
 		Dialog.addCheckbox("Multipolar", 0);
 			Dialog.setInsets(-20,120,0);
 			Dialog.addString("#","",1);
@@ -261,6 +262,7 @@ function GUI(nNotes){
 		bridge = Dialog.getCheckbox;
 		misaligned = Dialog.getCheckbox;
 		cohesion_defect = Dialog.getCheckbox;
+		apoptosis = Dialog.getCheckbox;
 		multipole = Dialog.getCheckbox;
 			pole_number = Dialog.getString;
 		micronuc = Dialog.getCheckbox;
@@ -276,7 +278,7 @@ function GUI(nNotes){
 
 	GUI_result = newArray(
 		skip,		highlighted,
-		lag,		bridge,				misaligned,			cohesion_defect,
+		lag,		bridge,				misaligned,			cohesion_defect,	apoptosis
 		multipole,	pole_number,
 		micronuc,	micronuc_number,	micronuc_timing,
 		multinuc,	multinuc_number,	multinuc_timing,
