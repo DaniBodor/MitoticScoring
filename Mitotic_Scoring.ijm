@@ -144,30 +144,39 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			waitForUser(wait_string);	
 		}
 		else{	// draw box to progress
+			// make new waiting log window
 			if (isOpen("Waiting")){
 				selectWindow("Waiting");
 				run("Close");
 			}
-			run("Text Window...", "name=Waiting width=72 height=8 menu");
+			run("Text Window...", "name=Waiting width=100 height=8 menu");
+			setLocation(750, 200);
+			wait_string = "*****Close this window to finish session\n" + wait_string;
 			print("[Waiting]", wait_string);
 			if (box_progress == progressOptions[1]) {
 				getRawStatistics(area);
 				while (area == getWidth()*getHeight() || area == 0){
 					getRawStatistics(area);
 					wait(250);
+					if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
 				}
 			}
 			else {		// draw box and add to ROI Manager
-				print("[Waiting]", "press t or add to ROI Manager when done");
+				print("[Waiting]", "\nPress t or add to ROI Manager when done");
 				nRois = roiManager("count");
 				while (roiManager("count") == nRois){
 					wait(250);
+					if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
 				}
 				roiManager("reset");
 			}
+
 			run("Collect Garbage");
-			selectWindow("Waiting");
-			run("Close");
+			if (isOpen("Waiting"){
+				selectWindow("Waiting");
+				run("Close");
+			}
+			else exit("Session finished.\nYou can carry on later using the same experiment name and settings");
 		}
 
 		im = getTitle();
