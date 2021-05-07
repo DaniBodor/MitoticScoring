@@ -77,6 +77,7 @@ Dialog.show();
 	zboxspread = Dialog.getNumber();
 	overlay_color1 = Dialog.getChoice();
 	overlay_color2 = Dialog.getChoice();
+	OKless = 0;	// !!!!!
 	scoring = Dialog.getCheckbox();
 	stages_used = newArray();
 	t=0;
@@ -127,10 +128,23 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	coordinates_array = newArray();
 	// for each time point included, pause to allow user to define coordinates
 	for (tp = 0; tp < nStages; tp++) {
+		run("Select None");
 		// allow user to box mitotic cell
 		wait_string = "Draw a box around a cell at " + stages_used[tp] + " of mitotic event.";
 		if (tp > 0) wait_string = wait_string + "\n ---- t" + tp-1 + " at frame " + f;
-		waitForUser(wait_string);
+		
+		if (OKless == 0) 	waitForUser(wait_string);
+		else{
+			getRawStatistics(area);
+			
+			print(wait_string);
+			while (area == getWidth()*getHeight()){
+				print("waiting: ", IJ.currentMemory());
+				getRawStatistics(area);
+				wait(500);
+			}
+			run("Collect Garbage");
+		}
 
 		im = getTitle();
 		if (tp == 0 && im != prev_im){
