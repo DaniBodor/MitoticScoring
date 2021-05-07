@@ -172,11 +172,10 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			}
 
 			run("Collect Garbage");
-			if (isOpen("Waiting"){
+			if (isOpen("Waiting")){
 				selectWindow("Waiting");
 				run("Close");
 			}
-			else exit("Session finished.\nYou can carry on later using the same experiment name and settings");
 		}
 
 		im = getTitle();
@@ -505,16 +504,17 @@ function loadPreviousProgress(){
 
 function makeOverlay(coord, name, color){
 	// create rect at each frame
+	//Array.print(coord);
 	for (f = coord[4]; f <= coord[5]; f++) {
 		for (i = 0; i < dup_overlay+1; i++) {	// 1 or 2 boxes, depending on dup_overlay
 			Stack.getDimensions(_, _, ch, sl, fr);
-			for (z = maxOf(coord[6] - zboxspread,1); z <= minOf(coord[6] + zboxspread,sl); z++) {
+			for (z = maxOf(1, coord[6] - zboxspread); z <= minOf(sl, coord[7] + zboxspread); z++) {
 				x_coord = (coord[0] + getWidth()/2 * i) % getWidth();		// changes only if (i==1 && dup_coord==1)
 				makeRectangle(x_coord, coord[1], coord[2], coord[3]);
 				Roi.setName(name);
 				Overlay.addSelection(color);
+				
 				// unfortunately Overlay.setPosition(c, z, t) only works if there's c (or z?) > 1
-
 				if (ch*sl == 1)		Overlay.setPosition(f);
 				else				Overlay.setPosition(0, z, f);
 			}
