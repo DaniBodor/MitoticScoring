@@ -12,6 +12,7 @@ all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Teloph
 nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 
+
 // initiate defaults (if any)
 default_array = newArray(
 	"_", // 0 keys (ignored)
@@ -22,7 +23,8 @@ default_array = newArray(
 	0,  //5 default_zspread
 	"red", //6 default_color1
 	"white", //7 default_color2
-	1, // 8 default_score
+	1, // 8 default_promptOK
+	1, // default_scoring
 	0,1,0,0,1,0,0,0 ); //default_stages
 nDefaults = default_array.length;
 
@@ -37,7 +39,7 @@ if (File.exists(defaults_path)){
 }
 
 
-// open dialog to ask which stages to inlcude
+// open setup window
 Dialog.create("Setup");
 	Dialog.setInsets(0, 0, 0);
 	Dialog.addMessage("OUTPUT SETTINGS");
@@ -48,20 +50,22 @@ Dialog.create("Setup");
 
 	Dialog.setInsets(25, 0, 0);
 	Dialog.addMessage("SETTINGS FOR VISUAL TRACKING");
-	Dialog.setInsets(5, 15, 5);
+	Dialog.setInsets(3, 15, 5);
+	Dialog.addCheckbox("Click OK after drawing?", default_array[8]);
+	Dialog.setInsets(-3, 15, 5);
 	Dialog.addChoice("ROI color of drawn box", colorArray, default_array[6]);
 	Dialog.setInsets(0, 15, 5);
-	Dialog.addChoice("ROI color throughout", colorArray, default_array[7]);
+	Dialog.addChoice("ROI color of large box", colorArray, default_array[7]);
 	Dialog.setInsets(0, 15, 0);
-	Dialog.addNumber("Put tracking box in +/-", default_array[5], 0, 1, "z-planes surrounding mean.");
+	Dialog.addNumber("Large box on +/-", default_array[5], 0, 1, "z-planes surrounding drawn box");
 	Dialog.setInsets(3, 15, 0);
-	Dialog.addCheckbox("Duplicate tracking ROIs left and right? "+
+	Dialog.addCheckbox("Duplicate boxes left and right? "+
 						"(for OrgaMovie output that contains the same organoid twice)",  default_array[4]);
 	
 	Dialog.setInsets(20, 0, 0);
 	Dialog.addMessage("SCORING SETTINGS");
 	Dialog.setInsets(0, 20, 0);
-	Dialog.addCheckbox("Score observations?",  default_array[8]);
+	Dialog.addCheckbox("Score observations?",  default_array[nDefaults - nAllStages - 1]);
 	Dialog.setInsets(2, 10, 0);
 	Dialog.addMessage("Which mitotic stages should be monitored?")
 	Dialog.setInsets(-5, 20, 0);
@@ -73,11 +77,13 @@ Dialog.show();
 	expname = Dialog.getString();
 		if (expname == "")	expname = "mitotic_scoring";
 	timestep = Dialog.getNumber();
-	dup_overlay = Dialog.getCheckbox();
-	zboxspread = Dialog.getNumber();
+	
+	promptOK = Dialog.getCheckbox();	// !!!!!
 	overlay_color1 = Dialog.getChoice();
 	overlay_color2 = Dialog.getChoice();
-	OKless = 1;	// !!!!!
+	zboxspread = Dialog.getNumber();	
+	dup_overlay = Dialog.getCheckbox();
+	
 	scoring = Dialog.getCheckbox();
 	stages_used = newArray();
 	t=0;
@@ -91,7 +97,7 @@ Dialog.show();
 	}
 	
 new_default = Array.concat(saveloc, expname, timestep, 
-							dup_overlay, zboxspread, overlay_color1, overlay_color2, 
+							dup_overlay, zboxspread, overlay_color1, overlay_color2, promptOK, 
 							scoring, default_stages);
 
 nStages = stages_used.length;
@@ -133,17 +139,16 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		wait_string = "Draw a box around a cell at " + stages_used[tp] + " of mitotic event.";
 		if (tp > 0) wait_string = wait_string + "\n ---- t" + tp-1 + " at frame " + f;
 		
-		if (OKless == 0) 	waitForUser(wait_string);	// click OK to progress
+		if (promptOK) 	waitForUser(wait_string);	// click OK to progress
 		else{	// draw box to progress
 			getRawStatistics(area);
-
 			run("Text Window...", "name=Waiting width=72 height=8 menu");
 			print("[Waiting]", wait_string);
-			while (area == getWidth()*getHeight()){
-				//print("waiting: ", IJ.currentMemory());
+			while (area == getWidth()*getHeight() || area == 0){
 				getRawStatistics(area);
 				wait(250);
 			}
+
 			run("Collect Garbage");
 			selectWindow("Waiting");
 			run("Close");
