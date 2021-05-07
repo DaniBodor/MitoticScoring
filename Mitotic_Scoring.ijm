@@ -396,7 +396,7 @@ function generateHeaders(){
 	
 	headers = Array.concat(headers,	// then add the possible events
 			"skip","highlight",
-			"lagger","bridge","misaligned", "cohesion defect",
+			"lagger","bridge","misaligned", "cohesion defect", "apoptosis",
 			"multipolar","#_poles","micronucleated","#_micronuclei","micronuclei_before/after_mitosis",
 			"multinucleated","#_nuclei","multinucleated_before/after_mitosis",
 			"other","namely",
