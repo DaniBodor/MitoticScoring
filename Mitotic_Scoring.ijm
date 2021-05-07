@@ -97,12 +97,13 @@ Dialog.show();
 	}
 	
 new_default = Array.concat(saveloc, expname, timestep, 
-							dup_overlay, zboxspread, overlay_color1, overlay_color2, promptOK, 
+							dup_overlay, zboxspread, overlay_color1, overlay_color2, box_progress, 
 							scoring, default_stages);
 
 nStages = stages_used.length;
 if (nStages == 0)	exit("Macro aborted because no stages are tracked.\nSelect at least 1 stage to track");
 if (!File.isDirectory(saveloc))		File.makeDirectory(saveloc);
+if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; please choose valid directory");
 
 // save defaults for next time
 Array.show(new_default);
@@ -315,7 +316,7 @@ function GUI(nNotes){
 
 	GUI_result = newArray(
 		skip,		highlighted,
-		lag,		bridge,				misaligned,			cohesion_defect,	apoptosis
+		lag,		bridge,				misaligned,			cohesion_defect,	apoptosis,
 		multipole,	pole_number,
 		micronuc,	micronuc_number,	micronuc_timing,
 		multinuc,	multinuc_number,	multinuc_timing,
