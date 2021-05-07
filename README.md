@@ -54,21 +54,3 @@ NOTE:
 NOTE:  
 **A problem would occur in the results table if you run the macro using the same experiment name but a different set of mitotic stages. If this happens, a warning will pop up asking you to either abort the current run or store the previous results table separately.  
 If the macro continues running, the previous results table will be overwritten once the first cell is scored**
-
-
-
-
-# TO DO LIST
-- [x] Make z-plane boxes work properly
-- [x] Allow for option to not have to click OK after drawing boxes
-- [ ] Make option to rename mitotic stages
-- [ ] Make option to rename observation items
-- [ ] Link header writing and results outputting functions
-  - [ ] move results outputting into function
-- [ ] Use loops to fetch dialog info
-  - this would make it 'modular' and easier to change in a single line
-  - [ ] setup dialog
-  - [ ] observation dialog
-    - [ ] link this to header/results function
-- [ ] Allow for changing of settings mid-experiment without screwing up results table
-  - try using Table.* functions rather printing from array 
