@@ -1,0 +1,24 @@
+Type,Event,Add_#,Add_Text,Add_Options,List_Options (comma separated)
+Group,Skip this cell?,0,0,0,
+Checkbox,Skip,0,0,0,
+Group,Highlight this cell,0,0,0,
+Checkbox,Highlight,0,0,0,
+Group,Record events,0,0,0,
+Checkbox,Lagger,1,0,0,
+Checkbox,Bridge,1,0,0,
+Checkbox,Misaligned,1,0,0,
+Checkbox,Cohesion defect,0,0,0,
+Checkbox,Apoptosis,0,0,0,
+Checkbox,Multipolar,1,0,0,
+Checkbox,Micronucleus,1,0,1,"Before div, After div, Both"
+Checkbox,Multinucleated,1,0,1,"Before div, After div, Both"
+Checkbox,Other,0,1,0,
+Checkbox,Unclear,0,0,0,
+Group,Notes,0,0,0,
+Text,Notes,0,0,0,
+Text,Notes,0,0,0,
+Text,Notes,0,0,0,
+Group,Other types of input,0,0,0,
+Number,Number,0,0,0,
+List,List,0,0,0,"Option 1, Option 2, Option 3"
+File,File location,0,0,0,
