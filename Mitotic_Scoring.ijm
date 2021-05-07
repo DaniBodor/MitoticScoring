@@ -10,7 +10,7 @@ else				open();
 
 all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Telophase", "Decondensation", "G1");
 nAllStages = all_stages.length;
-
+colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 
 // initiate defaults (if any)
 default_array = newArray(
@@ -39,27 +39,32 @@ if (File.exists(defaults_path)){
 
 // open dialog to ask which stages to inlcude
 Dialog.create("Setup");
+	Dialog.setInsets(0, 0, 0);
 	Dialog.addMessage("OUTPUT SETTINGS");
-//	Dialog.setInsets(0, 0, 0);
 	Dialog.addDirectory("Save location", default_array[1]);
 	Dialog.addString("Experiment name",  default_array[2]);
 	Dialog.setInsets(0, 0, 0);
 	Dialog.addNumber("Time step", default_array[3]);
 
+	Dialog.setInsets(25, 0, 0);
 	Dialog.addMessage("SETTINGS FOR VISUAL TRACKING");
-	Dialog.setInsets(20, 0, 0);
+	Dialog.setInsets(5, 15, 5);
+	Dialog.addChoice("ROI color of drawn box", colorArray, default_array[6]);
+	Dialog.setInsets(0, 15, 5);
+	Dialog.addChoice("ROI color throughout", colorArray, default_array[7]);
+	Dialog.setInsets(0, 15, 0);
+	Dialog.addNumber("Put tracking box in +/-", default_array[5], 0, 1, "z-planes surrounding mean.");
+	Dialog.setInsets(3, 15, 0);
 	Dialog.addCheckbox("Duplicate tracking ROIs left and right? "+
 						"(for OrgaMovie output that contains the same organoid twice)",  default_array[4]);
-	Dialog.addNumber("Put tracking box in +/-", default_array[5], 0, 1, "z-planes surrounding mean.");
-	Dialog.addString("ROI color at timepoint", default_array[6]);
-	Dialog.addString("ROI color throughout", default_array[7]);
-
-	Dialog.addMessage("SCORING SETTINGS");
+	
 	Dialog.setInsets(20, 0, 0);
+	Dialog.addMessage("SCORING SETTINGS");
+	Dialog.setInsets(0, 20, 0);
 	Dialog.addCheckbox("Score observations?",  default_array[8]);
-	Dialog.setInsets(0, 0, 0);
+	Dialog.setInsets(2, 10, 0);
 	Dialog.addMessage("Which mitotic stages should be monitored?")
-	Dialog.setInsets(0, 0, 0);
+	Dialog.setInsets(-5, 20, 0);
 	default_stages = Array.slice(default_array, nDefaults - nAllStages, nDefaults);
 	Dialog.addCheckboxGroup(2, 4, all_stages, default_stages);
 	Dialog.addHelp("https://github.com/DaniBodor/MitoticScoring#setup");
@@ -70,8 +75,8 @@ Dialog.show();
 	timestep = Dialog.getNumber();
 	dup_overlay = Dialog.getCheckbox();
 	zboxspread = Dialog.getNumber();
-	overlay_color1 = Dialog.getString();
-	overlay_color2 = Dialog.getString();
+	overlay_color1 = Dialog.getChoice();
+	overlay_color2 = Dialog.getChoice();
 	scoring = Dialog.getCheckbox();
 	stages_used = newArray();
 	t=0;
