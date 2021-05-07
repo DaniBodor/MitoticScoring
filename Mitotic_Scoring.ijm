@@ -11,7 +11,7 @@ else				open();
 all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Telophase", "Decondensation", "G1");
 nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
-
+progressOptions = newArray("Click OK","Draw only","Draw + t");
 
 // initiate defaults (if any)
 default_array = newArray(
@@ -23,7 +23,7 @@ default_array = newArray(
 	0,  //5 default_zspread
 	"red", //6 default_color1
 	"white", //7 default_color2
-	1, // 8 default_promptOK
+	"Click OK", // 8 default_promptOK
 	1, // default_scoring
 	0,1,0,0,1,0,0,0 ); //default_stages
 nDefaults = default_array.length;
@@ -51,7 +51,7 @@ Dialog.create("Setup");
 	Dialog.setInsets(25, 0, 0);
 	Dialog.addMessage("SETTINGS FOR VISUAL TRACKING");
 	Dialog.setInsets(3, 15, 5);
-	Dialog.addCheckbox("Click OK after drawing?", default_array[8]);
+	Dialog.addChoice("Progress to next box by", progressOptions, default_array[8]);
 	Dialog.setInsets(-3, 15, 5);
 	Dialog.addChoice("ROI color of drawn box", colorArray, default_array[6]);
 	Dialog.setInsets(0, 15, 5);
@@ -78,7 +78,7 @@ Dialog.show();
 		if (expname == "")	expname = "mitotic_scoring";
 	timestep = Dialog.getNumber();
 	
-	promptOK = Dialog.getCheckbox();	// !!!!!
+	box_progress = Dialog.getChoice();
 	overlay_color1 = Dialog.getChoice();
 	overlay_color2 = Dialog.getChoice();
 	zboxspread = Dialog.getNumber();	
@@ -139,16 +139,31 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		wait_string = "Draw a box around a cell at " + stages_used[tp] + " of mitotic event.";
 		if (tp > 0) wait_string = wait_string + "\n ---- t" + tp-1 + " at frame " + f;
 		
-		if (promptOK) 	waitForUser(wait_string);	// click OK to progress
+		if (box_progress == progressOptions[0]) {	// click OK to progress
+			waitForUser(wait_string);	
+		}
 		else{	// draw box to progress
-			getRawStatistics(area);
+			if (isOpen("Waiting")){
+				selectWindow("Waiting");
+				run("Close");
+			}
 			run("Text Window...", "name=Waiting width=72 height=8 menu");
 			print("[Waiting]", wait_string);
-			while (area == getWidth()*getHeight() || area == 0){
+			if (box_progress == progressOptions[1]) {
 				getRawStatistics(area);
-				wait(250);
+				while (area == getWidth()*getHeight() || area == 0){
+					getRawStatistics(area);
+					wait(250);
+				}
 			}
-
+			else {		// draw box and add to ROI Manager
+				print("[Waiting]", "press t or add to ROI Manager when done");
+				nRois = roiManager("count");
+				while (roiManager("count") == nRois){
+					wait(250);
+				}
+				roiManager("reset");
+			}
 			run("Collect Garbage");
 			selectWindow("Waiting");
 			run("Close");
