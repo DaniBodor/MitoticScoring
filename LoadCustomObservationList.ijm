@@ -1,7 +1,7 @@
 requires("1.53f");
 OS = getInfo("os.name")
 //path = File.openDialog("Dialog list file");
-path = "C:\\Users\\dani\\Documents\\MyCodes\\MitoticScoring\\ObservationList.csv";
+path = "C:\\Users\\dani\\Documents\\MyCodes\\MitoticScoring\\DefaultObservationList.csv";
 string = File.openAsString(path);
 lines = split(string,"\n");
 
@@ -38,7 +38,7 @@ for (l = 1; l < lines.length; l++) {
 			out_order = Array.concat(out_order,"chk");
 		}
 		if (currLine [0] == "Text"){
-			Dialog.addString(currLine[1], "");
+			Dialog.addString(currLine[1], "", 24);
 			out_order = Array.concat(out_order,"str");
 		}
 		if (currLine [0] == "Number"){
@@ -58,13 +58,13 @@ for (l = 1; l < lines.length; l++) {
 		if (currLine [2]){	// Add_#
 			headers = Array.concat(headers, "#");
 			Dialog.addToSameRow();
-			Dialog.addString("#", "");
+			Dialog.addString("#", "",1);
 			out_order = Array.concat(out_order,"str");
 		}
 		if (currLine [3]){	// Add_Text
 			headers = Array.concat(headers, curr_header+"_note");
 			Dialog.addToSameRow();
-			Dialog.addString("", "");
+			Dialog.addString("", "", 16);
 			out_order = Array.concat(out_order,"str");
 		}
 		if (currLine [4]){	// Add_List
