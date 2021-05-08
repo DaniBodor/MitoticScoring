@@ -7,9 +7,11 @@ Results are saved after each analyzed cell to avoid losing data after crashes or
 
 This macro is fairly uncomplicated and in principle will always tell you what to do. Below is a short explanation of the individual steps.  
 
+You can download this repository by clicking on the green 'Code' button above and 'Download ZIP'.
+
 
 ## Start macro
-Open the macro by any of these methods by dragging the \*.ijm file into FiJi and clicking 'Run' or hit Ctrl+R.  
+Open the macro by dragging the \*.ijm file into FiJi and clicking 'Run' or hit Ctrl+R.  
 Alternatively drop the \*.ijm file into your ImageJ plugins\Analyze folder and select it from _Plugins > Analyze_ dropdown menu 
 (requires a restart after you first drop the file there).  
 You can then also create a custom shortcut key via _Plugins > Shortcuts > Add Shortcut..._.
