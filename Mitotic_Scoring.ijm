@@ -13,7 +13,7 @@ nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 progressOptions = newArray("Click OK","Draw only","Draw + t");
 
-// initiate defaults (if any)
+// initiate defaults (will be overwritten if defaults file exists)
 default_array = newArray(
 	"_", // 0 keys (ignored)
 	"", //1 default_saveloc
@@ -23,13 +23,15 @@ default_array = newArray(
 	0,  //5 default_zspread
 	"red", //6 default_color1
 	"white", //7 default_color2
-	"Click OK", // 8 default_promptOK
+	progressOptions[0], // 8 default_promptOK
 	1, // default_scoring
 	0,1,0,0,1,0,0,0 ); //default_stages
 nDefaults = default_array.length;
 
 // load previous defaults (if any)
-defaults_path = getDirectory("macros") + "OrgaMovie_Scoring_defaults.txt";
+defaults_dir = getDirectory("macros") + "MitoticScoringDefaults" + File.separator;
+defaults_path = defaults_dir+ "DefaultSettings.txt";
+if (!File.isDirectory(defaults_dir))	File.makeDirectory(defaults_dir);
 if (File.exists(defaults_path)){
 	loaded_str = File.openAsString(defaults_path);
 	loaded_array = split(loaded_str, "\n");
