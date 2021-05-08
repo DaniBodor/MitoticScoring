@@ -15,10 +15,13 @@ Checkbox,Multinucleated,1,0,1,"Before div, After div, Both"
 Checkbox,Other,0,1,0,
 Checkbox,Unclear,0,0,0,
 Group,Notes,0,0,0,
-Text,Notes,0,0,0,
-Text,Notes,0,0,0,
-Text,Notes,0,0,0,
-Group,Other types of input,0,0,0,
+Text,Notes 1,0,0,0,
+Text,Notes 2,0,0,0,
+Text,Notes 3,0,0,0,
+Group,All Input Types,0,0,0,
+Checkbox,Checkbox,0,0,0,
+Text,Text,0,0,0,
 Number,Number,0,0,0,
 List,List,0,0,0,"Option 1, Option 2, Option 3"
-File,File location,0,0,0,
+File,File,0,0,0,
+Checkbox,Any of the above + Extras,1,1,1,"Option 1, Option 2, Option 3"
