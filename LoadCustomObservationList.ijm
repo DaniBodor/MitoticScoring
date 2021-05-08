@@ -58,14 +58,12 @@ for (l = 1; l < lines.length; l++) {
 		if (currLine [2]){	// Add_#
 			headers = Array.concat(headers, "#");
 			Dialog.addToSameRow();
-			//Dialog.setInsets(-20,120,0);
 			Dialog.addString("#", "");
 			out_order = Array.concat(out_order,"str");
 		}
 		if (currLine [3]){	// Add_Text
 			headers = Array.concat(headers, curr_header+"_note");
 			Dialog.addToSameRow();
-			//Dialog.setInsets(-20,120,0);
 			Dialog.addString("", "");
 			out_order = Array.concat(out_order,"str");
 		}
@@ -84,8 +82,6 @@ for (i = 0; i < out_order.length; i++) {
 	if (out_order[i] == "str")	output = Array.concat(output, Dialog.getString()   );
 	if (out_order[i] == "num")	output = Array.concat(output, Dialog.getNumber()   );
 	if (out_order[i] == "opt")	output = Array.concat(output, Dialog.getChoice()   );
-
-//	if output[i] = ""
 }
 
 Table.create("Table");
