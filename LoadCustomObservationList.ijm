@@ -1,5 +1,5 @@
-requires("1.53f");
-OS = getInfo("os.name")
+
+OS = getInfo("os.name");
 //path = File.openDialog("Dialog list file");
 path = "C:\\Users\\dani\\Documents\\MyCodes\\MitoticScoring\\DefaultObservationList.csv";
 string = File.openAsString(path);
@@ -31,7 +31,6 @@ for (l = 1; l < lines.length; l++) {
 			choices[i] = choices[i].trim;
 		}
 		
-
 		// add main
 		if (currLine [0] == "Checkbox"){
 			Dialog.addCheckbox(currLine[1], 0);
@@ -75,6 +74,7 @@ for (l = 1; l < lines.length; l++) {
 		}
 	}
 }
+
 Dialog.show();
 output = newArray();
 for (i = 0; i < out_order.length; i++) {

@@ -12,8 +12,8 @@ all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Teloph
 nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 progressOptions = newArray("Click OK","Draw only","Draw + t");
+scoringOptions = newArray("None", "Load default", "Set new default");
 
-// initiate defaults (will be overwritten if defaults file exists)
 default_array = newArray(
 	"_", // 0 keys (ignored)
 	"", //1 default_saveloc
@@ -23,9 +23,10 @@ default_array = newArray(
 	0,  //5 default_zspread
 	"red", //6 default_color1
 	"white", //7 default_color2
-	progressOptions[0], // 8 default_promptOK
-	1, // default_scoring
-	0,1,0,0,1,0,0,0 ); //default_stages
+	progressOptions[0], //8 default_promptOK
+	getDir("file") + "DefaultObservationList.csv" // -2 default_obslist_location
+	scoringOptions[1], // -1 default_scoring
+	0,1,0,0,1,0,0,0); // default_stages
 nDefaults = default_array.length;
 
 // load previous defaults (if any)
@@ -67,7 +68,7 @@ Dialog.create("Setup");
 	Dialog.setInsets(20, 0, 0);
 	Dialog.addMessage("SCORING SETTINGS");
 	Dialog.setInsets(0, 20, 0);
-	Dialog.addCheckbox("Score observations?",  default_array[nDefaults - nAllStages - 1]);
+	Dialog.addChoice("Score observations?",  scoringOptions, default_array[nDefaults - nAllStages - 1]);
 	Dialog.setInsets(2, 10, 0);
 	Dialog.addMessage("Which mitotic stages should be monitored?")
 	Dialog.setInsets(-5, 20, 0);
@@ -86,7 +87,7 @@ Dialog.show();
 	zboxspread = Dialog.getNumber();	
 	dup_overlay = Dialog.getCheckbox();
 	
-	scoring = Dialog.getCheckbox();
+	scoring = Dialog.getChoice();
 	stages_used = newArray();
 	t=0;
 	for (i = 0; i < nAllStages; i++) {
@@ -97,22 +98,28 @@ Dialog.show();
 			t++;
 		}
 	}
-	
-new_default = Array.concat(saveloc, expname, timestep, 
-							dup_overlay, zboxspread, overlay_color1, overlay_color2, box_progress, 
-							scoring, default_stages);
 
+// check input
 nStages = stages_used.length;
 if (nStages == 0)	exit("Macro aborted because no stages are tracked.\nSelect at least 1 stage to track");
 if (!File.isDirectory(saveloc))		File.makeDirectory(saveloc);
 if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; please choose valid directory");
+
+// load observation list
+obslist_path = default_array[nDefaults - nAllStages - 2];
+if (scoring == 2 || !File.exists(path) )	obslist_path = File.openDialog("Choose observationlist csv");
+if (!endsWith(obslist_path, ".csv"))	exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
+obsList = split(File.openAsString(obslist_path), "\n");
+
+new_default = Array.concat(saveloc, expname, timestep, 
+							dup_overlay, zboxspread, overlay_color1, overlay_color2, box_progress, 
+							obslist_path, scoring, default_stages);
 
 // save defaults for next time
 Array.show(new_default);
 selectWindow("new_default");
 saveAs("Text", defaults_path);
 run("Close");
-
 
 // load progress
 table = "Scoring_" + expname + ".csv";
@@ -129,14 +136,14 @@ else {
 	prev_c = 0;
 }
 
-// analyze individual events
 
+// analyze individual events
 setTool("rectangle");
 for (c = prev_c+1; c > 0; c++){	// loop through cells
 	
 	coordinates_array = newArray();
 	// for each time point included, pause to allow user to define coordinates
-	for (tp = 0; tp < nStages; tp++) {
+	for (tp = 0; tp < nStages; tp++) {	// put box making into function?
 		run("Select None");
 		// allow user to box mitotic cell
 		wait_string = "Draw a box around a cell at " + stages_used[tp] + " of mitotic event.";
@@ -212,7 +219,8 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	makeOverlay(xywhttzz, "c" + c, "white");	
 	
 	// for manual input on observations
-	events = GUI(notes_lines);
+	//events = GUI();
+	customDialog(obsList, im,c)
 
 	// create and print results line
 	tps = newArray();
@@ -256,7 +264,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 ////////////////////////////// CUSTOM FUNCTIONS ////////////////////////////////////
 ////////////////////////////// CUSTOM FUNCTIONS ////////////////////////////////////
 
-function GUI(nNotes){	
+function GUI(){	
 	/* 
 	 *  This function creates a dialog window to generate manual input on mitotic events occuring in this cell.
 	 *  This is ugly and non-modular and requires manual tinkering whenever things change. 
@@ -531,3 +539,92 @@ function makeOverlay(coord, name, color){
 	Overlay.setLabelFontSize(8,"scale");
 	Overlay.setLabelColor(color);
 }
+
+function customDialog(lines, im, c){
+	out_order = newArray();
+	headers = newArray();
+	Dialog.create("Score observations");
+	Dialog.setInsets(0, 0, 0);
+	Dialog.addMessage("Record your observations below");
+	for (l = 1; l < lines.length; l++) {
+		currLine = split(lines[l],",");
+		
+		if (currLine [0] == "Group") {
+			Dialog.setInsets(10, 0, 0);
+			Dialog.addMessage(currLine[1]);
+		}
+		
+		else {
+			curr_header = currLine[1].replace(" ","_");
+			headers = Array.concat(headers, curr_header);
+			
+			Dialog.setInsets(0,10,0);
+			choices =  Array.slice(currLine, 4, currLine.length);
+			choices[0] = "";
+			for (i = 0; i < choices.length; i++) {
+				choices[i] = replace(choices[i], "\"", "");
+				choices[i] = choices[i].trim;
+			}
+			
+			// add main
+			if (currLine [0] == "Checkbox"){
+				Dialog.addCheckbox(currLine[1], 0);
+				out_order = Array.concat(out_order,"chk");
+			}
+			if (currLine [0] == "Text"){
+				Dialog.addString(currLine[1], "", 24);
+				out_order = Array.concat(out_order,"str");
+			}
+			if (currLine [0] == "Number"){
+				Dialog.addNumber(currLine[1], "");
+				out_order = Array.concat(out_order,"num");
+			}
+			if (currLine [0] == "File"){
+				Dialog.addFile(currLine[1], "");
+				out_order = Array.concat(out_order,"str");
+			}
+			if (currLine [0] == "List"){
+				Dialog.addChoice(currLine[1], choices);
+				out_order = Array.concat(out_order,"opt");
+			}
+	
+			// add extras
+			if (currLine [2]){	// Add_#
+				headers = Array.concat(headers, "#");
+				Dialog.addToSameRow();
+				Dialog.addString("#", "",1);
+				out_order = Array.concat(out_order,"str");
+			}
+			if (currLine [3]){	// Add_Text
+				headers = Array.concat(headers, curr_header+"_note");
+				Dialog.addToSameRow();
+				Dialog.addString("", "", 16);
+				out_order = Array.concat(out_order,"str");
+			}
+			if (currLine [4]){	// Add_List
+				headers = Array.concat(headers, curr_header+"_choice");
+				Dialog.addToSameRow();
+				Dialog.addChoice("", choices);
+				out_order = Array.concat(out_order,"opt");
+			}
+		}
+	}
+	
+	Dialog.show();
+	output = newArray();
+	for (i = 0; i < out_order.length; i++) {
+		if (out_order[i] == "chk")	output = Array.concat(output, Dialog.getCheckbox() );
+		if (out_order[i] == "str")	output = Array.concat(output, Dialog.getString()   );
+		if (out_order[i] == "num")	output = Array.concat(output, Dialog.getNumber()   );
+		if (out_order[i] == "opt")	output = Array.concat(output, Dialog.getChoice()   );
+	}
+
+
+	if (!isOpen(table)) {
+		Table.create(table);
+		print(_table_, "\\Headings:" + String.join(headers,"\t"));
+	}
+	// test here whether tables match !!!!
+	print(_table_, String.join(output,"\t"));
+}
+
