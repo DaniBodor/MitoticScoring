@@ -24,7 +24,7 @@ default_array = newArray(
 	"red", //6 default_color1
 	"white", //7 default_color2
 	progressOptions[0], //8 default_promptOK
-	getDir("file") + "DefaultObservationList.csv" // -2 default_obslist_location
+	getDir("file") + "DefaultObservationList.csv", // -2 default_obslist_location
 	scoringOptions[1], // -1 default_scoring
 	0,1,0,0,1,0,0,0); // default_stages
 nDefaults = default_array.length;
@@ -107,8 +107,8 @@ if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; plea
 
 // load observation list
 obslist_path = default_array[nDefaults - nAllStages - 2];
-if (scoring == 2 || !File.exists(path) )	obslist_path = File.openDialog("Choose observationlist csv");
-if (!endsWith(obslist_path, ".csv"))	exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
+if (scoring == 2 || !File.exists(obslist_path) )	obslist_path = File.openDialog("Choose observationlist csv");
+if (!endsWith(obslist_path, ".csv"))				exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
 obsList = split(File.openAsString(obslist_path), "\n");
 
 new_default = Array.concat(saveloc, expname, timestep, 
@@ -161,25 +161,17 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			run("Text Window...", "name=Waiting width=100 height=8 menu");
 			setLocation(750, 200);
 			wait_string = "*****Close this window to finish session\n" + wait_string;
-			print("[Waiting]", wait_string);
-			if (box_progress == progressOptions[1]) {
-				getRawStatistics(area);
-				while (area == getWidth()*getHeight() || area == 0){
-					getRawStatistics(area);
-					wait(250);
-					if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
-				}
-			}
-			else {		// draw box and add to ROI Manager
-				print("[Waiting]", "\nPress t or add to ROI Manager when done");
-				nRois = roiManager("count");
-				while (roiManager("count") == nRois){
-					wait(250);
-					if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
-				}
+			if (box_progress == progressOptions[2]){
 				roiManager("reset");
+				wait_string = wait_string + "\nPress t or add to ROI Manager when done"
 			}
-
+			print("[Waiting]", wait_string);
+			
+			while (keepWaiting() == 1){
+				wait(250);
+				if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
+			}
+			
 			run("Collect Garbage");
 			if (isOpen("Waiting")){
 				selectWindow("Waiting");
@@ -220,28 +212,47 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	
 	// for manual input on observations
 	//events = GUI();
-	customDialog(obsList, im,c)
 
 	// create and print results line
+	headers = newArray("movie", "cell#");
+	int_headers = newArray();
+	endheaders = newArray();
 	tps = newArray();
 	intervals = newArray();
 	for (i = 0; i < nStages; i++) {
 		tps[i] = reorganized_coord_array[4*nStages+i];
-		if (i>0)	intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
+		headers = Array.concat(headers, "t"+i);
+		endheaders = Array.concat(endheaders, stages_used[i]);
+		if (i > 0) {
+			intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
+			int_headers = Array.concat(int_headers, "time_t" + i-1 + "-->t"+i)
+		}
 	}
+	headers = Array.concat(headers, int_header);
 	
-	results = Array.concat(im, c, tps, intervals, events);
+	results = Array.concat(im, c, tps, intervals);
+	dialog_return = customDialog(obsList, results, headers);
+
+	results = Array.trim(	dialog_return, dialog_return.length/2);
+	headers = Array.slice(	dialog_return, dialog_return.length/2, dialog_return.length);
+	headers = Array.concat(headers, endheaders);
 	
 	for (i = 0; i < nStages; i++){
 		curr_coord = Array.slice(coordinates_array, i*rearranged.length, (i+1)*rearranged.length);
-		coord_string = arrayToString(curr_coord,"_");
+		coord_string = String.join(curr_coord,"_");
 		results = Array.concat(results,coord_string);
 	}
-	xywhttzz_string = arrayToString(xywhttzz,"_");
+	xywhttzz_string = String.join(xywhttzz,"_");
 	results = Array.concat(results,xywhttzz_string);
 
-	//Array.print(results);
-	results_str = arrayToString(results,"\t");
+	headers_str = String.join(headers, "\t");
+	if (!isOpen(table)) {
+		Table.create(table);
+		print(_table_, "\\Headings:" + headers_str);
+	}
+	else checkHeaders(headers_str);
+	
+	results_str = String.join(results,"\t");
 	print(_table_, results_str);
 	
 	// save overlay
@@ -255,8 +266,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	// save results progress
 	selectWindow(table);
 	saveAs("Text", results_file);
-
-
 }
 
 
@@ -347,9 +356,6 @@ function GUI(){
 	return GUI_result;
 }
 
-
-
-
 function reorganizeCoord(coord_group){
 	reorganized = newArray();
 	for (j = 0; j < coord_group.length/nStages; j++) {
@@ -393,15 +399,6 @@ function getFullSelectionBounds(A){
 
 	xywhttzz = newArray(x_min, y_min, w, h, t_min, t_max, z_min, z_max);
 	return xywhttzz;
-}
-
-function arrayToString(A,splitter){
-	string = "";
-	for (i = 0; i < A.length; i++) {
-		string = string + A[i] + splitter;
-	}
-	string = substring(string, 0, lastIndexOf(string, splitter));
-	return string;
 }
 
 function makeDateOrTimeString(DorT){
@@ -463,7 +460,7 @@ function generateHeaders(){
 	headers = Array.concat(headers, "extract_code");	// then a code to allow for quick extraction (Gaby request)
 	
 	//Array.print(headers);
-	headers = arrayToString(headers,"\t");
+	headers = String.join(headers,"\t");
 	return headers;
 }
 
@@ -477,7 +474,7 @@ function checkHeaders(new){
 			//print("_" + old);
 			//print("_" + new);
 			waitForUser("***ERROR***\n" + 
-			"Previous settings of mitotic stages to include for this experiment do not match current settings and the results table will be overwritten if the macro is not aborted.\n  \n" +
+			"Previous settings do not match current settings and the results table will be overwritten if the macro is not aborted.\n  \n" +
 			"Either abort macro (hit 'Esc') before analyzing any cell and restart using a different experiment name, or manually move/rename the previous results file to avoid overwriting it\n" + 
 			"Results file: " + results_file);
 			run("Close");
@@ -540,9 +537,8 @@ function makeOverlay(coord, name, color){
 	Overlay.setLabelColor(color);
 }
 
-function customDialog(lines, im, c){
+function customDialog(lines, output, headers){
 	out_order = newArray();
-	headers = newArray();
 	Dialog.create("Score observations");
 	Dialog.setInsets(0, 0, 0);
 	Dialog.addMessage("Record your observations below");
@@ -611,20 +607,23 @@ function customDialog(lines, im, c){
 	}
 	
 	Dialog.show();
-	output = newArray();
 	for (i = 0; i < out_order.length; i++) {
 		if (out_order[i] == "chk")	output = Array.concat(output, Dialog.getCheckbox() );
 		if (out_order[i] == "str")	output = Array.concat(output, Dialog.getString()   );
 		if (out_order[i] == "num")	output = Array.concat(output, Dialog.getNumber()   );
 		if (out_order[i] == "opt")	output = Array.concat(output, Dialog.getChoice()   );
 	}
-
-
-	if (!isOpen(table)) {
-		Table.create(table);
-		print(_table_, "\\Headings:" + String.join(headers,"\t"));
-	}
-	// test here whether tables match !!!!
-	print(_table_, String.join(output,"\t"));
+	
+	return Array.concat(output, headers);
 }
 
+function keepWaiting(){
+	keep_waiting = 1;
+	if (box_progress == progressOptions[1]) {
+		getRawStatistics(area);
+		if (area != getWidth()*getHeight() && area != 0)	keep_waiting = 0;
+	}
+	else if (roiManager("count") > 0)						keep_waiting = 0;
+
+	return keep_waiting;
+}
