@@ -109,7 +109,7 @@ if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; plea
 obslist_path = default_array[nDefaults - nAllStages - 2];
 if (scoring == 2 || !File.exists(obslist_path) )	obslist_path = File.openDialog("Choose observationlist csv");
 if (!endsWith(obslist_path, ".csv"))				exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
-obsList = split(File.openAsString(obslist_path), "\n");
+obsCSV = split(File.openAsString(obslist_path), "\n");
 
 new_default = Array.concat(saveloc, expname, timestep, 
 							dup_overlay, zboxspread, overlay_color1, overlay_color2, box_progress, 
@@ -121,12 +121,25 @@ selectWindow("new_default");
 saveAs("Text", defaults_path);
 run("Close");
 
+// make headers string ##HEADERS##
+headers = newArray("movie", "cell#");
+int_headers = newArray();
+endheaders = newArray();
+
+for (i = 0; i < nStages; i++) {
+	headers[i] = "t"+i;
+	if (i > 0)	int_headers = Array.concat(int_headers, "time_t" + i-1 + "-->t"+i);
+	endheaders[i] = stages_used[i];
+}
+headers = Array.concat(headers, int_header, customDialog(obsCSV, "headers"), endheaders);
+headers = String.join(headers,"\t");
+
 // load progress
 table = "Scoring_" + expname + ".csv";
 _table_ = "["+table+"]";
 results_file = saveloc + table;
 overlay_file = saveloc + getTitle() + "_overlay.zip";
-loadPreviousProgress();
+loadPreviousProgress(headers);
 if	(Table.size > 0){
 	prev_im =	Table.getString	("movie", Table.size-1);
 	prev_c =	Table.get		("cell#", Table.size-1);
@@ -214,11 +227,9 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	//events = GUI();
 
 	// create and print results line
-	headers = newArray("movie", "cell#");
-	int_headers = newArray();
-	endheaders = newArray();
 	tps = newArray();
 	intervals = newArray();
+	// ##HEADERS##
 	for (i = 0; i < nStages; i++) {
 		tps[i] = reorganized_coord_array[4*nStages+i];
 		headers = Array.concat(headers, "t"+i);
@@ -228,14 +239,9 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			int_headers = Array.concat(int_headers, "time_t" + i-1 + "-->t"+i)
 		}
 	}
-	headers = Array.concat(headers, int_header);
-	
-	results = Array.concat(im, c, tps, intervals);
-	dialog_return = customDialog(obsList, results, headers);
 
-	results = Array.trim(	dialog_return, dialog_return.length/2);
-	headers = Array.slice(	dialog_return, dialog_return.length/2, dialog_return.length);
-	headers = Array.concat(headers, endheaders);
+	headers = Array.concat(headers, int_header, customDialog(obsCSV, "headers"), endheaders);
+	results = Array.concat(im, c, tps, intervals, customDialog(obsCSV, "results"));
 	
 	for (i = 0; i < nStages; i++){
 		curr_coord = Array.slice(coordinates_array, i*rearranged.length, (i+1)*rearranged.length);
@@ -400,8 +406,7 @@ function checkHeaders(new){
 	} else	return 0;
 }
 
-function loadPreviousProgress(){
-	headers = generateHeaders();
+function loadPreviousProgress(headers){
 
 	// find previous results
 	if (File.exists(results_file)){
@@ -455,13 +460,13 @@ function makeOverlay(coord, name, color){
 	Overlay.setLabelColor(color);
 }
 
-function customDialog(lines, output, headers){
+function customDialog(CSV_lines, output, Results_Or_Header){
 	out_order = newArray();
 	Dialog.create("Score observations");
 	Dialog.setInsets(0, 0, 0);
 	Dialog.addMessage("Record your observations below");
-	for (l = 1; l < lines.length; l++) {
-		currLine = split(lines[l],",");
+	for (l = 1; l < CSV_lines.length; l++) {
+		currLine = split(CSV_lines[l],",");
 		
 		if (currLine [0] == "Group") {
 			Dialog.setInsets(10, 0, 0);
@@ -523,16 +528,19 @@ function customDialog(lines, output, headers){
 			}
 		}
 	}
-	
-	Dialog.show();
-	for (i = 0; i < out_order.length; i++) {
-		if (out_order[i] == "chk")	output = Array.concat(output, Dialog.getCheckbox() );
-		if (out_order[i] == "str")	output = Array.concat(output, Dialog.getString()   );
-		if (out_order[i] == "num")	output = Array.concat(output, Dialog.getNumber()   );
-		if (out_order[i] == "opt")	output = Array.concat(output, Dialog.getChoice()   );
+	if (Results_Or_Header == "results") {
+		Dialog.show();
+		for (i = 0; i < out_order.length; i++) {
+			if (out_order[i] == "chk")	output = Array.concat(output, Dialog.getCheckbox() );
+			if (out_order[i] == "str")	output = Array.concat(output, Dialog.getString()   );
+			if (out_order[i] == "num")	output = Array.concat(output, Dialog.getNumber()   );
+			if (out_order[i] == "opt")	output = Array.concat(output, Dialog.getChoice()   );
+		}
+		return output;
 	}
-	
-	return Array.concat(output, headers);
+	else{
+		return headers;
+	}
 }
 
 function keepWaiting(){
