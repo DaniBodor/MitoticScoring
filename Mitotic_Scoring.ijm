@@ -107,8 +107,11 @@ if (!File.isDirectory(saveloc))		File.makeDirectory(saveloc);
 if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; please choose valid directory");
 
 // load observation list
-obslist_path = default_array[nDefaults - nAllStages - 2];
-if (scoring == 2 || !File.exists(obslist_path) )	obslist_path = File.openDialog("Choose observation list csv file");
+obslist_path = default_array[nDefaults - nAllStages - 2]; 
+if (scoring == scoringOptions[2] || !File.exists(obslist_path) ){
+	obslist_path = File.openDialog("Choose new default observation list csv file");
+	scoring = scoringOptions[1];
+}
 if (!endsWith(obslist_path, ".csv"))				exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
 obsCSV = split(File.openAsString(obslist_path), "\n");
 
