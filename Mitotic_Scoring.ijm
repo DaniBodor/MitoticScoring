@@ -245,7 +245,8 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		if (i > 0) intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
 	}
 
-	results = Array.concat(im, c, tps, intervals, observationsDialog(obsCSV, "results"));
+	observations = observationsDialog(obsCSV, "results");
+	results = Array.concat(im, c, tps, intervals, observations);
 	
 	for (i = 0; i < nStages; i++){
 		curr_coord = Array.slice(coordinates_array, i*rearranged.length, (i+1)*rearranged.length);
@@ -253,15 +254,16 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		results = Array.concat(results,coord_string);
 	}
 	xywhttzz_string = String.join(xywhttzz,"_");
-	results = Array.concat(results,xywhttzz_string);
+	results = Array.concat(results, xywhttzz_string);
 
-	//headers_str = String.join(headers, "\t");	// i think obsolete
+// i think below is obsolete
+/*	headers_str = String.join(headers, "\t");	
 	if (!isOpen(table)) {
 		Table.create(table);
 		print(_table_, "\\Headings:" + headers_str);
 	}
 	else checkHeaders(headers_str);
-	
+*/
 	results_str = String.join(results,"\t");
 	print(_table_, results_str);
 	
