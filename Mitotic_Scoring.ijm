@@ -240,9 +240,9 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	//events = GUI();
 
 	// create and print results line
+	// need to organize/comment on the below !!
 	tps = newArray();
 	intervals = newArray();
-	// ##HEADERS##
 	for (i = 0; i < nStages; i++) {
 		tps[i] = reorganized_coord_array[4*nStages+i];
 		if (i > 0) intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
@@ -259,14 +259,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	xywhttzz_string = String.join(xywhttzz,"_");
 	results = Array.concat(results, xywhttzz_string);
 
-// i think below is obsolete
-/*	headers_str = String.join(headers, "\t");	
-	if (!isOpen(table)) {
-		Table.create(table);
-		print(_table_, "\\Headings:" + headers_str);
-	}
-	else checkHeaders(headers_str);
-*/
 	results_str = String.join(results,"\t");
 	print(_table_, results_str);
 	
@@ -406,10 +398,23 @@ function checkHeaders(new){
 	} else if (old != new){
 			//print("_" + old);
 			//print("_" + new);
+
+			new_filename = results_file + "_old";
+			for (fn = 2; File.exists(saveloc + new_filename); fn++) {
+				new_filename = results_file + "_old_" + fn;
+			}
+			
 			waitForUser("***ERROR***\n" + 
-			"Previous settings do not match current settings and the results table will be overwritten if the macro is not aborted.\n  \n" +
-			"Either abort macro (hit 'Esc') before analyzing any cell and restart using a different experiment name, or manually move/rename the previous results file to avoid overwriting it\n" + 
-			"Results file: " + results_file);
+			"Previous settings do not match current settings for this experiment (name)\n" +
+			"The results file from the previous experiment will be saved as " + saveloc + new_filename + ",\n"+
+			"and a new results file will be created for this experiment.\n" +
+			"All previous regions will be deleted "
+			vlkdngkjdfng	// need to do same for overlay windows! or at least not remove them
+			"Alternatively, abort now [Esc] and restart experiment with a new experiment name");
+
+			selectWindow(table);
+			saveAs("Text", results_file);
+
 			run("Close");
 			return 1;
 	} else	return 0;
@@ -518,7 +523,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 	
 			// add extras
 			if (currLine [2]){	// Add_#
-				headers = Array.concat(headers, "#");
+				headers = Array.concat(headers, curr_header + "_#");
 				Dialog.addToSameRow();
 				Dialog.addString("#", "",1);
 				out_order = Array.concat(out_order,"str");
