@@ -15,7 +15,7 @@ progressOptions = newArray("Click OK","Draw only","Draw + t");
 scoringOptions = newArray("None", "Load default", "Set new default");
 
 default_array = newArray(
-	"_", // 0 keys (ignored)
+	"_", // 0 Value (ignored)
 	"", //1 default_saveloc
 	"", //2 default_expname
 	3,  //3 default_timestep
@@ -28,6 +28,7 @@ default_array = newArray(
 	scoringOptions[1], // -1 default_scoring
 	0,1,0,0,1,0,0,0); // default_stages
 nDefaults = default_array.length;
+//Array.print(default_array);	// for troubleshooting
 
 // load previous defaults (if any)
 defaults_dir = getDirectory("macros") + "MitoticScoringDefaults" + File.separator;
@@ -37,10 +38,10 @@ if (File.exists(defaults_path)){
 	loaded_str = File.openAsString(defaults_path);
 	loaded_array = split(loaded_str, "\n");
 	if (loaded_array.length == nDefaults){
-		default_array = loaded_array;		
+		default_array = loaded_array;
 	}
 }
-
+//Array.print(default_array);	// for troubleshooting
 
 // open setup window
 Dialog.create("Setup");
@@ -107,7 +108,7 @@ if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; plea
 
 // load observation list
 obslist_path = default_array[nDefaults - nAllStages - 2];
-if (scoring == 2 || !File.exists(obslist_path) )	obslist_path = File.openDialog("Choose observationlist csv");
+if (scoring == 2 || !File.exists(obslist_path) )	obslist_path = File.openDialog("Choose observation list csv file");
 if (!endsWith(obslist_path, ".csv"))				exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
 obsCSV = split(File.openAsString(obslist_path), "\n");
 
@@ -122,24 +123,33 @@ saveAs("Text", defaults_path);
 run("Close");
 
 // make headers string ##HEADERS##
-headers = newArray("movie", "cell#");
-int_headers = newArray();
-endheaders = newArray();
+init_headers = newArray("movie", "cell#");
+interv_headers = newArray();
+end_headers = newArray();
 
 for (i = 0; i < nStages; i++) {
-	headers[i] = "t"+i;
-	if (i > 0)	int_headers = Array.concat(int_headers, "time_t" + i-1 + "-->t"+i);
-	endheaders[i] = stages_used[i];
+	init_headers[i+2] = "t"+i;
+	if (i > 0)	interv_headers = Array.concat(interv_headers, "time_t" + i-1 + "-->t"+i);
+	end_headers[i] = stages_used[i];
 }
-headers = Array.concat(headers, int_header, customDialog(obsCSV, "headers"), endheaders);
-headers = String.join(headers,"\t");
+obs_headers = observationsDialog(obsCSV, "headers");
+headers = Array.concat(init_headers, interv_headers, obs_headers, end_headers);
 
+/*
+Array.print(init_headers);
+Array.print(interv_headers);
+Array.print(obs_headers);
+Array.print(end_headers);
+Array.print(headers);
+*/
+
+headers_str = String.join(headers,"\t");
 // load progress
 table = "Scoring_" + expname + ".csv";
 _table_ = "["+table+"]";
 results_file = saveloc + table;
 overlay_file = saveloc + getTitle() + "_overlay.zip";
-loadPreviousProgress(headers);
+loadPreviousProgress(headers_str);
 if	(Table.size > 0){
 	prev_im =	Table.getString	("movie", Table.size-1);
 	prev_c =	Table.get		("cell#", Table.size-1);
@@ -232,16 +242,10 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	// ##HEADERS##
 	for (i = 0; i < nStages; i++) {
 		tps[i] = reorganized_coord_array[4*nStages+i];
-		headers = Array.concat(headers, "t"+i);
-		endheaders = Array.concat(endheaders, stages_used[i]);
-		if (i > 0) {
-			intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
-			int_headers = Array.concat(int_headers, "time_t" + i-1 + "-->t"+i)
-		}
+		if (i > 0) intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
 	}
 
-	headers = Array.concat(headers, int_header, customDialog(obsCSV, "headers"), endheaders);
-	results = Array.concat(im, c, tps, intervals, customDialog(obsCSV, "results"));
+	results = Array.concat(im, c, tps, intervals, observationsDialog(obsCSV, "results"));
 	
 	for (i = 0; i < nStages; i++){
 		curr_coord = Array.slice(coordinates_array, i*rearranged.length, (i+1)*rearranged.length);
@@ -251,7 +255,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	xywhttzz_string = String.join(xywhttzz,"_");
 	results = Array.concat(results,xywhttzz_string);
 
-	headers_str = String.join(headers, "\t");
+	//headers_str = String.join(headers, "\t");	// i think obsolete
 	if (!isOpen(table)) {
 		Table.create(table);
 		print(_table_, "\\Headings:" + headers_str);
@@ -460,9 +464,9 @@ function makeOverlay(coord, name, color){
 	Overlay.setLabelColor(color);
 }
 
-function customDialog(CSV_lines, output, Results_Or_Header){
+function observationsDialog(CSV_lines, Results_Or_Header){
 	out_order = newArray();
-	Dialog.create("Score observations");
+	Dialog.createNonBlocking("Score observations");
 	Dialog.setInsets(0, 0, 0);
 	Dialog.addMessage("Record your observations below");
 	for (l = 1; l < CSV_lines.length; l++) {
