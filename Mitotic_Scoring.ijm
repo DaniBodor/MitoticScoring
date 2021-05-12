@@ -138,20 +138,13 @@ for (i = 0; i < nStages; i++) {
 obs_headers = observationsDialog(obsCSV, "headers");
 headers = Array.concat(init_headers, interv_headers, obs_headers, end_headers);
 
-/*
-Array.print(init_headers);
-Array.print(interv_headers);
-Array.print(obs_headers);
-Array.print(end_headers);
-Array.print(headers);
-*/
-
 headers_str = String.join(headers,"\t");
+
+
 // load progress
-table = "Scoring_" + expname + ".csv";
+table = expname + "_Scoring.csv";
 _table_ = "["+table+"]";
 results_file = saveloc + table;
-overlay_file = saveloc + getTitle() + "_overlay.zip";
 loadPreviousProgress(headers_str);
 if	(Table.size > 0){
 	prev_im =	Table.getString	("movie", Table.size-1);
@@ -266,7 +259,8 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	run("To ROI Manager");
 	roiManager("Show All without labels");
 	roiManager("deselect");
-	roiManager("save", saveloc + getTitle() + "_overlay.zip");
+	overlay_file = saveloc + expname + "_ROIs_" + getTitle() + ".zip";
+	roiManager("save", overlay_file);
 	run("From ROI Manager");
 	roiManager("delete");
 	
@@ -280,7 +274,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 ////////////////////////////// CUSTOM FUNCTIONS ////////////////////////////////////
 ////////////////////////////// CUSTOM FUNCTIONS ////////////////////////////////////
 
-
 function reorganizeCoord(coord_group){
 	reorganized = newArray();
 	for (j = 0; j < coord_group.length/nStages; j++) {
@@ -290,6 +283,7 @@ function reorganizeCoord(coord_group){
 	}
 	return reorganized;
 }
+
 
 function getMinOrMaxOfMultiple(array,MinOrMax){
 	// find out whether min or max
@@ -307,6 +301,7 @@ function getMinOrMaxOfMultiple(array,MinOrMax){
 	return_value = return_value * multipl;
 	return return_value;
 }
+
 
 function getFullSelectionBounds(A){
 	xA = Array.concat( Array.slice( A, nStages*0, nStages*1), Array.slice( A, nStages*2, nStages*3));	
@@ -326,68 +321,6 @@ function getFullSelectionBounds(A){
 	return xywhttzz;
 }
 
-function makeDateOrTimeString(DorT){
-	getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
-
-	if(DorT == "date" || DorT == "Date" || DorT == "DATE" || DorT == "D" || DorT == "d"){
-		y = substring (d2s(year,0),2);
-
-		if (month > 8)	m = d2s(month+1,0);
-		else			m = "0" + d2s(month+1,0);
-
-		if (dayOfMonth > 9)		d = d2s(dayOfMonth,0);
-		else					d = "0" + d2s(dayOfMonth,0);
-
-		string = y + m + d;
-	}
-
-	if(DorT == "time" || DorT == "Time" || DorT == "TIME" || DorT == "T" || DorT == "t"){
-		if (hour > 9)	h = d2s(hour,0);
-		else			h = "0" + d2s(hour,0);
-
-		if (minute > 9)	m = d2s(minute,0);
-		else			m = "0" + d2s(minute,0);
-
-		if (second > 9)	s = d2s(second,0);
-		else			s = "0" + d2s(second,0);
-
-		string = h + ":" + m + ":" + s;
-	}
-
-	return string;
-}
-
-function generateHeaders(){
-	// create and print headers for output
-	headers = newArray("movie","cell#");	// first entry of headers
-
-	// add tps
-	for (s = 0; s < nStages; s++) {		// then add the individual intervals
-		tnumber = "t"+s;
-		headers = Array.concat(headers,tnumber);
-	}
-	
-	for (s = 1; s < nStages; s++) {		// then add the individual intervals
-		t_header = "time_t" + s-1 + "-->t" + s;
-		headers = Array.concat(headers,t_header);
-	}
-	
-	headers = Array.concat(headers,	// then add the possible events
-			"skip","highlight",
-			"lagger","bridge","misaligned", "cohesion defect", "apoptosis",
-			"multipolar","#_poles","micronucleated","#_micronuclei","micronuclei_before/after_mitosis",
-			"multinucleated","#_nuclei","multinucleated_before/after_mitosis",
-			"other","namely",
-			"unclear");
-	
-	for (nl = 0; nl < notes_lines; nl++) headers = Array.concat(headers,"notes"+nl+1);	// then add lines for notes
-	headers = Array.concat(headers,stages_used);		// then coordinates of each mitotic stage
-	headers = Array.concat(headers, "extract_code");	// then a code to allow for quick extraction (Gaby request)
-	
-	//Array.print(headers);
-	headers = String.join(headers,"\t");
-	return headers;
-}
 
 function checkHeaders(new){
 	selectWindow(table);
@@ -398,27 +331,18 @@ function checkHeaders(new){
 	} else if (old != new){
 			//print("_" + old);
 			//print("_" + new);
-
-			new_filename = results_file + "_old";
-			for (fn = 2; File.exists(saveloc + new_filename); fn++) {
-				new_filename = results_file + "_old_" + fn;
-			}
-			
+					
 			waitForUser("***ERROR***\n" + 
-			"Previous settings do not match current settings for this experiment (name)\n" +
-			"The results file from the previous experiment will be saved as " + saveloc + new_filename + ",\n"+
-			"and a new results file will be created for this experiment.\n" +
-			"All previous regions will be deleted "
-			vlkdngkjdfng	// need to do same for overlay windows! or at least not remove them
-			"Alternatively, abort now [Esc] and restart experiment with a new experiment name");
+			"Previous settings do not match current settings for this experiment.\n" +
+			"The results and overlays from the previous experiment will be stored,\n" +
+			"and a new results table and overlay file will be created for this experiment.\n \n" +
+			"Alternatively, abort now [Esc] and restart using a different experiment name.");
 
-			selectWindow(table);
-			saveAs("Text", results_file);
-
-			run("Close");
+			renameOldFiles(results_file);
 			return 1;
 	} else	return 0;
 }
+
 
 function loadPreviousProgress(headers){
 
@@ -445,6 +369,7 @@ function loadPreviousProgress(headers){
 		roiManager("delete");
 	}
 }
+
 
 function makeOverlay(coord, name, color){
 	// create rect at each frame
@@ -473,6 +398,7 @@ function makeOverlay(coord, name, color){
 	Overlay.setLabelFontSize(8,"scale");
 	Overlay.setLabelColor(color);
 }
+
 
 function observationsDialog(CSV_lines, Results_Or_Header){
 	out_order = newArray();
@@ -557,6 +483,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 	}
 }
 
+
 function keepWaiting(){
 	keep_waiting = 1;
 	if (box_progress == progressOptions[1]) {
@@ -566,4 +493,32 @@ function keepWaiting(){
 	else if (roiManager("count") > 0)						keep_waiting = 0;
 
 	return keep_waiting;
+}
+
+
+function renameOldFiles(path){
+	// extract date & time of last modification
+	str = File.dateLastModified(path);
+	A = split(str, " ");
+	y = A[A.length-1];
+	m = A[1];
+	d = A[2];
+	t = replace(A[3],":","");
+	datetime = "_" + d + m + y + "_" + t;
+
+	// save old table under new name
+	prevResultsFile = saveloc + "_" + expname + "_Scoring" + datetime + ".csv";
+	selectWindow(table);
+	saveAs("Text", prevResultsFile);
+	run("Close");
+	
+	// save old overlay files under new name
+	flist = getFileList(saveloc);
+	for (f = 0; f < flist.length; f++) {
+		zipname = flist[f];
+		if (startsWith(zipname, expname) && endsWith(zipname, "zip")) {
+			newZipFilename = "_" + substring(zipname,0,lengthOf(zipname)-4) + datetime + ".zip";
+			File.rename(saveloc + zipname, saveloc + newZipFilename);
+		}
+	}
 }
