@@ -30,7 +30,7 @@ Here you can set:
 - GENERAL SETTINGS:
     - the path where results are saved, your experiment name, and the time step between frames
 - SETTINGS FOR VISUAL TRACKING
-    - how to proceed after drawing a box around your tracked cell ([see below](https://github.com/DaniBodor/MitoticScoring/#step-1))
+    - how to proceed after drawing a box around your tracked cell ([see below](https://github.com/DaniBodor/MitoticScoring/#step-1-indicate-cell))
         - 'Click OK': draw a box, the click 'OK' on the popup window
         - 'Draw + t': draw a box, then add it to ROI list (for which the default keyboard shortcut is 't')
         - 'Draw only': automatically progress once you drew a box (no undos are possible, so be careful when clicking around)
