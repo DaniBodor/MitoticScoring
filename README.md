@@ -40,32 +40,37 @@ Here you can set:
 - SCORING SETTINGS:
     - 'Score Observations':
         - 'None': do not keep track of events, only of timings
-        - 'Load default': use the default observation list for keeping track 
-            - the first time you run the macro, it may prompt you for the file location of the observation list. See below
-        - 'Set new default': you are prompted to choose a custom observation list csv file. See below
+        - 'Load default': use the [default observation](https://github.com/DaniBodor/MitoticScoring/#step-2-score-events) list for keeping track
+            - the first time you run the macro, it may prompt you for the file location of the observation list ([see below](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list)).
+        - 'Set new default': you are prompted to choose a custom observation list csv file ([see below](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list)).
     - Mitotic stages: at least one must be selected
+
+NOTE:  
+**A problem would occur in the results table if you run the macro using the same experiment name but a different set of mitotic stages. If this happens, a warning will pop up asking you to either abort the current run or store the previous results table separately.  
+If the macro continues running, the previous results table will be overwritten once the first cell is scored**
+
+
 
 ## Identify & score mitotic cells
 ### Step 1: indicate cell
 The macro will ask you to draw a box around the mitotic cell at the for each stage selected in the settings. These boxes are used to visually keep track of which cells have already been analyzed.  
 These boxes are saved in your save location after each analyzed cell, and are automatically reloaded when you restart the macro on the same cell.
 
-### Step 2
+### Step 2: score events
 Next, you will be prompted to input observations to track:  
 <img src="Images/ObservationsChecklist.png" width=30%>
 
-### Step 3 (automatic)
+### Step 3: storing and outputting observations
 Then, results will be written to the scoring table, which is immediately saved (the file is overwritten after each cell) as a \*.csv, which can be read by most downstream applications (Excel, R, Python, Matlab, ...).
 <img src="Images/ResultsTable.png" width=80%>
 
 ### Back to step 1
-It then asks you to identify and box the next cell. This repeats forever, until you hit 'Esc' or in some other way quit the macro.
+It then asks you to identify and box the next cell. This repeats forever, until you hit 'Esc' (a few times) or in some other way quit the macro.
 
 NOTE:  
-**At any point you can close the image and open a different (or the same) one without crashing the macro or losing your progress. Also, you can quit the macro and carry on at a later time without losing your current progress.**
+**At any point you can close the image and open a different (or the same) one without crashing the macro or losing your progress. Also, you can quit the macro and restart it (with identical settings) at a later time without losing your progress.**
 
-NOTE:  
-**A problem would occur in the results table if you run the macro using the same experiment name but a different set of mitotic stages. If this happens, a warning will pop up asking you to either abort the current run or store the previous results table separately.  
-If the macro continues running, the previous results table will be overwritten once the first cell is scored**
 
+## Use custom observation list
+Readme section in development
 
