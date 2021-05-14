@@ -13,6 +13,7 @@ nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 progressOptions = newArray("Click OK","Draw only","Draw + t");
 scoringOptions = newArray("None", "Load default", "Set new default");
+overlay_file = "";
 
 default_array = newArray(
 	"_", // 0 Value (ignored)
@@ -114,6 +115,7 @@ if (scoring == scoringOptions[2] || !File.exists(obslist_path) ){
 }
 if (!endsWith(obslist_path, ".csv"))				exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
 obsCSV = split(File.openAsString(obslist_path), "\n");
+//for (i = 0; i < obsCSV.length; i++) print(i, obsCSV[i]);
 
 new_default = Array.concat(saveloc, expname, timestep, 
 							dup_overlay, zboxspread, overlay_color1, overlay_color2, box_progress, 
@@ -242,6 +244,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	}
 
 	observations = observationsDialog(obsCSV, "results");
+	//Array.print(observations);
 	results = Array.concat(im, c, tps, intervals, observations);
 	
 	for (i = 0; i < nStages; i++){
@@ -401,7 +404,9 @@ function makeOverlay(coord, name, color){
 
 
 function observationsDialog(CSV_lines, Results_Or_Header){
-	out_order = newArray();
+	out_order	= newArray();
+	headers		= newArray();
+	output		= newArray();
 	Dialog.createNonBlocking("Score observations");
 	Dialog.setInsets(0, 0, 0);
 	Dialog.addMessage("Record your observations below");
@@ -471,10 +476,10 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 	if (Results_Or_Header == "results") {
 		Dialog.show();
 		for (i = 0; i < out_order.length; i++) {
-			if (out_order[i] == "chk")	output = Array.concat(output, Dialog.getCheckbox() );
-			if (out_order[i] == "str")	output = Array.concat(output, Dialog.getString()   );
-			if (out_order[i] == "num")	output = Array.concat(output, Dialog.getNumber()   );
-			if (out_order[i] == "opt")	output = Array.concat(output, Dialog.getChoice()   );
+			if (out_order[i] == "chk")	output[i] = Dialog.getCheckbox();
+			if (out_order[i] == "str")	output[i] = Dialog.getString();
+			if (out_order[i] == "num")	output[i] = Dialog.getNumber();
+			if (out_order[i] == "opt")	output[i] = Dialog.getChoice();
 		}
 		return output;
 	}
