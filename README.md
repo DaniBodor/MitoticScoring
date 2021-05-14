@@ -58,7 +58,7 @@ These boxes are saved in your save location after each analyzed cell, and are au
 
 ### Step 2: score events
 Next, you will be prompted to input observations to track:  
-<img src="Images/ObservationsChecklist.png" width=30%>
+<img src="Images/ObservationsChecklist.png" width=25%>
 
 ### Step 3: storing and outputting observations
 Then, results will be written to the scoring table, which is immediately saved (the file is overwritten after each cell) as a \*.csv, which can be read by most downstream applications (Excel, R, Python, Matlab, ...).
