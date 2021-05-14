@@ -35,9 +35,7 @@ Here, you can set:
 
 Current settings will be stored and used as default next time you run the macro, so if nothing changes you can just click OK.
 
-<!--START_SECTION:update_image-->
 <img src="Images/Scoring_Macro_Setup.png" width=50%>
-<!--END_SECTION:update_image-->
 
 ## Identify & score mitotic cells
 
