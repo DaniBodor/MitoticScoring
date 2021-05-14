@@ -12,10 +12,10 @@ all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Teloph
 nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 progressOptions = newArray("Click OK","Draw only","Draw + t");
+scoringOptions = newArray("None", "Load default", "Set new default");
 
-// initiate defaults (if any)
 default_array = newArray(
-	"_", // 0 keys (ignored)
+	"_", // 0 Value (ignored)
 	"", //1 default_saveloc
 	"", //2 default_expname
 	3,  //3 default_timestep
@@ -23,21 +23,25 @@ default_array = newArray(
 	0,  //5 default_zspread
 	"red", //6 default_color1
 	"white", //7 default_color2
-	"Click OK", // 8 default_promptOK
-	1, // default_scoring
-	0,1,0,0,1,0,0,0 ); //default_stages
+	progressOptions[0], //8 default_promptOK
+	getDir("file") + "DefaultObservationList.csv", // -2 default_obslist_location
+	scoringOptions[1], // -1 default_scoring
+	0,1,0,0,1,0,0,0); // default_stages
 nDefaults = default_array.length;
+//Array.print(default_array);	// for troubleshooting
 
 // load previous defaults (if any)
-defaults_path = getDirectory("macros") + "OrgaMovie_Scoring_defaults.txt";
+defaults_dir = getDirectory("macros") + "MitoticScoringDefaults" + File.separator;
+defaults_path = defaults_dir+ "DefaultSettings.txt";
+if (!File.isDirectory(defaults_dir))	File.makeDirectory(defaults_dir);
 if (File.exists(defaults_path)){
 	loaded_str = File.openAsString(defaults_path);
 	loaded_array = split(loaded_str, "\n");
 	if (loaded_array.length == nDefaults){
-		default_array = loaded_array;		
+		default_array = loaded_array;
 	}
 }
-
+//Array.print(default_array);	// for troubleshooting
 
 // open setup window
 Dialog.create("Setup");
@@ -65,7 +69,7 @@ Dialog.create("Setup");
 	Dialog.setInsets(20, 0, 0);
 	Dialog.addMessage("SCORING SETTINGS");
 	Dialog.setInsets(0, 20, 0);
-	Dialog.addCheckbox("Score observations?",  default_array[nDefaults - nAllStages - 1]);
+	Dialog.addChoice("Score observations?",  scoringOptions, default_array[nDefaults - nAllStages - 1]);
 	Dialog.setInsets(2, 10, 0);
 	Dialog.addMessage("Which mitotic stages should be monitored?")
 	Dialog.setInsets(-5, 20, 0);
@@ -84,7 +88,7 @@ Dialog.show();
 	zboxspread = Dialog.getNumber();	
 	dup_overlay = Dialog.getCheckbox();
 	
-	scoring = Dialog.getCheckbox();
+	scoring = Dialog.getChoice();
 	stages_used = newArray();
 	t=0;
 	for (i = 0; i < nAllStages; i++) {
@@ -95,15 +99,25 @@ Dialog.show();
 			t++;
 		}
 	}
-	
-new_default = Array.concat(saveloc, expname, timestep, 
-							dup_overlay, zboxspread, overlay_color1, overlay_color2, box_progress, 
-							scoring, default_stages);
 
+// check input
 nStages = stages_used.length;
 if (nStages == 0)	exit("Macro aborted because no stages are tracked.\nSelect at least 1 stage to track");
 if (!File.isDirectory(saveloc))		File.makeDirectory(saveloc);
 if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; please choose valid directory");
+
+// load observation list
+obslist_path = default_array[nDefaults - nAllStages - 2]; 
+if (scoring == scoringOptions[2] || !File.exists(obslist_path) ){
+	obslist_path = File.openDialog("Choose new default observation list csv file");
+	scoring = scoringOptions[1];
+}
+if (!endsWith(obslist_path, ".csv"))				exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
+obsCSV = split(File.openAsString(obslist_path), "\n");
+
+new_default = Array.concat(saveloc, expname, timestep, 
+							dup_overlay, zboxspread, overlay_color1, overlay_color2, box_progress, 
+							obslist_path, scoring, default_stages);
 
 // save defaults for next time
 Array.show(new_default);
@@ -111,13 +125,27 @@ selectWindow("new_default");
 saveAs("Text", defaults_path);
 run("Close");
 
+// make headers string ##HEADERS##
+init_headers = newArray("movie", "cell#");
+interv_headers = newArray();
+end_headers = newArray();
+
+for (i = 0; i < nStages; i++) {
+	init_headers[i+2] = "t"+i;
+	if (i > 0)	interv_headers = Array.concat(interv_headers, "time_t" + i-1 + "-->t"+i);
+	end_headers[i] = stages_used[i];
+}
+obs_headers = observationsDialog(obsCSV, "headers");
+headers = Array.concat(init_headers, interv_headers, obs_headers, end_headers);
+
+headers_str = String.join(headers,"\t");
+
 
 // load progress
-table = "Scoring_" + expname + ".csv";
+table = expname + "_Scoring.csv";
 _table_ = "["+table+"]";
 results_file = saveloc + table;
-overlay_file = saveloc + getTitle() + "_overlay.zip";
-loadPreviousProgress();
+loadPreviousProgress(headers_str);
 if	(Table.size > 0){
 	prev_im =	Table.getString	("movie", Table.size-1);
 	prev_c =	Table.get		("cell#", Table.size-1);
@@ -127,14 +155,14 @@ else {
 	prev_c = 0;
 }
 
-// analyze individual events
 
+// analyze individual events
 setTool("rectangle");
 for (c = prev_c+1; c > 0; c++){	// loop through cells
 	
 	coordinates_array = newArray();
 	// for each time point included, pause to allow user to define coordinates
-	for (tp = 0; tp < nStages; tp++) {
+	for (tp = 0; tp < nStages; tp++) {	// put box making into function?
 		run("Select None");
 		// allow user to box mitotic cell
 		wait_string = "Draw a box around a cell at " + stages_used[tp] + " of mitotic event.";
@@ -152,25 +180,17 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			run("Text Window...", "name=Waiting width=100 height=8 menu");
 			setLocation(750, 200);
 			wait_string = "*****Close this window to finish session\n" + wait_string;
-			print("[Waiting]", wait_string);
-			if (box_progress == progressOptions[1]) {
-				getRawStatistics(area);
-				while (area == getWidth()*getHeight() || area == 0){
-					getRawStatistics(area);
-					wait(250);
-					if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
-				}
-			}
-			else {		// draw box and add to ROI Manager
-				print("[Waiting]", "\nPress t or add to ROI Manager when done");
-				nRois = roiManager("count");
-				while (roiManager("count") == nRois){
-					wait(250);
-					if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
-				}
+			if (box_progress == progressOptions[2]){
 				roiManager("reset");
+				wait_string = wait_string + "\nPress t or add to ROI Manager when done"
 			}
-
+			print("[Waiting]", wait_string);
+			
+			while (keepWaiting() == 1){
+				wait(250);
+				if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
+			}
+			
 			run("Collect Garbage");
 			if (isOpen("Waiting")){
 				selectWindow("Waiting");
@@ -210,135 +230,49 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	makeOverlay(xywhttzz, "c" + c, "white");	
 	
 	// for manual input on observations
-	events = GUI(notes_lines);
+	//events = GUI();
 
 	// create and print results line
+	// need to organize/comment on the below !!
 	tps = newArray();
 	intervals = newArray();
 	for (i = 0; i < nStages; i++) {
 		tps[i] = reorganized_coord_array[4*nStages+i];
-		if (i>0)	intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
+		if (i > 0) intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
 	}
-	
-	results = Array.concat(im, c, tps, intervals, events);
+
+	observations = observationsDialog(obsCSV, "results");
+	results = Array.concat(im, c, tps, intervals, observations);
 	
 	for (i = 0; i < nStages; i++){
 		curr_coord = Array.slice(coordinates_array, i*rearranged.length, (i+1)*rearranged.length);
-		coord_string = arrayToString(curr_coord,"_");
+		coord_string = String.join(curr_coord,"_");
 		results = Array.concat(results,coord_string);
 	}
-	xywhttzz_string = arrayToString(xywhttzz,"_");
-	results = Array.concat(results,xywhttzz_string);
+	xywhttzz_string = String.join(xywhttzz,"_");
+	results = Array.concat(results, xywhttzz_string);
 
-	//Array.print(results);
-	results_str = arrayToString(results,"\t");
+	results_str = String.join(results,"\t");
 	print(_table_, results_str);
 	
 	// save overlay
 	run("To ROI Manager");
 	roiManager("Show All without labels");
 	roiManager("deselect");
-	roiManager("save", saveloc + getTitle() + "_overlay.zip");
+	overlay_file = saveloc + expname + "_ROIs_" + getTitle() + ".zip";
+	roiManager("save", overlay_file);
 	run("From ROI Manager");
 	roiManager("delete");
 	
 	// save results progress
 	selectWindow(table);
 	saveAs("Text", results_file);
-
-
 }
 
 
 ////////////////////////////// CUSTOM FUNCTIONS ////////////////////////////////////
 ////////////////////////////// CUSTOM FUNCTIONS ////////////////////////////////////
 ////////////////////////////// CUSTOM FUNCTIONS ////////////////////////////////////
-
-function GUI(nNotes){	
-	/* 
-	 *  This function creates a dialog window to generate manual input on mitotic events occuring in this cell.
-	 *  This is ugly and non-modular and requires manual tinkering whenever things change. 
-	 *  Don't have a good idea how to easily fix this without screwing up the formatting.
-	 */
-	
-	// pre-sets
-	time_option = newArray("","before_div","after_div","both");
-	no_yes = newArray("NO","YES");
-	notes = newArray(nNotes);
-
-	// actual dialog/GUI
-	Dialog.createNonBlocking("Observations checklist");
-		Dialog.addMessage("Do you want to skip analysis for this cell?");
-		Dialog.setInsets(0,20,0);
-		Dialog.addCheckbox("Skip this cell", 0);
-		Dialog.addMessage("If not, register observations for this mitosis below:");
-		Dialog.setInsets(0,20,0);
-		Dialog.addCheckbox("Highlight cell", 0);
-		
-		Dialog.addMessage("Record observations below");
-		Dialog.addCheckbox("Lagger", 0);
-		Dialog.addCheckbox("Bridge", 0);
-		Dialog.addCheckbox("Misaligned", 0);
-		Dialog.addCheckbox("Cohesion defect", 0);
-		Dialog.addCheckbox("Apoptosis", 0);
-		Dialog.addCheckbox("Multipolar", 0);
-			Dialog.setInsets(-20,120,0);
-			Dialog.addString("#","",1);
-		Dialog.addCheckbox("Micronucleus", 0);
-			Dialog.setInsets(-20,120,0);
-			Dialog.addString("#","",1);
-			Dialog.addToSameRow();
-			Dialog.addChoice("when",time_option);
-		Dialog.addCheckbox("Multinucleated", 0);
-			Dialog.setInsets(-20,120,0);
-			Dialog.addString("#","",1);
-			Dialog.addToSameRow();
-			Dialog.addChoice("when",time_option);
-		Dialog.addCheckbox("Other:", 0);
-			Dialog.setInsets(-20,-100,0);
-			Dialog.addString("","",22);
-		Dialog.addCheckbox("Unclear", 0);
-		//Dialog.addMessage("");
-		for (i = 0; i < nNotes; i++) Dialog.addString("Notes","",22);
-		
-	if(scoring)		Dialog.show();
-		skip = Dialog.getCheckbox;
-		highlighted = Dialog.getCheckbox;
-		lag = Dialog.getCheckbox;
-		bridge = Dialog.getCheckbox;
-		misaligned = Dialog.getCheckbox;
-		cohesion_defect = Dialog.getCheckbox;
-		apoptosis = Dialog.getCheckbox;
-		multipole = Dialog.getCheckbox;
-			pole_number = Dialog.getString;
-		micronuc = Dialog.getCheckbox;
-			micronuc_number = Dialog.getString;
-			micronuc_timing = Dialog.getChoice;
-		multinuc = Dialog.getCheckbox;
-			multinuc_number = Dialog.getString;
-			multinuc_timing = Dialog.getChoice;
-		other_obs = Dialog.getCheckbox;
-			other_type = Dialog.getString;
-		unclear = Dialog.getCheckbox;
-		for (i = 0; i < nNotes; i++) 	notes[i] = Dialog.getString;
-
-	GUI_result = newArray(
-		skip,		highlighted,
-		lag,		bridge,				misaligned,			cohesion_defect,	apoptosis,
-		multipole,	pole_number,
-		micronuc,	micronuc_number,	micronuc_timing,
-		multinuc,	multinuc_number,	multinuc_timing,
-		other_obs,	other_type,
-		unclear
-		);
-	
-	GUI_result = Array.concat(GUI_result, notes);
-
-	return GUI_result;
-}
-
-
-
 
 function reorganizeCoord(coord_group){
 	reorganized = newArray();
@@ -349,6 +283,7 @@ function reorganizeCoord(coord_group){
 	}
 	return reorganized;
 }
+
 
 function getMinOrMaxOfMultiple(array,MinOrMax){
 	// find out whether min or max
@@ -366,6 +301,7 @@ function getMinOrMaxOfMultiple(array,MinOrMax){
 	return_value = return_value * multipl;
 	return return_value;
 }
+
 
 function getFullSelectionBounds(A){
 	xA = Array.concat( Array.slice( A, nStages*0, nStages*1), Array.slice( A, nStages*2, nStages*3));	
@@ -385,77 +321,6 @@ function getFullSelectionBounds(A){
 	return xywhttzz;
 }
 
-function arrayToString(A,splitter){
-	string = "";
-	for (i = 0; i < A.length; i++) {
-		string = string + A[i] + splitter;
-	}
-	string = substring(string, 0, lastIndexOf(string, splitter));
-	return string;
-}
-
-function makeDateOrTimeString(DorT){
-	getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
-
-	if(DorT == "date" || DorT == "Date" || DorT == "DATE" || DorT == "D" || DorT == "d"){
-		y = substring (d2s(year,0),2);
-
-		if (month > 8)	m = d2s(month+1,0);
-		else			m = "0" + d2s(month+1,0);
-
-		if (dayOfMonth > 9)		d = d2s(dayOfMonth,0);
-		else					d = "0" + d2s(dayOfMonth,0);
-
-		string = y + m + d;
-	}
-
-	if(DorT == "time" || DorT == "Time" || DorT == "TIME" || DorT == "T" || DorT == "t"){
-		if (hour > 9)	h = d2s(hour,0);
-		else			h = "0" + d2s(hour,0);
-
-		if (minute > 9)	m = d2s(minute,0);
-		else			m = "0" + d2s(minute,0);
-
-		if (second > 9)	s = d2s(second,0);
-		else			s = "0" + d2s(second,0);
-
-		string = h + ":" + m + ":" + s;
-	}
-
-	return string;
-}
-
-function generateHeaders(){
-	// create and print headers for output
-	headers = newArray("movie","cell#");	// first entry of headers
-
-	// add tps
-	for (s = 0; s < nStages; s++) {		// then add the individual intervals
-		tnumber = "t"+s;
-		headers = Array.concat(headers,tnumber);
-	}
-	
-	for (s = 1; s < nStages; s++) {		// then add the individual intervals
-		t_header = "time_t" + s-1 + "-->t" + s;
-		headers = Array.concat(headers,t_header);
-	}
-	
-	headers = Array.concat(headers,	// then add the possible events
-			"skip","highlight",
-			"lagger","bridge","misaligned", "cohesion defect", "apoptosis",
-			"multipolar","#_poles","micronucleated","#_micronuclei","micronuclei_before/after_mitosis",
-			"multinucleated","#_nuclei","multinucleated_before/after_mitosis",
-			"other","namely",
-			"unclear");
-	
-	for (nl = 0; nl < notes_lines; nl++) headers = Array.concat(headers,"notes"+nl+1);	// then add lines for notes
-	headers = Array.concat(headers,stages_used);		// then coordinates of each mitotic stage
-	headers = Array.concat(headers, "extract_code");	// then a code to allow for quick extraction (Gaby request)
-	
-	//Array.print(headers);
-	headers = arrayToString(headers,"\t");
-	return headers;
-}
 
 function checkHeaders(new){
 	selectWindow(table);
@@ -466,17 +331,20 @@ function checkHeaders(new){
 	} else if (old != new){
 			//print("_" + old);
 			//print("_" + new);
+					
 			waitForUser("***ERROR***\n" + 
-			"Previous settings of mitotic stages to include for this experiment do not match current settings and the results table will be overwritten if the macro is not aborted.\n  \n" +
-			"Either abort macro (hit 'Esc') before analyzing any cell and restart using a different experiment name, or manually move/rename the previous results file to avoid overwriting it\n" + 
-			"Results file: " + results_file);
-			run("Close");
+			"Previous settings do not match current settings for this experiment.\n" +
+			"The results and overlays from the previous experiment will be stored,\n" +
+			"and a new results table and overlay file will be created for this experiment.\n \n" +
+			"Alternatively, abort now [Esc] and restart using a different experiment name.");
+
+			renameOldFiles(results_file);
 			return 1;
 	} else	return 0;
 }
 
-function loadPreviousProgress(){
-	headers = generateHeaders();
+
+function loadPreviousProgress(headers){
 
 	// find previous results
 	if (File.exists(results_file)){
@@ -501,6 +369,7 @@ function loadPreviousProgress(){
 		roiManager("delete");
 	}
 }
+
 
 function makeOverlay(coord, name, color){
 	// create rect at each frame
@@ -528,4 +397,128 @@ function makeOverlay(coord, name, color){
 	Overlay.drawLabels(1);
 	Overlay.setLabelFontSize(8,"scale");
 	Overlay.setLabelColor(color);
+}
+
+
+function observationsDialog(CSV_lines, Results_Or_Header){
+	out_order = newArray();
+	Dialog.createNonBlocking("Score observations");
+	Dialog.setInsets(0, 0, 0);
+	Dialog.addMessage("Record your observations below");
+	for (l = 1; l < CSV_lines.length; l++) {
+		currLine = split(CSV_lines[l],",");
+		
+		if (currLine [0] == "Group") {
+			Dialog.setInsets(10, 0, 0);
+			Dialog.addMessage(currLine[1]);
+		}
+		
+		else {
+			curr_header = currLine[1].replace(" ","_");
+			headers = Array.concat(headers, curr_header);
+			
+			Dialog.setInsets(0,10,0);
+			choices =  Array.slice(currLine, 4, currLine.length);
+			choices[0] = "";
+			for (i = 0; i < choices.length; i++) {
+				choices[i] = replace(choices[i], "\"", "");
+				choices[i] = choices[i].trim;
+			}
+			
+			// add main
+			if (currLine [0] == "Checkbox"){
+				Dialog.addCheckbox(currLine[1], 0);
+				out_order = Array.concat(out_order,"chk");
+			}
+			if (currLine [0] == "Text"){
+				Dialog.addString(currLine[1], "", 24);
+				out_order = Array.concat(out_order,"str");
+			}
+			if (currLine [0] == "Number"){
+				Dialog.addNumber(currLine[1], "");
+				out_order = Array.concat(out_order,"num");
+			}
+			if (currLine [0] == "File"){
+				Dialog.addFile(currLine[1], "");
+				out_order = Array.concat(out_order,"str");
+			}
+			if (currLine [0] == "List"){
+				Dialog.addChoice(currLine[1], choices);
+				out_order = Array.concat(out_order,"opt");
+			}
+	
+			// add extras
+			if (currLine [2]){	// Add_#
+				headers = Array.concat(headers, curr_header + "_#");
+				Dialog.addToSameRow();
+				Dialog.addString("#", "",1);
+				out_order = Array.concat(out_order,"str");
+			}
+			if (currLine [3]){	// Add_Text
+				headers = Array.concat(headers, curr_header+"_note");
+				Dialog.addToSameRow();
+				Dialog.addString("", "", 16);
+				out_order = Array.concat(out_order,"str");
+			}
+			if (currLine [4]){	// Add_List
+				headers = Array.concat(headers, curr_header+"_choice");
+				Dialog.addToSameRow();
+				Dialog.addChoice("", choices);
+				out_order = Array.concat(out_order,"opt");
+			}
+		}
+	}
+	if (Results_Or_Header == "results") {
+		Dialog.show();
+		for (i = 0; i < out_order.length; i++) {
+			if (out_order[i] == "chk")	output = Array.concat(output, Dialog.getCheckbox() );
+			if (out_order[i] == "str")	output = Array.concat(output, Dialog.getString()   );
+			if (out_order[i] == "num")	output = Array.concat(output, Dialog.getNumber()   );
+			if (out_order[i] == "opt")	output = Array.concat(output, Dialog.getChoice()   );
+		}
+		return output;
+	}
+	else{
+		return headers;
+	}
+}
+
+
+function keepWaiting(){
+	keep_waiting = 1;
+	if (box_progress == progressOptions[1]) {
+		getRawStatistics(area);
+		if (area != getWidth()*getHeight() && area != 0)	keep_waiting = 0;
+	}
+	else if (roiManager("count") > 0)						keep_waiting = 0;
+
+	return keep_waiting;
+}
+
+
+function renameOldFiles(path){
+	// extract date & time of last modification
+	str = File.dateLastModified(path);
+	A = split(str, " ");
+	y = A[A.length-1];
+	m = A[1];
+	d = A[2];
+	t = replace(A[3],":","");
+	datetime = "_" + d + m + y + "_" + t;
+
+	// save old table under new name
+	prevResultsFile = saveloc + "_" + expname + "_Scoring" + datetime + ".csv";
+	selectWindow(table);
+	saveAs("Text", prevResultsFile);
+	run("Close");
+	
+	// save old overlay files under new name
+	flist = getFileList(saveloc);
+	for (f = 0; f < flist.length; f++) {
+		zipname = flist[f];
+		if (startsWith(zipname, expname) && endsWith(zipname, "zip")) {
+			newZipFilename = "_" + substring(zipname,0,lengthOf(zipname)-4) + datetime + ".zip";
+			File.rename(saveloc + zipname, saveloc + newZipFilename);
+		}
+	}
 }
