@@ -30,7 +30,7 @@ Here you can set:
 - GENERAL SETTINGS:
     - the path where results are saved, your experiment name, and the time step between frames
 - SETTINGS FOR VISUAL TRACKING
-    - how to proceed after drawing a box around your tracked cell (see below)
+    - how to proceed after drawing a box around your tracked cell ([see below](https://github.com/DaniBodor/MitoticScoring/#step-1))
         - 'Click OK': draw a box, the click 'OK' on the popup window
         - 'Draw + t': draw a box, then add it to ROI list (for which the default keyboard shortcut is 't')
         - 'Draw only': automatically progress once you drew a box (no undos are possible, so be careful when clicking around)
@@ -46,7 +46,7 @@ Here you can set:
     - Mitotic stages: at least one must be selected
 
 ## Identify & score mitotic cells
-### Step 1
+### Step 1: indicate cell
 The macro will ask you to draw a box around the mitotic cell at the for each stage selected in the settings. These boxes are used to visually keep track of which cells have already been analyzed.  
 These boxes are saved in your save location after each analyzed cell, and are automatically reloaded when you restart the macro on the same cell.
 
