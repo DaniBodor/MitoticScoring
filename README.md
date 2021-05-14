@@ -1,5 +1,6 @@
 [![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/sindresorhus/awesome)
 
+
 # Mitotic Scoring Macro
 This macro keeps track of manual scoring of mitotic events. It keeps track of timings, position, and potential mitotic errors or events.
 
@@ -36,7 +37,6 @@ Current settings will be stored and used as default next time you run the macro,
 
 <img src="Images/Scoring_Macro_Setup.png" width=50%>
 
-
 ## Identify & score mitotic cells
 
 The macro will ask you to draw a box around the mitotic cell at the for each stage selected in the settings. These boxes are used to visually keep track of which cells have already been analyzed.  
@@ -56,3 +56,5 @@ NOTE:
 NOTE:  
 **A problem would occur in the results table if you run the macro using the same experiment name but a different set of mitotic stages. If this happens, a warning will pop up asking you to either abort the current run or store the previous results table separately.  
 If the macro continues running, the previous results table will be overwritten once the first cell is scored**
+
+
