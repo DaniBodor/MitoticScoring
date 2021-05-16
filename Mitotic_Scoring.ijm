@@ -5,13 +5,10 @@ setFont("SansSerif", 9, "antialiased");
 notes_lines = 3;
 surrounding_box = 1;	// in pixels
 
-if(nImages > 0)		Overlay.remove;
-else				open();
-
 all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Telophase", "Decondensation", "G1");
 nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
-progressOptions = newArray("Click OK","Draw only","Draw + t");
+progressOptions = newArray("Click OK", "Draw + t", "Draw only");
 scoringOptions = newArray("None", "Load default", "Set new default");
 overlay_file = "";
 
@@ -44,10 +41,13 @@ if (File.exists(defaults_path)){
 }
 //Array.print(default_array);	// for troubleshooting
 
+if(nImages > 0)		Overlay.remove;
+else				open();
+
 // open setup window
 Dialog.create("Setup");
 	Dialog.setInsets(0, 0, 0);
-	Dialog.addMessage("OUTPUT SETTINGS");
+	Dialog.addMessage("GENERAL SETTINGS");
 	Dialog.addDirectory("Save location", default_array[1]);
 	Dialog.addString("Experiment name",  default_array[2]);
 	Dialog.setInsets(0, 0, 0);
