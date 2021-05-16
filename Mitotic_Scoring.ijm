@@ -213,6 +213,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 
 		// get coordinates
 		getSelectionBounds(x, y, w, h);
+		if (dup_overlay)	x = x % (getWidth()/2);
 		Stack.getPosition(_, z, f);
 		overlay_coord = newArray(x, y, w, h, f, f, z, z);
 		rearranged = newArray(x, y, x+w, y+h, f, z);
@@ -311,7 +312,7 @@ function getFullSelectionBounds(A){
 	yA = Array.concat( Array.slice( A, nStages*1, nStages*2), Array.slice( A, nStages*3, nStages*4));
 	tA = Array.slice( A, nStages*4, nStages*5);
 	zA = Array.slice( A, nStages*5, nStages*6);
-	
+
 	Array.getStatistics(xA, x_min, x_max, _, _);
 	Array.getStatistics(yA, y_min, y_max, _, _);
 	Array.getStatistics(tA, t_min, t_max, _, _);
@@ -384,7 +385,7 @@ function makeOverlay(coord, name, color){
 				
 				// fix sizes for duplicate overlay images
 				coord[0] = (coord[0] + getWidth()/2 * i) % getWidth();		// changes only if i==1
-				if (dup_overlay)	coord[2] = coord[2] % (getWidth()/2);
+				//if (dup_overlay)	coord[2] = coord[2] % (getWidth()/2);
 
 				// draw rect and add to overlay
 				makeRectangle(coord[0], coord[1], coord[2], coord[3]);
