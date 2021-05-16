@@ -381,8 +381,13 @@ function makeOverlay(coord, name, color){
 		for (i = 0; i < dup_overlay+1; i++) {	// 1 or 2 boxes, depending on dup_overlay
 			Stack.getDimensions(_, _, ch, sl, fr);
 			for (z = maxOf(1, coord[6] - zboxspread); z <= minOf(sl, coord[7] + zboxspread); z++) {
-				x_coord = (coord[0] + getWidth()/2 * i) % getWidth();		// changes only if (i==1 && dup_coord==1)
-				makeRectangle(x_coord, coord[1], coord[2], coord[3]);
+				
+				// fix sizes for duplicate overlay images
+				coord[0] = (coord[0] + getWidth()/2 * i) % getWidth();		// changes only if i==1
+				if (dup_overlay)	coord[2] = coord[2] % (getWidth()/2);
+
+				// draw rect and add to overlay
+				makeRectangle(coord[0], coord[1], coord[2], coord[3]);
 				Roi.setName(name);
 				Overlay.addSelection(color);
 				
