@@ -63,8 +63,9 @@ These boxes are saved in your save location after each analyzed cell, and are au
 
 ### Step 2: score events
 Next, you will be prompted to input observations to track. Any of these can remain empty or be edited at will. Hit OK to progress.  
-**NOTE:** I created a default observation list that I think covers a lot of potential events that you may want to keep track of. Because any of them can remain empty, I think it doesn't matter if you are not interested in some/most of these for you experiment. Nevertheless, if you want to add options, declutter the list, or make a completely different list, [here are instructions to do so](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list).
-<img src="Images/ObservationsChecklist.png" width=25%>
+<img src="Images/ObservationsChecklist.png" width=25%>  
+**NOTE:** I created a default observation list that I think covers a lot of potential events that you may want to keep track of. Because any of them can remain empty, I think it doesn't matter if you are not interested in some/most of these for you experiment. Nevertheless, if you want to add options, declutter the list, or make a completely different list, [here are instructions to do so](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list).  
+
 
 ### Step 3: storing and outputting observations
 Then, results will be written to the scoring table, which is immediately saved (the file is overwritten after each cell) as a \*.csv, which can be read by most downstream applications (Excel, R, Python, Matlab, ...).
