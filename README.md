@@ -77,7 +77,7 @@ It then asks you to identify and box the next cell. This repeats forever, until 
 ## Use custom observation list
 It is possible to customize the observation list in a pretty uncomplicated yet versatile way.  
 The folder you downloaded should contain a file called 'CustomObservationList.csv', which looks like this (minus the formatting) when opening in excel:  
-<img src="Images/CustomObservationListCSV.png" width=100%>  
+<img src="Images/CustomObservationListCSV.png" width=60%>  
 You can add or remove rows at will and save the file. Then, if you [load it as the new default in the setup](https://github.com/DaniBodor/MitoticScoring#scoring-settings), your custom list will pop up instead of the one I made.  
 **NOTE: DO NOT USE COMMAS ANYWHERE IN THIS FILE** (except in the list options)
   
