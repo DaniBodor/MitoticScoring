@@ -46,7 +46,7 @@ Here you can set:
 - SCORING SETTINGS:
     - 'Score Observations':
         - 'None': do not keep track of events, only of timings
-        - 'Load default': use the [default observation](https://github.com/DaniBodor/MitoticScoring/#step-2-score-events) list for keeping track
+        - 'Load default': use the [default observation list](https://github.com/DaniBodor/MitoticScoring/#step-2-score-events) for keeping track
             - the first time you run the macro, it may prompt you for the file location of the observation list ([see below](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list)).
         - 'Set new default': you are prompted to choose a custom observation list csv file ([see below](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list)).
     - Mitotic stages: at least one must be selected
