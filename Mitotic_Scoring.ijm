@@ -62,7 +62,7 @@ Dialog.create("Setup");
 	Dialog.setInsets(0, 15, 5);
 	Dialog.addChoice("ROI color of large box", colorArray, default_array[7]);
 	Dialog.setInsets(0, 15, 0);
-	Dialog.addNumber("Large box on +/-", default_array[5], 0, 1, "z-planes surrounding drawn box");
+	Dialog.addNumber("Draw box on ", default_array[5], 0, 1, "Z-planes above and below indicated plane");
 	Dialog.setInsets(3, 15, 0);
 	Dialog.addCheckbox("Duplicate boxes left and right? "+
 						"(for OrgaMovie output that contains the same organoid twice)",  default_array[4]);
