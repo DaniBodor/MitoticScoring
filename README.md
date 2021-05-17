@@ -17,7 +17,7 @@ Below is a short explanation of the individual steps anyway.
 
 
 ## Start macro
-Download this repository by clicking on the green 'Code' button above and 'Download ZIP' (or use git pull).
+Download this repository by clicking [here](https://github.com/DaniBodor/MitoticScoring/archive/refs/heads/main.zip) or on the green 'Code' button above and 'Download ZIP' (or use git pull).
 
 Open the macro by dragging the \*.ijm file into FiJi and clicking 'Run' or hit Ctrl+R.  
 Alternatively drop the \*.ijm file into your ImageJ plugins\Analyze folder and select it from _Plugins > Analyze_ dropdown menu 
