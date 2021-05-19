@@ -230,22 +230,19 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	// reorganize coordinates
 	reorganized_coord_array = reorganizeCoord(coordinates_array);
 	xywhttzz = getFullSelectionBounds(reorganized_coord_array);
-	
+
 	// create box overlay of cells already analyzed (only on relevant slices)
 	makeOverlay(xywhttzz, "c" + c, "white");	
-	
-	// for manual input on observations
-	//events = GUI();
 
 	// create and print results line
 	// need to organize/comment on the below !!
 	tps = newArray();
 	intervals = newArray();
+
 	for (i = 0; i < nStages; i++) {
 		tps[i] = reorganized_coord_array[4*nStages+i];
 		if (i > 0) intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
 	}
-
 	observations = observationsDialog(obsCSV, "results");
 	//Array.print(observations);
 	results = Array.concat(im, c, tps, intervals, observations);
@@ -255,7 +252,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		coord_string = String.join(curr_coord,"_");
 		results = Array.concat(results,coord_string);
 	}
-	Stack.getDimensions(_, _, nChannels, _, _);
 	xywhttzz_string = String.join(xywhttzz,"_");
 	results = Array.concat(results, xywhttzz_string);
 
@@ -386,10 +382,10 @@ function makeOverlay(coord, name, color){
 			for (z = maxOf(1, coord[6] - zboxspread); z <= minOf(sl, coord[7] + zboxspread); z++) {
 				
 				// fix sizes for duplicate overlay images
-				coord[0] = (coord[0] + getWidth()/2 * i) % getWidth();		// changes only if i==1
+				X = (coord[0] + getWidth()/2 * i) % getWidth();		// changes only if i==1
 
 				// draw rect and add to overlay
-				makeRectangle(coord[0], coord[1], coord[2], coord[3]);
+				makeRectangle(X, coord[1], coord[2], coord[3]);
 				Roi.setName(name);
 				Overlay.addSelection(color);
 				
