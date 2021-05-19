@@ -1,3 +1,4 @@
+// load previous settings as default
 defaults_file = getDirectory("macros") + "MitoticScoringDefaults" + File.separator + "Extractor.txt";
 if (File.exists(defaults_file)) {
 	defaults_str = File.openAsString(defaults_file);
@@ -8,6 +9,8 @@ else{
 	defaults = newArray("", "", 0, 10, 10, 0);
 }
 
+
+// open dialog to ask for extraction
 Dialog.create("Settings");
 	Dialog.addFile	("Movie file",defaults[0]);
 	Dialog.addString("Extract code", defaults[1], 33);
@@ -23,22 +26,30 @@ Dialog.show();
 	tAfter  = Dialog.getNumber();
 	zExtra  = Dialog.getNumber();
 
+// save settings as next default
 newDefaults = String.join(newArray(movie,xywhttzzc_string,expand,tBefore,tAfter,zExtra));
-//newDefaults = split(newDefaults, ", ");
 File.saveString(newDefaults, defaults_file);
 
+// open section of file according to coordinates
+// (avoids opening of huge organoid movie if only few frames are required)
 coordinates = adjustCoordinates(xywhttzzc_string);
-
 run("Bio-Formats Importer", "open=" + movie + " autoscale color_mode=Default rois_import=[ROI manager] specify_range view=Hyperstack stack_order=XYCZT " +
 	"c_begin=1 c_end=" + coordinates[8] + " c_step=1 "+
 	"z_begin=" + coordinates[6] + " z_end=" + coordinates[7] + " z_step=1 " +
 	"t_begin=" + coordinates[4] + " t_end=" + coordinates[5] + " t_step=1");
+
+// crop out relevant region of movie
 makeRectangle(coordinates[0], coordinates[1], coordinates[2], coordinates[3]);
 run("Crop");
 
 	
 
+
 function adjustCoordinates(xywhttzzc){
+	/*
+	 * this function is used to adjust the extract-code coordinates
+	 * according to the input settings from the dialog
+	 */
 	exitMessage = "incorrect extract code";
 	C = split(xywhttzzc, "_");
 	if (C.length != 9) exit(exitMessage);
