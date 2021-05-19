@@ -1,6 +1,4 @@
 TYPE,EVENT,ADD_#,ADD_TEXT,ADD_OPTIONS,LIST_OPTIONS
-Group,Skip this cell?,,,,
-Checkbox,Skip,0,0,0,
 Group,Highlight this cell,,,,
 Checkbox,Highlight,0,0,0,
 Group,Record events,,,,
