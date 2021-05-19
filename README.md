@@ -66,10 +66,10 @@ These boxes are saved in your save location after each analyzed cell, and are au
 
 ### Step 2: score events
 Next, you will be prompted to input observations to track. Any of these can remain empty or be edited at will. Hit OK to progress.  
-I included an option to mark cells as 'skipped' because undoing is not really possible in this macro (as is often the case in ImageJ). So instead of trying to undo or delete or something, just mark cell as 'skipped' and then in the end delete it from your excel file.  
+Because ImageJ does not allow for easy undo, I created an option to remove the current entry from your list of observations. **If you turn on "Remove this entry?" the current entry will NOT be written to your results table and the ROIs for this cell will be deleted.** The rest of your results will remain untouched.
 There is also an option to mark cells as 'highlighted'. The idea of this is to allow you to easily keep track of cells that you may want to use for a presentation/paper or for whatever other reason want to look back at later on.
 <img src="Images/ObservationsChecklist.png" width=25%>  
-**NOTE:** I created a default observation list that I think covers a lot of potential events that you may want to keep track of. Because any of them can remain empty, I think it doesn't matter if you are not interested in some/most of these for you experiment. Nevertheless, if you want to add options, declutter the list, or make a completely different list, [here are instructions to do so](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list).  
+**NOTE:** I created a default observation list that I think covers a lot of potential events that you may want to keep track of. Because any of them can remain empty, I think it doesn't matter if you are not interested in some/most of these for you experiment. Nevertheless, if you want to add options, declutter the list, or make a completely different list, [here are instructions to do so](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list).
 
 
 ### Step 3: storing and outputting observations
@@ -85,8 +85,9 @@ It is possible to customize the observation list in a pretty uncomplicated yet v
 The folder you downloaded should contain a file called 'CustomObservationList.csv', which looks like this (minus the formatting) when opening in Excel:  
 <img src="Images/CustomObservationListCSV.png" width=60%>  
 You can add or remove rows at will and save the file. Then, if you [load it as the new default in the setup](https://github.com/DaniBodor/MitoticScoring#scoring-settings), your custom list will pop up instead of the one I made.  
-**NOTE: DO NOT USE COMMAS ANYWHERE IN THIS FILE** (except in the list options)
-  
+**DO NOT USE COMMAS ANYWHERE IN THIS FILE** (except in the list options as indicated below)  
+Note that the "Remove this entry?" option will always remain present in the observation list.
+
 ### Edit the file as follows
 - Type & Event:
     - Specifies the type of entry for your observation list with any text listed under event. 
