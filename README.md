@@ -5,6 +5,8 @@
 This macro helps keeps track of manual scoring of (mitotic) events from movies. It keeps track of timings, position, and potential mitotic errors or events.  
 **NOTE:** the macro does NOT automatically track these events from your movies, but facilitates manual scoring.
 
+TLDR: The macro is pretty self-explanatory. Just start working with it and only check here if something is not right.
+
 The main goals of this macro are:
 1) minimize clicks and skipping between windows while tracking events
 2) keep track of which cells have already been scored
@@ -64,6 +66,8 @@ These boxes are saved in your save location after each analyzed cell, and are au
 
 ### Step 2: score events
 Next, you will be prompted to input observations to track. Any of these can remain empty or be edited at will. Hit OK to progress.  
+I included an option to mark cells as 'skipped' because undoing is not really possible in this macro (as is often the case in ImageJ). So instead of trying to undo or delete or something, just mark cell as 'skipped' and then in the end delete it from your excel file.  
+There is also an option to mark cells as 'highlighted'. The idea of this is to allow you to easily keep track of cells that you may want to use for a presentation/paper or for whatever other reason want to look back at later on.
 <img src="Images/ObservationsChecklist.png" width=25%>  
 **NOTE:** I created a default observation list that I think covers a lot of potential events that you may want to keep track of. Because any of them can remain empty, I think it doesn't matter if you are not interested in some/most of these for you experiment. Nevertheless, if you want to add options, declutter the list, or make a completely different list, [here are instructions to do so](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list).  
 
