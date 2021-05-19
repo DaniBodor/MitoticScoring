@@ -102,8 +102,19 @@ Editing this is simpler than it might seem. Play around for a few minutes and yo
 
 
 # SubImage Extractor
-** SECTION UNDER CONSTRUCTION**
 This macro is intended to create representative or highlighted movies of only an event as scored above.
 
-You will notice that the results file will have a column with an 'extract code'. This code is used by the extractor macro to identify 
+You will notice that the results file will have a column with an 'extract code'. This extract code is used by the extractor macro to open just the part of the movie that contains just the event highlighted in your results table.
 
+## Setting the extractor
+The extract code contains the exact (4D) coordinates of the boxes you made around the event. Using this extractor, you can easily change the coordinates to include more of the movie.  
+<img src="Images/Extractor.png" width=40%>  
+- Movie file: the file location of the movie
+- Extract code: copy this from your results table
+- Expand box: increases the size of the box in each direction by this many pixels
+- Additional timepoints before: starts movie before first indicated timepoint
+- Additional timepoints after: ends movie before first indicated timepoint
+- Additional slices: get this many Z-planes above and below the extremes of your drawn boxes
+    - set this very high to get entire stack
+- Swap T and Z: it could happen that the extract code mixes up the T and Z coordinates. If you think this may have happened for your extraction, try turning this on and see what the result looks like  
+NOTE: All channels will always be included in the extracted image, you can turn each on and off in the channels tool.
