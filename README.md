@@ -101,5 +101,9 @@ The file as downloaded would give you the [default list above](https://github.co
 Editing this is simpler than it might seem. Play around for a few minutes and you'll quickly figure it out.
 
 
+# SubImage Extractor
+** SECTION UNDER CONSTRUCTION**
+This macro is intended to create representative or highlighted movies of only an event as scored above.
 
+You will notice that the results file will have a column with an 'extract code'. This code is used by the extractor macro to identify 
 
