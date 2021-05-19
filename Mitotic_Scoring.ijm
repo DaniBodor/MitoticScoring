@@ -419,8 +419,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 	output		= newArray();
 	Dialog.createNonBlocking("Score observations");
 	
-	Dialog.addCheckbox("Remove this entry?", 0);
-	Dialog.setInsets(10, 0, 0);
+	Dialog.setInsets(0, 0, 0);
 	
 	Dialog.addMessage("Record your observations below");
 	for (l = 1; l < CSV_lines.length; l++) {
@@ -486,10 +485,13 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 			}
 		}
 	}
+
+	Dialog.setInsets(25, 20, 0);
+	Dialog.addMessage("Remove this entry?\nNo results for this cell will be written to the results table\nand ROI boxes for this cell will be deleted");
+	Dialog.addCheckbox("REMOVE THIS ENTRY?", 0);
+
 	if (Results_Or_Header == "results") {
 		Dialog.show();
-		
-		if (Dialog.getCheckbox() )	return newArray();
 		
 		for (i = 0; i < out_order.length; i++) {
 			if (out_order[i] == "chk")	output[i] = Dialog.getCheckbox();
@@ -497,6 +499,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 			if (out_order[i] == "num")	output[i] = Dialog.getNumber();
 			if (out_order[i] == "opt")	output[i] = Dialog.getChoice();
 		}
+		if (Dialog.getCheckbox() )	return newArray();	// i.e. if delete the entry
 		return output;
 	}
 	else{
