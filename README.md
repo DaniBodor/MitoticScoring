@@ -117,4 +117,4 @@ The extract code contains the exact (4D) coordinates of the boxes you made aroun
 - Additional slices: get this many Z-planes above and below the extremes of your drawn boxes
     - set this very high to get entire stack
 - Swap T and Z: it could happen that the extract code mixes up the T and Z coordinates. If you think this may have happened for your extraction, try turning this on and see what the result looks like  
-NOTE: All channels will always be included in the extracted image, you can turn each on and off in the channels tool.
+- NOTE: All channels will always be included in the extracted image, you can turn each on and off in the channels tool.
