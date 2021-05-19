@@ -274,7 +274,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		c--;
 	}
 	
-	run("From ROI Manager");
+	if( roiManager("count") > 0 )	run("From ROI Manager");
 	close("ROI Manager");
 }
 
@@ -418,8 +418,10 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 	headers		= newArray();
 	output		= newArray();
 	Dialog.createNonBlocking("Score observations");
-	Dialog.addCheckbox("Delete this entry?", 0);
+	
+	Dialog.addCheckbox("Remove this entry?", 0);
 	Dialog.setInsets(10, 0, 0);
+	
 	Dialog.addMessage("Record your observations below");
 	for (l = 1; l < CSV_lines.length; l++) {
 		currLine = split(CSV_lines[l],",");
