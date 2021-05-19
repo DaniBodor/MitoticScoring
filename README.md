@@ -67,7 +67,7 @@ These boxes are saved in your save location after each analyzed cell, and are au
 ### Step 2: score events
 Next, you will be prompted to input observations to track. Any of these can remain empty or be edited at will. Hit OK to progress.  
 Because ImageJ does not allow for easy undo, I created an option to remove the current entry from your list of observations. **If you turn on "Remove this entry?" the current entry will NOT be written to your results table and the ROIs for this cell will be deleted.** The rest of your results will remain untouched.
-There is also an option to mark cells as 'highlighted'. The idea of this is to allow you to easily keep track of cells that you may want to use for a presentation/paper or for whatever other reason want to look back at later on.
+There is also an option to mark cells as 'highlighted'. The idea of this is to allow you to easily keep track of cells that you may want to use for a presentation/paper or for whatever other reason want to look back at later on.  
 <img src="Images/ObservationsChecklist.png" width=25%>  
 **NOTE:** I created a default observation list that I think covers a lot of potential events that you may want to keep track of. Because any of them can remain empty, I think it doesn't matter if you are not interested in some/most of these for you experiment. Nevertheless, if you want to add options, declutter the list, or make a completely different list, [here are instructions to do so](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list).
 
