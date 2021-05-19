@@ -10,10 +10,9 @@ The main goals of this macro are:
 2) keep track of which cells have already been scored
 3) avoid loss of progress by regular automatic saving
 4) allow for stopping and restarting experiments without losing track of progress
-5) to be versatile and allow for easy adaptation to individual experiments without being overly complex  
+5) to be versatile and allow for easy adaptation to individual experiments without being overly complex   
 
-The macro is pretty uncomplicated and in principle will always tell you what to do.  
-Below is a short explanation of the individual steps anyway.  
+The macro is pretty uncomplicated and in principle will always tell you what to do. Below is a short explanation of the individual steps anyway.  
 
 
 ## Start macro
