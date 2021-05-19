@@ -245,30 +245,37 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	}
 	observations = observationsDialog(obsCSV, "results");
 	//Array.print(observations);
-	results = Array.concat(im, c, tps, intervals, observations);
+	if (observations.length > 0){
+		results = Array.concat(im, c, tps, intervals, observations);
 	
-	for (i = 0; i < nStages; i++){
-		curr_coord = Array.slice(coordinates_array, i*rearranged.length, (i+1)*rearranged.length);
-		coord_string = String.join(curr_coord,"_");
-		results = Array.concat(results,coord_string);
+		for (i = 0; i < nStages; i++){
+			curr_coord = Array.slice(coordinates_array, i*rearranged.length, (i+1)*rearranged.length);
+			coord_string = String.join(curr_coord,"_");
+			results = Array.concat(results,coord_string);
+		}
+		xywhttzz_string = String.join(xywhttzz,"_");
+		results = Array.concat(results, xywhttzz_string);
+	
+		results_str = String.join(results,"\t");
+		print(_table_, results_str);
+	
+		// save overlay
+		run("To ROI Manager");
+		roiManager("Show All without labels");
+		roiManager("deselect");
+		roiManager("save", overlay_file);
+		
+		// save results progress
+		selectWindow(table);
+		saveAs("Text", results_file);
 	}
-	xywhttzz_string = String.join(xywhttzz,"_");
-	results = Array.concat(results, xywhttzz_string);
-
-	results_str = String.join(results,"\t");
-	print(_table_, results_str);
+	else {
+		removeOverlays(c);
+		c--;
+	}
 	
-	// save overlay
-	run("To ROI Manager");
-	roiManager("Show All without labels");
-	roiManager("deselect");
-	roiManager("save", overlay_file);
 	run("From ROI Manager");
-	roiManager("delete");
-	
-	// save results progress
-	selectWindow(table);
-	saveAs("Text", results_file);
+	close("ROI Manager");
 }
 
 
@@ -411,7 +418,8 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 	headers		= newArray();
 	output		= newArray();
 	Dialog.createNonBlocking("Score observations");
-	Dialog.setInsets(0, 0, 0);
+	Dialog.addCheckbox("Delete this entry?", 0);
+	Dialog.setInsets(10, 0, 0);
 	Dialog.addMessage("Record your observations below");
 	for (l = 1; l < CSV_lines.length; l++) {
 		currLine = split(CSV_lines[l],",");
@@ -478,6 +486,9 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 	}
 	if (Results_Or_Header == "results") {
 		Dialog.show();
+		
+		if (Dialog.getCheckbox() )	return newArray();
+		
 		for (i = 0; i < out_order.length; i++) {
 			if (out_order[i] == "chk")	output[i] = Dialog.getCheckbox();
 			if (out_order[i] == "str")	output[i] = Dialog.getString();
@@ -540,5 +551,18 @@ function resaveTif(){
 
 	if (endsWith(path, ".tif") || endsWith(path, ".tiff") || endsWith(path, ".TIF") || endsWith(path, ".TIFF") || endsWith(path, ".Tif") || endsWith(path, ".Tiff") ) {
 		save(path);
+	}
+}
+
+function removeOverlays(index) {
+	// export to ROI Manager
+	run("To ROI Manager");
+	for (i = 0; i < roiManager("count"); i++) {
+		roiManager("select", i);
+		r = Roi.getName;
+		if (indexOf(r, "c" + index +"_") >= 0 || endsWith(r, "c"+index) ){
+			roiManager("delete");
+			i--;	
+		}
 	}
 }
