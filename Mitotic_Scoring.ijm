@@ -209,6 +209,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			if (fr == 1){
 				Stack.setDimensions(ch, fr, sl);
 				Stack.getDimensions(_, _, ch, sl, fr);
+				resaveTif();
 			}
 		}
 
@@ -317,7 +318,7 @@ function getFullSelectionBounds(A){
 	Array.getStatistics(xA, x_min, x_max, _, _);
 	Array.getStatistics(yA, y_min, y_max, _, _);
 	Array.getStatistics(tA, t_min, t_max, _, _);
-	Array.getStatistics(zA, z_min, z_max, z_mean, _);
+	Array.getStatistics(zA, z_min, z_max, _, _);
 
 	w = x_max - x_min;
 	h = y_max - y_min;
@@ -386,14 +387,13 @@ function makeOverlay(coord, name, color){
 				
 				// fix sizes for duplicate overlay images
 				coord[0] = (coord[0] + getWidth()/2 * i) % getWidth();		// changes only if i==1
-				//if (dup_overlay)	coord[2] = coord[2] % (getWidth()/2);
 
 				// draw rect and add to overlay
 				makeRectangle(coord[0], coord[1], coord[2], coord[3]);
 				Roi.setName(name);
 				Overlay.addSelection(color);
 				
-				// unfortunately Overlay.setPosition(c, z, t) only works if there's c (or z?) > 1
+				// unfortunately Overlay.setPosition(c, z, t) only works if c (or z?) > 1
 				if (ch*sl == 1)		Overlay.setPosition(f);
 				else				Overlay.setPosition(0, z, f);
 			}
@@ -532,5 +532,17 @@ function renameOldFiles(path){
 			newZipFilename = "_" + substring(zipname,0,lengthOf(zipname)-4) + datetime + ".zip";
 			File.rename(saveloc + zipname, saveloc + newZipFilename);
 		}
+	}
+}
+
+function resaveTif(){
+	info = getImageInfo();
+	start = indexOf(info, "Path:") + 6;
+	info = substring(info, start);
+	end = indexOf(info, "\n");
+	path = substring(info, 0, end);
+
+	if (endsWith(path, ".tif") || endsWith(path, ".tiff") || endsWith(path, ".TIF") || endsWith(path, ".TIFF") || endsWith(path, ".Tif") || endsWith(path, ".Tiff") ) {
+		save(path);
 	}
 }
