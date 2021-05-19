@@ -102,7 +102,6 @@ Editing this is simpler than it might seem. Play around for a few minutes and yo
 
 
 # SubImage Extractor
-** SECTION UNDER CONSTRUCTION**
 This macro is intended to create representative or highlighted movies of only an event as scored above.
 
 You will notice that the results file will have a column with an 'extract code'. This extract code is used by the extractor macro to open just the part of the movie that contains just the event highlighted in your results table.
