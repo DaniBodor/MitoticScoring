@@ -12,15 +12,18 @@ else{
 
 // open dialog to ask for extraction
 Dialog.create("Settings");
+	Dialog.addHelp("https://github.com/DaniBodor/MitoticScoring#subimage-extractor");
 	Dialog.addFile	("Movie file",defaults[0]);
 	Dialog.addString("Extract code", defaults[1], 33);
-	Dialog.addNumber("Expand ROI", defaults[2], 0, 2, "pixels in each direction");
+	Dialog.setInsets(20, 20, 0);
+	Dialog.addMessage("Change extraction dimensions");
+	Dialog.addNumber("Expand box", defaults[2], 0, 2, "pixels in each direction");
 	Dialog.addNumber("Additional timepoints before", defaults[3], 0, 2, "frames");
 	Dialog.addNumber("Additional timepoints after", defaults[4], 0, 2, "frames");
 	Dialog.addNumber("Additional slices", defaults[5], 0, 2, "above and below");
 Dialog.show();
 	movie = Dialog.getString();
-	xywhttzzc_string = Dialog.getString();
+	xywhttzz_string = Dialog.getString();
 	expand  = Dialog.getNumber();
 	tBefore = Dialog.getNumber();
 	tAfter  = Dialog.getNumber();
@@ -29,14 +32,13 @@ Dialog.show();
 if (!File.exists(movie)) exit("file not found\n"+movie);
 
 // save settings as next default
-newDefaults = String.join(newArray(movie,xywhttzzc_string,expand,tBefore,tAfter,zExtra));
+newDefaults = String.join(newArray(movie,xywhttzz_string,expand,tBefore,tAfter,zExtra));
 File.saveString(newDefaults, defaults_file);
 
 // open section of file according to coordinates
 // (avoids opening of huge organoid movie if only few frames are required)
-coordinates = adjustCoordinates(xywhttzzc_string);
+coordinates = adjustCoordinates(xywhttzz_string);
 run("Bio-Formats Importer", "open=" + movie + " autoscale color_mode=Default rois_import=[ROI manager] specify_range view=Hyperstack stack_order=XYCZT " +
-	"c_begin=1 c_end=" + coordinates[8] + " c_step=1 "+
 	"z_begin=" + coordinates[6] + " z_end=" + coordinates[7] + " z_step=1 " +
 	"t_begin=" + coordinates[4] + " t_end=" + coordinates[5] + " t_step=1");
 
@@ -47,15 +49,15 @@ run("Crop");
 	
 
 
-function adjustCoordinates(xywhttzzc){
+function adjustCoordinates(xywhttzz){
 	/*
 	 * this function is used to adjust the extract-code coordinates
 	 * according to the input settings from the dialog
 	 */
 	exitMessage = "incorrect extract code";
-	C = split(xywhttzzc, "_");
-	if (C.length != 9) exit(exitMessage);
-	for (i = 0; i < 9; i++) {
+	C = split(xywhttzz, "_");
+	if (C.length != 8) exit(exitMessage);
+	for (i = 0; i < 8; i++) {
 		if (isNaN(parseInt(C[i]))) 	exit(exitMessage);
 	}
 
@@ -67,7 +69,6 @@ function adjustCoordinates(xywhttzzc){
 	C[5] += tAfter;	// t_max
 	C[6] -= zExtra;	// z_min
 	C[7] += zExtra;	// z_max
-	C[8] += 0;	// nChannels
 	
 	return C;
 }
