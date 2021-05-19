@@ -147,6 +147,7 @@ headers_str = String.join(headers,"\t");
 table = expname + "_Scoring.csv";
 _table_ = "["+table+"]";
 results_file = saveloc + table;
+overlay_file = saveloc + expname + "_ROIs_" + getTitle() + ".zip";
 loadPreviousProgress(headers_str);
 if	(Table.size > 0){
 	prev_im =	Table.getString	("movie", Table.size-1);
@@ -264,7 +265,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	run("To ROI Manager");
 	roiManager("Show All without labels");
 	roiManager("deselect");
-	overlay_file = saveloc + expname + "_ROIs_" + getTitle() + ".zip";
 	roiManager("save", overlay_file);
 	run("From ROI Manager");
 	roiManager("delete");
