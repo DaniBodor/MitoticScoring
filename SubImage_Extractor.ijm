@@ -26,6 +26,8 @@ Dialog.show();
 	tAfter  = Dialog.getNumber();
 	zExtra  = Dialog.getNumber();
 
+if (!File.exists(movie)) exit("file not found\n"+movie);
+
 // save settings as next default
 newDefaults = String.join(newArray(movie,xywhttzzc_string,expand,tBefore,tAfter,zExtra));
 File.saveString(newDefaults, defaults_file);
