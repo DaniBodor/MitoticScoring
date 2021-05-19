@@ -253,8 +253,9 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		coord_string = String.join(curr_coord,"_");
 		results = Array.concat(results,coord_string);
 	}
-	xywhttzz_string = String.join(xywhttzz,"_");
-	results = Array.concat(results, xywhttzz_string);
+	Stack.getDimensions(_, _, nChannels, _, _);
+	xywhttzzc_string = String.join(xywhttzz,"_") + "_" + nChannels;
+	results = Array.concat(results, xywhttzzc_string);
 
 	results_str = String.join(results,"\t");
 	print(_table_, results_str);
