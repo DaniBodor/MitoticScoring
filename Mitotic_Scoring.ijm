@@ -138,7 +138,7 @@ for (i = 0; i < nStages; i++) {
 	end_headers[i] = stages_used[i];
 }
 obs_headers = observationsDialog(obsCSV, "headers");
-headers = Array.concat(init_headers, interv_headers, obs_headers, end_headers);
+headers = Array.concat(init_headers, interv_headers, obs_headers, end_headers, "extract_code");
 
 headers_str = String.join(headers,"\t");
 
