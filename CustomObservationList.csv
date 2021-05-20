@@ -1,6 +1,6 @@
 TYPE,EVENT,ADD_#,ADD_TEXT,ADD_OPTIONS,LIST_OPTIONS
 Group,Highlight this cell,,,,
-Checkbox,Highlight,0,0,0,
+Checkbox,Highlight,0,1,0,
 Group,Record events,,,,
 Checkbox,Lagger,1,0,0,
 Checkbox,Bridge,1,0,0,
