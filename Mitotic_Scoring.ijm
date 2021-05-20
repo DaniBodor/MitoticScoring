@@ -8,7 +8,7 @@ surrounding_box = 1;	// in pixels
 all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Telophase", "Decondensation", "G1");
 nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
-progressOptions = newArray("Click OK", "Draw + t", "Draw only");
+progressOptions = newArray("Draw + t", "Draw only", "Click OK");
 scoringOptions = newArray("None", "Load default", "Set new default");
 overlay_file = "";
 
