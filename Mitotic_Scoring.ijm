@@ -185,7 +185,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			wait_string = "*****Close this window to finish session\n" + wait_string;
 			if (box_progress == progressOptions[2]){
 				roiManager("reset");
-				wait_string = wait_string + "\nPress t or add to ROI Manager when done"
+				wait_string = wait_string + "\nPress t or add to ROI Manager when done";
 			}
 			print("[Waiting]", wait_string);
 			
