@@ -69,7 +69,7 @@ Because ImageJ does not allow for easy undo, I created an option to remove the c
 There is also an option to mark cells as 'highlighted'. The idea of this is to allow you to easily keep track of cells that you may want to use for a presentation/paper or for whatever other reason want to look back at later on.
 
 <img src="Images/ObservationsChecklist.png" width=25%>  
-**NOTE:** I created a default observation list that I think covers a lot of potential events that you may want to keep track of. Because any of them can remain empty, I think it doesn't matter if you are not interested in some/most of these for you experiment. Nevertheless, if you want to add options, declutter the list, or make a completely different list, [here are instructions to do so](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list).
+**NOTE:** I created a default observation list that I think covers a lot of potential events that you may want to keep track of. Because any of them can remain empty, I think it doesn't matter if not all options are relevant for your experiment. Nevertheless, you can [make a custom observation list](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list) if you want to add options, declutter the list, or make a completely different list.
 
 
 ### Step 3: storing and outputting observations
