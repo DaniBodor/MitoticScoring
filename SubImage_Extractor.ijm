@@ -39,7 +39,7 @@ Dialog.show();
 if (!File.exists(movie)) exit("file not found\n"+movie);
 
 // save settings as next default
-newDefaults = String.join(newArray(movie, xywhttzz_string, expand, tBefore, tAfter, zExtra, rightsidem, swapTZ) );
+newDefaults = String.join(newArray(movie, xywhttzz_string, expand, tBefore, tAfter, zExtra, rightside, swapTZ) );
 File.saveString(newDefaults, defaults_file);
 
 // open section of file according to coordinates
@@ -48,7 +48,7 @@ coordinates = adjustCoordinates(xywhttzz_string);
 run("Bio-Formats Importer", "open=" + movie + " autoscale color_mode=Default rois_import=[ROI manager] specify_range view=Hyperstack stack_order=XYCZT " +
 	"z_begin=" + coordinates[6] + " z_end=" + coordinates[7] + " z_step=1 " +
 	"t_begin=" + coordinates[4] + " t_end=" + coordinates[5] + " t_step=1");
-Stack.getDimensions(ch, _, _);
+Stack.getDimensions(_, _, ch, _, _);
 if (ch>1)	run("Channels Tool...");
 
 // crop out relevant region of movie
@@ -92,7 +92,7 @@ function adjustCoordinates(xywhttzz){
 	}
 
 	// adjust coordinates according to settings
-	C[0] -= expand	// x
+	C[0] -= expand;	// x
 	C[1] -= expand;	// y
 	C[2] += (2*expand);	// w
 	C[3] += (2*expand);	// h
