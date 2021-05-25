@@ -42,7 +42,8 @@ A dialog window will open to ask you for the settings for this experiment. Your 
 - how to proceed after drawing a box around your tracked cell ([see below](https://github.com/DaniBodor/MitoticScoring/#step-1-indicate-cell))
     - 'Click OK': draw a box, the click 'OK' on the popup window
     - 'Draw + t': draw a box, then add it to ROI list (for which the default keyboard shortcut is 't')
-    - 'Draw only': automatically progress once you drew a box (no undos are possible, so be careful when clicking around)
+    - 'Draw only': automatically progress once you drew a box
+        - BUG: it checks every 0.5 s if there's a selection. If you are in the middle of drawing a box, then it thinks there is an active selection and selects whatever you have drawn so far. I don't know how to solve this for now.
 - the color of the box at the frame you specify as t0, t1, ...
 - the color of the box around the cell at all mitotic frames
 - on how many Z-planes above and below the drawn boxes to spread the indications
