@@ -136,3 +136,10 @@ The extract code contains the exact (4D) coordinates of the boxes you made aroun
 - Swap T and Z: it could happen that the extract code mixes up the T and Z coordinates. If you think this may have happened for your extraction, try turning this on and see what the result looks like  
 - All channels will always be included in the extracted image
     - you can turn each on and off in the channels tool
+
+
+## Licence
+This project is licensed under the terms of the [MIT License](/LICENSE.md)
+
+## Citation
+Please [cite this project as described here](/CITATION.md).
