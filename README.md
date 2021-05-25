@@ -32,7 +32,6 @@ A dialog window will open to ask you for the settings for this experiment. Your 
 
 <img src="Images/Scoring_Macro_Setup.png" width=40%>
 
-Here you can set:
 ### General settings
 - the path where results should be saved
 - a name for the experiment
@@ -68,8 +67,10 @@ The macro will ask you to draw a box around the mitotic cell at the for each sta
 These boxes are saved in your save location after each analyzed cell, and are automatically reloaded when you restart the macro on the same cell.
 
 ### Step 2: score events
-Next, you will be prompted to input observations to track. Any of these can remain empty or be edited at will. Hit OK to progress.  
-Because ImageJ does not allow for easy undo, I created an option to remove the current entry from your list of observations. **If you turn on "Remove this entry?" the current entry will NOT be written to your results table and the ROIs for this cell will be deleted.** The rest of your results will remain untouched.  
+Next, you will be prompted to input observations to track. Any of these can remain empty or be edited at will. Hit OK to progress.
+
+Because ImageJ does not allow for easy undo, I created an option to remove the current entry from your list of observations. **If you turn on "Remove this entry?" the current entry will NOT be written to your results table and the ROIs for this cell will be deleted.** The rest of your results will remain untouched.
+
 There is also an option to mark cells as 'highlighted'. The idea of this is to allow you to easily keep track of cells that you may want to use for a presentation/paper or for whatever other reason want to look back at later on.
 
 <img src="Images/ObservationsChecklist.png" width=25%>
@@ -78,19 +79,23 @@ There is also an option to mark cells as 'highlighted'. The idea of this is to a
 
 
 ### Step 3: storing and outputting observations
-Then, results will be written to the scoring table, which is immediately saved (the file is overwritten after each cell) as a \*.csv, which can be read by most downstream applications (Excel, R, Python, Matlab, ...).
+Results will be automatically written to the scoring table and saved (the file is overwritten after each cell) as a \*.csv. This can be read by most downstream applications (Excel, R, Python, Matlab, ...).
+
 <img src="Images/ResultsTable.png" width=80%>
 
 ### Back to step 1
-It then asks you to identify and box the next cell. This repeats forever, until you hit 'Esc' (a few times) or in some other way quit the macro.
-
+Wash, rinse, repeat...
 
 ## Use custom observation list
 It is possible to customize the observation list in a pretty uncomplicated yet versatile way.  
-The folder you downloaded should contain a file called 'CustomObservationList.csv', which looks like this (minus the formatting) when opening in Excel:  
-<img src="Images/CustomObservationListCSV.png" width=60%>  
-You can add or remove rows at will and save the file. Then, if you [load it as the new default in the setup](https://github.com/DaniBodor/MitoticScoring#scoring-settings), your custom list will pop up instead of the one I made.  
-**DO NOT USE COMMAS ANYWHERE IN THIS FILE** (except in the list options as indicated below)  
+The folder you downloaded should contain a file called 'CustomObservationList.csv', which looks like this (minus the formatting) when opening in Excel:
+
+<img src="Images/CustomObservationListCSV.png" width=60%>
+
+You can add or remove rows at will and save the file. Then, if you [load it as the new default in the setup](https://github.com/DaniBodor/MitoticScoring#scoring-settings), your custom list will pop up instead of the one I made.
+
+**DO NOT USE COMMAS ANYWHERE IN THIS FILE** (except in the list options as indicated below)
+
 Note that the "Remove this entry?" option will always remain present in the observation list.
 
 ### Edit the file as follows
@@ -117,8 +122,10 @@ This macro is intended to create representative or highlighted movies of only an
 You will notice that the results file will have a column with an 'extract code'. This extract code is used by the extractor macro to open just the part of the movie that contains just the event highlighted in your results table.
 
 ## Setting the extractor
-The extract code contains the exact (4D) coordinates of the boxes you made around the event. Using this extractor, you can easily change the coordinates to include more of the movie.  
-<img src="Images/Extractor.png" width=40%>  
+The extract code contains the exact (4D) coordinates of the boxes you made around the event. Using this extractor, you can easily change the coordinates to include more of the movie.
+
+<img src="Images/Extractor.png" width=40%>
+
 - Movie file: the file location of the movie
 - Extract code: copy this from your results table
 - Expand box: increases the size of the box in each direction by this many pixels
