@@ -139,7 +139,7 @@ The extract code contains the exact (4D) coordinates of the boxes you made aroun
 
 
 ## Licence
-This project is licensed under the terms of the [MIT License](/LICENSE.md)
+This project is licensed under the terms of the [MIT License](/LICENSE.md).
 
 ## Citation
 Please [cite this project as described here](/CITATION.md).
