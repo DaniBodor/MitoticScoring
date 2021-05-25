@@ -1,16 +1,18 @@
+// general stuff
 requires("1.53d");
 setJustification("center");
 setFont("SansSerif", 9, "antialiased");
 
-notes_lines = 3;
-surrounding_box = 1;	// in pixels
-
+// variables used in code below
 all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Telophase", "Decondensation", "G1");
 nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 progressOptions = newArray("Draw + t", "Draw only", "Click OK");
 scoringOptions = newArray("None", "Load default", "Set new default");
 overlay_file = "";
+Wait_x = 750;
+Wait_y = 200;
+
 
 default_array = newArray(
 	"_", // 0 Value (ignored)
@@ -108,10 +110,12 @@ if (!File.isDirectory(saveloc))		File.makeDirectory(saveloc);
 if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; please choose valid directory");
 
 // load observation list
-obslist_path = default_array[nDefaults - nAllStages - 2]; 
-if (scoring == scoringOptions[2] || !File.exists(obslist_path) ){
-	obslist_path = File.openDialog("Choose new default observation list csv file");
-	scoring = scoringOptions[1];
+obslist_path = default_array[nDefaults - nAllStages - 2];
+if (scoring != scoringOptions[2]) {		// so NOT 'None'
+	if (scoring == scoringOptions[2] || !File.exists(obslist_path) ){	// either select new default OR default file not found
+		obslist_path = File.openDialog("Choose new default observation list csv file");
+		scoring = scoringOptions[1];
+	}
 }
 if (!endsWith(obslist_path, ".csv"))				exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
 obsCSV = split(File.openAsString(obslist_path), "\n");
@@ -171,7 +175,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		wait_string = "Draw a box around a cell at " + stages_used[tp] + " of mitotic event.";
 		if (tp > 0) wait_string = wait_string + "\n ---- t" + tp-1 + " at frame " + f;
 		
-		if (box_progress == progressOptions[0]) {	// click OK to progress
+		if (box_progress == progressOptions[2]) {	// click OK to progress
 			waitForUser(wait_string);	
 		}
 		else{	// draw box to progress
@@ -181,9 +185,9 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 				run("Close");
 			}
 			run("Text Window...", "name=Waiting width=100 height=8 menu");
-			setLocation(750, 200);
+			setLocation(Wait_x, Wait_y);
 			wait_string = "*****Close this window to finish session\n" + wait_string;
-			if (box_progress == progressOptions[2]){
+			if (box_progress == progressOptions[0]){	// draw + t
 				roiManager("reset");
 				wait_string = wait_string + "\nPress t or add to ROI Manager when done";
 			}
@@ -197,6 +201,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			run("Collect Garbage");
 			if (isOpen("Waiting")){
 				selectWindow("Waiting");
+				getLocationAndSize(Wait_x, Wait_y, _, _)
 				run("Close");
 			}
 		}
