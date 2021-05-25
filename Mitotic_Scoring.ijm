@@ -71,7 +71,7 @@ Dialog.create("Setup");
 	Dialog.setInsets(3, 15, 0);
 	Dialog.addCheckbox("Duplicate boxes left and right? "+
 						"(for OrgaMovie output that contains the same organoid twice)",  default_array[4]);
-	
+
 	Dialog.setInsets(20, 0, 0);
 	Dialog.addMessage("SCORING SETTINGS");
 	Dialog.setInsets(0, 20, 0);
@@ -87,13 +87,13 @@ Dialog.show();
 	expname = Dialog.getString();
 		if (expname == "")	expname = "mitotic_scoring";
 	timestep = Dialog.getNumber();
-	
+
 	box_progress = Dialog.getChoice();
 	overlay_color1 = Dialog.getChoice();
 	overlay_color2 = Dialog.getChoice();
-	zboxspread = Dialog.getNumber();	
+	zboxspread = Dialog.getNumber();
 	dup_overlay = Dialog.getCheckbox();
-	
+
 	scoring = Dialog.getChoice();
 	stages_used = newArray();
 	t=0;
@@ -123,8 +123,8 @@ if (!endsWith(obslist_path, ".csv"))				exit("***ERROR***\nmake sure you choose 
 obsCSV = split(File.openAsString(obslist_path), "\n");
 //for (i = 0; i < obsCSV.length; i++) print(i, obsCSV[i]);
 
-new_default = Array.concat(saveloc, expname, timestep, 
-							dup_overlay, zboxspread, overlay_color1, overlay_color2, box_progress, 
+new_default = Array.concat(saveloc, expname, timestep,
+							dup_overlay, zboxspread, overlay_color1, overlay_color2, box_progress,
 							obslist_path, scoring, default_stages);
 
 // save defaults for next time
@@ -168,7 +168,7 @@ else {
 // analyze individual events
 setTool("rectangle");
 for (c = prev_c+1; c > 0; c++){	// loop through cells
-	
+
 	coordinates_array = newArray();
 	// for each time point included, pause to allow user to define coordinates
 	for (tp = 0; tp < nStages; tp++) {	// put box making into function?
@@ -176,9 +176,9 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		// allow user to box mitotic cell
 		wait_string = "Draw a box around a cell at " + stages_used[tp] + " of mitotic event.";
 		if (tp > 0) wait_string = wait_string + "\n ---- t" + tp-1 + " at frame " + f;
-		
+
 		if (box_progress == progressOptions[2]) {	// click OK to progress
-			waitForUser(wait_string);	
+			waitForUser(wait_string);
 		}
 		else {	// draw box to progress
 			// make new waiting log window
@@ -188,20 +188,20 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			}
 			getLocationAndSize(im_x, im_y, im_w, im_h);
 			run("Text Window...", "name=Waiting width=100 height=8 menu");
-			setLocation(im_x + im_w, im_y);
-			
+			setLocation(im_x, im_y + im_h);
+
 			wait_string = "*****Close this window to finish session\n" + wait_string;
 			if (box_progress == progressOptions[0]){	// draw + t
 				roiManager("reset");
 				wait_string = wait_string + "\nPress t or add to ROI Manager when done";
 			}
 			print("[Waiting]", wait_string);
-			
+
 			while (keepWaiting() ){
 				wait(250);
 				if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
 			}
-			
+
 			run("Collect Garbage");
 			if (isOpen("Waiting")){
 				selectWindow("Waiting");
@@ -231,16 +231,16 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 
 		// create overlay of mitotic timepoint (t0, t1, etc)
 		overlay_name = "c" + c + "_t" + tp;
-		makeOverlay(overlay_coord, overlay_name, "red");
+		makeOverlay(overlay_coord, overlay_name, overlay_color1);
 	}
 	run("Select None");
-	
+
 	// reorganize coordinates
 	reorganized_coord_array = reorganizeCoord(coordinates_array);
 	xywhttzz = getFullSelectionBounds(reorganized_coord_array);
 
 	// create box overlay of cells already analyzed (only on relevant slices)
-	makeOverlay(xywhttzz, "c" + c, "white");	
+	makeOverlay(xywhttzz, "c" + c, overlay_color2);
 
 	// create and print results line
 	// need to organize/comment on the below !!
@@ -251,11 +251,13 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		tps[i] = reorganized_coord_array[4*nStages+i];
 		if (i > 0) intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
 	}
+
 	observations = observationsDialog(obsCSV, "results");
+
 	//Array.print(observations);
 	if (observations.length > 0){
 		results = Array.concat(im, c, tps, intervals, observations);
-	
+
 		for (i = 0; i < nStages; i++){
 			curr_coord = Array.slice(coordinates_array, i*rearranged.length, (i+1)*rearranged.length);
 			coord_string = String.join(curr_coord,"_");
@@ -263,25 +265,25 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		}
 		xywhttzz_string = String.join(xywhttzz,"_");
 		results = Array.concat(results, xywhttzz_string);
-	
+
 		results_str = String.join(results,"\t");
 		print(_table_, results_str);
-	
+
 		// save overlay
 		run("To ROI Manager");
 		roiManager("Show All without labels");
 		roiManager("deselect");
 		roiManager("save", overlay_file);
-		
+
 		// save results progress
 		selectWindow(table);
 		saveAs("Text", results_file);
 	}
-	else {
+	else {	// i.e. REMOVE CURRENT INPUT
 		removeOverlays(c);
 		c--;
 	}
-	
+
 	if( roiManager("count") > 0 )	run("From ROI Manager");
 	close("ROI Manager");
 }
@@ -321,7 +323,7 @@ function getMinOrMaxOfMultiple(array,MinOrMax){
 
 
 function getFullSelectionBounds(A){
-	xA = Array.concat( Array.slice( A, nStages*0, nStages*1), Array.slice( A, nStages*2, nStages*3));	
+	xA = Array.concat( Array.slice( A, nStages*0, nStages*1), Array.slice( A, nStages*2, nStages*3));
 	yA = Array.concat( Array.slice( A, nStages*1, nStages*2), Array.slice( A, nStages*3, nStages*4));
 	tA = Array.slice( A, nStages*4, nStages*5);
 	zA = Array.slice( A, nStages*5, nStages*6);
@@ -348,8 +350,8 @@ function checkHeaders(new){
 	} else if (old != new){
 			//print("_" + old);
 			//print("_" + new);
-					
-			waitForUser("***ERROR***\n" + 
+
+			waitForUser("***ERROR***\n" +
 			"Previous settings do not match current settings for this experiment.\n" +
 			"The results and overlays from the previous experiment will be stored,\n" +
 			"and a new results table and overlay file will be created for this experiment.\n \n" +
@@ -372,13 +374,13 @@ function loadPreviousProgress(headers){
 		make_table_now = checkHeaders(headers);
 	}
 	else make_table_now = 1; // no previous log file and no current open scoring table
-	
-	if (make_table_now){					
+
+	if (make_table_now){
 		run("Table...", "name="+_table_+" width=1200 height=300");
 		print(_table_, "\\Headings:" + headers);
 		Overlay.remove();
 	}
-	
+
 	// find previous overlay
 	else if (File.exists(overlay_file)){
 		roiManager("Open", overlay_file);
@@ -395,7 +397,7 @@ function makeOverlay(coord, name, color){
 		for (i = 0; i < dup_overlay+1; i++) {	// 1 or 2 boxes, depending on dup_overlay
 			Stack.getDimensions(_, _, ch, sl, fr);
 			for (z = maxOf(1, coord[6] - zboxspread); z <= minOf(sl, coord[7] + zboxspread); z++) {
-				
+
 				// fix sizes for duplicate overlay images
 				X = (coord[0] + getWidth()/2 * i) % getWidth();		// changes only if i==1
 
@@ -403,7 +405,7 @@ function makeOverlay(coord, name, color){
 				makeRectangle(X, coord[1], coord[2], coord[3]);
 				Roi.setName(name);
 				Overlay.addSelection(color);
-				
+
 				// unfortunately Overlay.setPosition(c, z, t) only works if c (or z?) > 1
 				if (ch*sl == 1)		Overlay.setPosition(f);
 				else				Overlay.setPosition(0, z, f);
@@ -411,7 +413,7 @@ function makeOverlay(coord, name, color){
 		}
 	}
 	run("Select None");
-	
+
 	// display and format overlay
 	Overlay.show;
 	Overlay.useNamesAsLabels(1);
@@ -426,22 +428,24 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 	headers		= newArray();
 	output		= newArray();
 	Dialog.createNonBlocking("Score observations");
+
+	if (Results_Or_Header == "results"){
+		Dialog.setInsets(0, 0, 0);
+		Dialog.addMessage("You are currently scoring cell# " + c + " (the double boxed cell).\n");
+	}
 	
-	Dialog.setInsets(0, 0, 0);
-	
-	Dialog.addMessage("Record your observations below");
 	for (l = 1; l < CSV_lines.length; l++) {
 		currLine = split(CSV_lines[l],",");
-		
+
 		if (currLine [0] == "Group") {
 			Dialog.setInsets(10, 0, 0);
 			Dialog.addMessage(currLine[1]);
 		}
-		
+
 		else {
 			curr_header = currLine[1].replace(" ","_");
 			headers = Array.concat(headers, curr_header);
-			
+
 			Dialog.setInsets(0,10,0);
 			choices =  Array.slice(currLine, 4, currLine.length);
 			choices[0] = "";
@@ -449,7 +453,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 				choices[i] = replace(choices[i], "\"", "");
 				choices[i] = choices[i].trim;
 			}
-			
+
 			// add main
 			if (currLine [0] == "Checkbox"){
 				Dialog.addCheckbox(currLine[1], 0);
@@ -471,7 +475,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 				Dialog.addChoice(currLine[1], choices);
 				out_order = Array.concat(out_order,"opt");
 			}
-	
+
 			// add extras
 			if (currLine [2]){	// Add_#
 				headers = Array.concat(headers, curr_header + "_#");
@@ -499,8 +503,14 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 	Dialog.addCheckbox("REMOVE THIS ENTRY?", 0);
 
 	if (Results_Or_Header == "results") {
+
+		// temporarily swap the overlay names with an extra box around the current cell
+		xywhttzz2 = expandBox(xywhttzz, 2);
+		makeOverlay(xywhttzz2, "temp_overlay", overlay_color2);
+		Overlay.drawLabels(false);
+
 		if (scoring != scoringOptions[0])	Dialog.show();
-		
+
 		for (i = 0; i < out_order.length; i++) {
 			if (out_order[i] == "chk")	output[i] = Dialog.getCheckbox();
 			if (out_order[i] == "str")	output[i] = Dialog.getString();
@@ -508,6 +518,12 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 			if (out_order[i] == "opt")	output[i] = Dialog.getChoice();
 		}
 		if (Dialog.getCheckbox() )	return newArray();	// i.e. if delete the entry
+		
+		// replace overlay names and remove temp boxes
+		Overlay.removeRois("temp_overlay");
+		Overlay.drawLabels(true);
+		Overlay.show();
+		
 		return output;
 	}
 	else{
@@ -518,10 +534,10 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 
 function keepWaiting(){
 	keep_waiting = 1;
-	
+
 	if (box_progress == progressOptions[1]) { // draw only
 		getRawStatistics(area);
-		
+
 		getCursorLoc(_, _, _, flags);	// flag=16 means left mouse button is down
 		if (area < getWidth()*getHeight() && area > 0){		// checks if there is a selection
 			if ( flags&16 == 0 ){							// checks whether left mouse button is down
@@ -529,7 +545,7 @@ function keepWaiting(){
 			}
 		}
 	}
-	
+
 	else if (roiManager("count") > 0){	// draw + t
 		keep_waiting = 0;
 	}
@@ -553,7 +569,7 @@ function renameOldFiles(path){
 	selectWindow(table);
 	saveAs("Text", prevResultsFile);
 	run("Close");
-	
+
 	// save old overlay files under new name
 	flist = getFileList(saveloc);
 	for (f = 0; f < flist.length; f++) {
@@ -578,14 +594,23 @@ function resaveTif(){
 }
 
 function removeOverlays(index) {
-	// export to ROI Manager
-	run("To ROI Manager");
-	for (i = 0; i < roiManager("count"); i++) {
-		roiManager("select", i);
-		r = Roi.getName;
-		if (indexOf(r, "c" + index +"_") >= 0 || endsWith(r, "c"+index) ){
-			roiManager("delete");
-			i--;	
-		}
+	Overlay.removeRois("temp_overlay");
+	Overlay.removeRois("c" + index);
+	for (t = 0; t < nStages; t++) {
+		Overlay.removeRois("c" + index + "_t" + t);
 	}
+	 Overlay.show
 }
+
+function expandBox(input, n){
+	input[0] -= n;
+	input[1] -= n;
+	input[2] += 2*n;
+	input[3] += 2*n;
+
+	return input;
+	
+}
+
+
+
