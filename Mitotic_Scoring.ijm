@@ -3,6 +3,11 @@ requires("1.53d");
 setJustification("center");
 setFont("SansSerif", 9, "antialiased");
 
+if (isOpen("Waiting")){
+	selectWindow("Waiting");
+	run("Close");
+}
+
 // variables used in code below
 all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Telophase", "Decondensation", "G1");
 nAllStages = all_stages.length;
@@ -193,7 +198,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			}
 			print("[Waiting]", wait_string);
 			
-			while (keepWaiting() == 1){
+			while (keepWaiting() ){
 				wait(250);
 				if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
 			}
@@ -201,7 +206,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			run("Collect Garbage");
 			if (isOpen("Waiting")){
 				selectWindow("Waiting");
-				getLocationAndSize(Wait_x, Wait_y, _, _)
+				getLocationAndSize(Wait_x, Wait_y, _, _);
 				run("Close");
 			}
 		}
@@ -515,11 +520,21 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 
 function keepWaiting(){
 	keep_waiting = 1;
-	if (box_progress == progressOptions[1]) {
+	
+	if (box_progress == progressOptions[1]) { // draw only
 		getRawStatistics(area);
-		if (area != getWidth()*getHeight() && area != 0)	keep_waiting = 0;
+		
+		getCursorLoc(_, _, _, flags);	// flag=16 means left mouse button is down
+		if (area < getWidth()*getHeight() && area > 0){		// checks if there is a selection
+			if ( flags&16 == 0 ){							// checks whether left mouse button is down
+				keep_waiting = 0;
+			}
+		}
 	}
-	else if (roiManager("count") > 0)						keep_waiting = 0;
+	
+	else if (roiManager("count") > 0){	// draw + t
+		keep_waiting = 0;
+	}
 
 	return keep_waiting;
 }
