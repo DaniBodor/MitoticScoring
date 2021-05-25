@@ -34,7 +34,11 @@ A dialog window will open to ask you for the settings for this experiment. Your 
 
 Here you can set:
 ### General settings
-- the path where results are saved, your experiment name, and the time step between frames
+- the path where results should be saved
+- a name for the experiment
+    - this will be used for output file naming
+- the time step between frames
+    - can be any unit; it's basically a multiplier for the number of frames between events
 ### Settings for visual tracking
 - how to proceed after drawing a box around your tracked cell ([see below](https://github.com/DaniBodor/MitoticScoring/#step-1-indicate-cell))
     - 'Click OK': draw a box, the click 'OK' on the popup window
