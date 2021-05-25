@@ -15,8 +15,6 @@ colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","or
 progressOptions = newArray("Draw + t", "Draw only", "Click OK");
 scoringOptions = newArray("None", "Load default", "Set new default");
 overlay_file = "";
-Wait_x = 750;
-Wait_y = 200;
 
 
 default_array = newArray(
@@ -116,12 +114,11 @@ if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; plea
 
 // load observation list
 obslist_path = default_array[nDefaults - nAllStages - 2];
-if (scoring != scoringOptions[0]) {		// so NOT 'None'
-	if (scoring == scoringOptions[2] || !File.exists(obslist_path) ){	// either select new default OR default file not found
-		obslist_path = File.openDialog("Choose new default observation list csv file");
-		scoring = scoringOptions[1];
-	}
+if (scoring == scoringOptions[2] || !File.exists(obslist_path) ){	// either select new default OR default file not found
+	obslist_path = File.openDialog("Choose new default observation list csv file");
+	if (scoring == scoringOptions[2]) scoring = scoringOptions[1];
 }
+
 if (!endsWith(obslist_path, ".csv"))				exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
 obsCSV = split(File.openAsString(obslist_path), "\n");
 //for (i = 0; i < obsCSV.length; i++) print(i, obsCSV[i]);
@@ -183,14 +180,16 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		if (box_progress == progressOptions[2]) {	// click OK to progress
 			waitForUser(wait_string);	
 		}
-		else{	// draw box to progress
+		else {	// draw box to progress
 			// make new waiting log window
 			if (isOpen("Waiting")){
 				selectWindow("Waiting");
 				run("Close");
 			}
+			getLocationAndSize(im_x, im_y, im_w, im_h);
 			run("Text Window...", "name=Waiting width=100 height=8 menu");
-			setLocation(Wait_x, Wait_y);
+			setLocation(im_x + im_w, im_y);
+			
 			wait_string = "*****Close this window to finish session\n" + wait_string;
 			if (box_progress == progressOptions[0]){	// draw + t
 				roiManager("reset");
@@ -206,7 +205,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			run("Collect Garbage");
 			if (isOpen("Waiting")){
 				selectWindow("Waiting");
-				getLocationAndSize(Wait_x, Wait_y, _, _);
 				run("Close");
 			}
 		}
