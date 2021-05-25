@@ -116,7 +116,7 @@ if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; plea
 
 // load observation list
 obslist_path = default_array[nDefaults - nAllStages - 2];
-if (scoring != scoringOptions[2]) {		// so NOT 'None'
+if (scoring != scoringOptions[0]) {		// so NOT 'None'
 	if (scoring == scoringOptions[2] || !File.exists(obslist_path) ){	// either select new default OR default file not found
 		obslist_path = File.openDialog("Choose new default observation list csv file");
 		scoring = scoringOptions[1];
@@ -501,7 +501,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 	Dialog.addCheckbox("REMOVE THIS ENTRY?", 0);
 
 	if (Results_Or_Header == "results") {
-		Dialog.show();
+		if (scoring != scoringOptions[0])	Dialog.show();
 		
 		for (i = 0; i < out_order.length; i++) {
 			if (out_order[i] == "chk")	output[i] = Dialog.getCheckbox();
