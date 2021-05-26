@@ -1,4 +1,4 @@
-[Check UPDATES.md to see what changed](/UPDATES.md)
+Check [UPDATES](/UPDATES.md) to see what changed
 
 # Mitotic Scoring Macro
 
