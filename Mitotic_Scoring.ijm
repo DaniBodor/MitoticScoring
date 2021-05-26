@@ -108,7 +108,7 @@ Dialog.show();
 
 // check input
 nStages = stages_used.length;
-if (nStages == 0)	exit("Macro aborted because no stages are tracked.\nSelect at least 1 stage to track");
+if (nStages == 0)					exit("Macro aborted because no stages are tracked.\nSelect at least 1 stage to track");
 if (!File.isDirectory(saveloc))		File.makeDirectory(saveloc);
 if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; please choose valid directory");
 
@@ -182,19 +182,14 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		}
 		else {	// draw box to progress
 			// make new waiting log window
-			if (isOpen("Waiting")){
-				selectWindow("Waiting");
-				run("Close");
-			}
-			getLocationAndSize(im_x, im_y, im_w, im_h);
-			run("Text Window...", "name=Waiting width=100 height=8 menu");
-			setLocation(im_x, im_y + im_h);
-
 			wait_string = "*****Close this window to finish session\n" + wait_string;
 			if (box_progress == progressOptions[0]){	// draw + t
 				roiManager("reset");
 				wait_string = wait_string + "\nPress t or add to ROI Manager when done";
 			}
+			getLocationAndSize(im_x, im_y, im_w, im_h);
+			run("Text Window...", "name=Waiting width=80 height=6 menu");
+			setLocation(im_x, im_y + im_h);
 			print("[Waiting]", wait_string);
 
 			while (keepWaiting() ){
@@ -341,28 +336,6 @@ function getFullSelectionBounds(A){
 }
 
 
-function checkHeaders(new){
-	selectWindow(table);
-	old = Table.headings();
-	if (Table.size() == 0){
-		run("Close");
-		return 1;
-	} else if (old != new){
-			//print("_" + old);
-			//print("_" + new);
-
-			waitForUser("***ERROR***\n" +
-			"Previous settings do not match current settings for this experiment.\n" +
-			"The results and overlays from the previous experiment will be stored,\n" +
-			"and a new results table and overlay file will be created for this experiment.\n \n" +
-			"Alternatively, abort now [Esc] and restart using a different experiment name.");
-
-			renameOldFiles(results_file);
-			return 1;
-	} else	return 0;
-}
-
-
 function loadPreviousProgress(headers){
 
 	// find previous results
@@ -386,7 +359,30 @@ function loadPreviousProgress(headers){
 		roiManager("Open", overlay_file);
 		run("From ROI Manager");
 		roiManager("delete");
+		overlayFormatting(overlay_color2);
 	}
+}
+
+
+function checkHeaders(new){
+	selectWindow(table);
+	old = Table.headings();
+	if (Table.size() == 0){
+		run("Close");
+		return 1;
+	} else if (old != new){
+			//print("_" + old);
+			//print("_" + new);
+
+			waitForUser("***ERROR***\n" +
+			"Previous settings do not match current settings for this experiment.\n" +
+			"The results and overlays from the previous experiment will be stored,\n" +
+			"and a new results table and overlay file will be created for this experiment.\n \n" +
+			"Alternatively, abort now [Esc] and restart using a different experiment name.");
+
+			renameOldFiles(results_file);
+			return 1;
+	} else	return 0;
 }
 
 
@@ -415,11 +411,7 @@ function makeOverlay(coord, name, color){
 	run("Select None");
 
 	// display and format overlay
-	Overlay.show;
-	Overlay.useNamesAsLabels(1);
-	Overlay.drawLabels(1);
-	Overlay.setLabelFontSize(8,"scale");
-	Overlay.setLabelColor(color);
+	overlayFormatting(color);
 }
 
 
@@ -517,10 +509,11 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 			if (out_order[i] == "num")	output[i] = Dialog.getNumber();
 			if (out_order[i] == "opt")	output[i] = Dialog.getChoice();
 		}
-		if (Dialog.getCheckbox() )	return newArray();	// i.e. if delete the entry
+		if (Dialog.getCheckbox() )	return newArray();	// i.e. if delete the entry --> return empty array
 		
 		// replace overlay names and remove temp boxes
 		Overlay.removeRois("temp_overlay");
+		//Overlay.setLabelFontSize(8,"scale");
 		Overlay.drawLabels(true);
 		Overlay.show();
 		
@@ -581,6 +574,7 @@ function renameOldFiles(path){
 	}
 }
 
+
 function resaveTif(){
 	info = getImageInfo();
 	start = indexOf(info, "Path:") + 6;
@@ -593,6 +587,7 @@ function resaveTif(){
 	}
 }
 
+
 function removeOverlays(index) {
 	Overlay.removeRois("temp_overlay");
 	Overlay.removeRois("c" + index);
@@ -601,6 +596,7 @@ function removeOverlays(index) {
 	}
 	 Overlay.show
 }
+
 
 function expandBox(input, n){
 	input[0] -= n;
@@ -613,4 +609,10 @@ function expandBox(input, n){
 }
 
 
-
+function overlayFormatting(c){
+	Overlay.show;
+	Overlay.useNamesAsLabels(true);
+	Overlay.drawLabels(true);
+	Overlay.setLabelFontSize(8,"scale");
+	Overlay.setLabelColor(c);
+}
