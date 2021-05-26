@@ -1,6 +1,7 @@
-
+[Check UPDATES.md to see what changed](/UPDATES.md)
 
 # Mitotic Scoring Macro
+
 This macro helps keeps track of manual scoring of (mitotic) events from movies. It keeps track of timings, position, and potential mitotic errors or events.  
 **NOTE:** the macro does NOT automatically track these events from your movies, but facilitates manual scoring.
 
