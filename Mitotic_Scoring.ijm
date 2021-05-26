@@ -359,7 +359,7 @@ function loadPreviousProgress(headers){
 		roiManager("Open", overlay_file);
 		run("From ROI Manager");
 		roiManager("delete");
-		overlayFormatting(overlay_color2);
+		overlayFormatting();
 	}
 }
 
@@ -411,7 +411,7 @@ function makeOverlay(coord, name, color){
 	run("Select None");
 
 	// display and format overlay
-	overlayFormatting(color);
+	overlayFormatting();
 }
 
 
@@ -609,10 +609,10 @@ function expandBox(input, n){
 }
 
 
-function overlayFormatting(c){
+function overlayFormatting(){
 	Overlay.show;
 	Overlay.useNamesAsLabels(true);
 	Overlay.drawLabels(true);
 	Overlay.setLabelFontSize(8,"scale");
-	Overlay.setLabelColor(c);
+//	Overlay.setLabelColor(c);
 }
