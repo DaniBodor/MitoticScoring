@@ -1,3 +1,6 @@
+// MITOTIC SCORING MACRO v1.0
+
+
 // general stuff
 requires("1.53d");
 setJustification("center");
