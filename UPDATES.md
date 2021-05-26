@@ -1,4 +1,4 @@
-### 26 May 2021
+### v1.0 - 26 May 2021
 
 - Fixed bugs in 'Draw only' mode
 - Fixed incorrect selection of 'Progress mode' from startup settings
