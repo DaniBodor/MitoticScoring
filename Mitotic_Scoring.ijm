@@ -371,16 +371,12 @@ function getFullSelectionBounds(A){
 
 
 function loadPreviousProgress(headers){
-
 	// find previous results
 	if (File.exists(results_file)){
 		Table.open(results_file);
 		make_table_now = checkHeaders(headers);
 	}
-	else if (isOpen(table)){	// if no previous log file, but scoring table is open
-		make_table_now = checkHeaders(headers);
-	}
-	else make_table_now = 1; // no previous log file and no current open scoring table
+	else make_table_now = 1;
 
 	if (make_table_now){
 		// %%%%%%%%%%%%%%%%%%%
