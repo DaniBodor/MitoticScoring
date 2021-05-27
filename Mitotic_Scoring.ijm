@@ -1,4 +1,4 @@
-// MITOTIC SCORING MACRO v1.0
+// MITOTIC SCORING MACRO v1.01
 
 
 // general stuff
@@ -16,7 +16,7 @@ all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Teloph
 nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 progressOptions = newArray("Draw + t", "Draw only", "Click OK");
-scoringOptions = newArray("None", "Load default", "Set new default");
+scoringOptions = newArray("None", "Load default", "Use custom");
 overlay_file = "";
 
 
@@ -79,6 +79,9 @@ Dialog.create("Setup");
 	Dialog.addMessage("SCORING SETTINGS");
 	Dialog.setInsets(0, 20, 0);
 	Dialog.addChoice("Score observations?",  scoringOptions, default_array[nDefaults - nAllStages - 1]);
+	Dialog.setInsets(0, 20, 0);
+	Dialog.addMessage("Select custom observation list CSV file if 'use custom' was chosen. This file will be the new default");
+	Dialog.addFile("CSV file", "");
 	Dialog.setInsets(2, 10, 0);
 	Dialog.addMessage("Which mitotic stages should be monitored?")
 	Dialog.setInsets(-5, 20, 0);
@@ -98,6 +101,7 @@ Dialog.show();
 	dup_overlay = Dialog.getCheckbox();
 
 	scoring = Dialog.getChoice();
+	obslist_path = Dialog.getString();
 	stages_used = newArray();
 	t=0;
 	for (i = 0; i < nAllStages; i++) {
@@ -116,25 +120,50 @@ if (!File.isDirectory(saveloc))		File.makeDirectory(saveloc);
 if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; please choose valid directory");
 
 // load observation list
-obslist_path = default_array[nDefaults - nAllStages - 2];
-if (scoring == scoringOptions[2] || !File.exists(obslist_path) ){	// either select new default OR default file not found
-	obslist_path = File.openDialog("Choose new default observation list csv file");
-	if (scoring == scoringOptions[2]) scoring = scoringOptions[1];
-}
+prev_def_obslist = default_array[nDefaults - nAllStages - 2];
+// in case chosen for default but selected a path, ask which to use
+chooseNewObsList = false;
+if (scoring == scoringOptions[1] && obslist_path != prev_def_obslist && obslist_path != "" && endsWith(obslist_path, ".csv")){
+	Dialog.create("Custom or default observation list?");
+	Dialog.addMessage("You have selected to use the default observation list, but have selected a different observation list file");
+	Dialog.addMessage(	"- Default observation list:       " + prev_def_obslist + "\n" +
+						"- File selected during setup: " + obslist_path);
+	Dialog.addChoice("Which would you like to use?", newArray("Default","Selected file","Choose different file"))
 
-if (!endsWith(obslist_path, ".csv"))				exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
+	Dialog.show();
+	choice = Dialog.getChoice();
+	if ( choice == "Default" )					obslist_path = prev_def_obslist;
+	else if (choice == "Choose different file")	chooseNewObsList = true;
+}
+else if (scoring != scoringOptions[2])		obslist_path = prev_def_obslist;
+
+if (!endsWith(obslist_path, ".csv") || !File.exists(obslist_path) || chooseNewObsList){
+	Dialog.create("Choose new observation list file");
+	Dialog.addHelp("https://github.com/DaniBodor/MitoticScoring#use-custom-observation-list");
+	Dialog.addMessage(	"Observation list file not found or wrong filetype was selected\n"	+
+						"Choose a CSV file with a properly formatted observation list\n"	+
+						"Click 'Help' for info on how to format observation list");
+	Dialog.addFile("Choose CSV file", "");
+	Dialog.addMessage("\nNote that this dialog might pop up the first time you run the macro\nor the first time after moving the macro files on your computer,\neven if you select 'Load default' or 'None'");
+
+	Dialog.show();
+	obslist_path = Dialog.getString();
+}
+if (!endsWith(obslist_path, ".csv") || !File.exists(obslist_path))				exit("***ERROR***\nMake sure you choose an existing CSV file as your observation list");
 obsCSV = split(File.openAsString(obslist_path), "\n");
 //for (i = 0; i < obsCSV.length; i++) print(i, obsCSV[i]);
 
+
+// save defaults for next time
+if (scoring == scoringOptions[2]) scoring = scoringOptions[1];
 new_default = Array.concat(saveloc, expname, timestep,
 							dup_overlay, zboxspread, overlay_color1, overlay_color2, box_progress,
 							obslist_path, scoring, default_stages);
-
-// save defaults for next time
 Array.show(new_default);
 selectWindow("new_default");
 saveAs("Text", defaults_path);
 run("Close");
+
 
 // make headers string ##HEADERS##
 init_headers = newArray("movie", "cell#");
