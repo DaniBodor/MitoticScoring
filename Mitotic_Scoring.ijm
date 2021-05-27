@@ -1,4 +1,4 @@
-// MITOTIC SCORING MACRO v1.0
+// MITOTIC SCORING MACRO v1.10
 
 
 // general stuff
@@ -15,7 +15,7 @@ if (isOpen("Waiting")){
 all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Telophase", "Decondensation", "G1");
 nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
-progressOptions = newArray("Draw + t", "Draw only", "Click OK");
+progressOptions = newArray("Draw + t", "Draw only");	//, "Click OK");
 scoringOptions = newArray("None", "Default", "Custom");
 overlay_file = "";
 
@@ -167,7 +167,8 @@ headers_str = String.join(headers,"\t");
 table = expname + "_Scoring.csv";
 _table_ = "["+table+"]";
 results_file = saveloc + table;
-overlay_file = saveloc + expname + "_ROIs_" + getTitle() + ".zip";
+overlay_file_prefix = saveloc + expname + "_ROIs_";
+overlay_file = overlay_file_prefix + getTitle() + ".zip";
 loadPreviousProgress(headers_str);
 if	(Table.size > 0){
 	prev_im =	Table.getString	("movie", Table.size-1);
@@ -191,12 +192,15 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		wait_string = "Draw a box around a cell at " + stages_used[tp] + " of mitotic event.";
 		if (tp > 0) wait_string = wait_string + "\n ---- t" + tp-1 + " at frame " + f;
 
-		if (box_progress == progressOptions[2]) {	// click OK to progress
+		// I discontinued the 'Click OK' option for now
+		/*if (box_progress == progressOptions[2]) {	// click OK to progress
 			waitForUser(wait_string);
-		}
+		}*/
+		if (1==0){A=1;}
 		else {	// draw box to progress
 			// make new waiting log window
 			wait_string = "*****Close this window to finish session\n" + wait_string;
+			wait_string = wait_string + "\nif you close all images, a window will pop up asking you to open a new file";
 			if (box_progress == progressOptions[0]){	// draw + t
 				roiManager("reset");
 				wait_string = wait_string + "\nPress t or add to ROI Manager when done";
@@ -282,6 +286,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		run("To ROI Manager");
 		roiManager("Show All without labels");
 		roiManager("deselect");
+		overlay_file = overlay_file_prefix + getTitle() + ".zip";
 		roiManager("save", overlay_file);
 
 		// save results progress
@@ -369,12 +374,8 @@ function loadPreviousProgress(headers){
 	}
 
 	// find previous overlay
-	else if (File.exists(overlay_file)){
-		roiManager("Open", overlay_file);
-		run("From ROI Manager");
-		roiManager("delete");
-		overlayFormatting();
-	}
+	overlay_file = overlay_file_prefix + getTitle() + ".zip";
+	findPrevOverlay(overlay_file);
 }
 
 
@@ -542,7 +543,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 function keepWaiting(){
 	keep_waiting = 1;
 
-	if (nImages > 0) {
+	if (nImages > 0) {	// check if all files were closed
 		if (box_progress == progressOptions[1]) { // draw only
 			getRawStatistics(area);
 
@@ -557,6 +558,12 @@ function keepWaiting(){
 		else if (roiManager("count") > 0){	// draw + t
 			keep_waiting = 0;
 		}
+	}
+	else {	// if no files are open
+		open();	// open new image
+		run("Select None");
+		overlay_file = overlay_file_prefix + getTitle() + ".zip";
+		findPrevOverlay(overlay_file);
 	}
 
 	return keep_waiting;
@@ -631,4 +638,14 @@ function overlayFormatting(){
 	Overlay.drawLabels(true);
 	Overlay.setLabelFontSize(8,"scale");
 //	Overlay.setLabelColor(c);
+}
+
+
+function findPrevOverlay(roi_path){
+	if (File.exists(roi_path)){
+		roiManager("Open", roi_path);
+		run("From ROI Manager");
+		roiManager("delete");
+		overlayFormatting();
+	}
 }
