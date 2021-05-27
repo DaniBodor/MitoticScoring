@@ -34,17 +34,16 @@ A dialog window will open to ask you for the settings for this experiment. Your 
 <img src="Images/Scoring_Macro_Setup.png" width=40%>
 
 ### General settings
-- the path where results should be saved
-- a name for the experiment
-    - this will be used for output file naming
-- the time step between frames
-    - can be any unit; it's basically a multiplier for the number of frames between events
+- Save location: the path where results will be saved
+- Experiment name: this is used for output file naming and for separating between separate analyses
+    - if you use same experiment name (and same save location) as a previous experiment, the analysis will continue where you left off
+    - if you change either of the above, a new analysis (with new results table and no pre-stored boxes) will start
+- Time step: can be any unit; it's just a multiplier for the number of frames between events
 ### Settings for visual tracking
 - how to proceed after drawing a box around your tracked cell ([see below](https://github.com/DaniBodor/MitoticScoring/#step-1-indicate-cell))
     - 'Click OK': draw a box, the click 'OK' on the popup window
     - 'Draw + t': draw a box, then add it to ROI list (for which the default keyboard shortcut is 't')
     - 'Draw only': automatically progress once you drew a box
-        - BUG: it checks every 0.5 s if there's a selection. If you are in the middle of drawing a box, then it thinks there is an active selection and selects whatever you have drawn so far. I don't know how to solve this for now.
 - the color of the box at the frame you specify as t0, t1, ...
 - the color of the box around the cell at all mitotic frames
 - on how many Z-planes above and below the drawn boxes to spread the indications
@@ -54,12 +53,10 @@ A dialog window will open to ask you for the settings for this experiment. Your 
 - Score Observations:
     - 'None': do not keep track of events, only of timings
     - 'Load default': use the [default observation list](https://github.com/DaniBodor/MitoticScoring/#step-2-score-events) for keeping track
-        - the very first time you run the macro, it may prompt you for the file location of the observation list (as below). Select 'DefaultObservationList.csv' from the folder you downloaded.
     - 'Set new default': you are prompted to choose a custom observation list csv file ([see below](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list))
+        - the very first time you run the macro, it may prompt you for the file location of the observation list (as below) irrespective of the your choice. Select 'DefaultObservationList.csv' from the folder you downloaded.
 - Mitotic stages: at least one must be selected
-- **NOTE:** A problem would occur in the results table if you run the macro using the same experiment name but a different observation list or set of mitotic stages. If this happens (and you do not abort), the previously existing results table and ROI lists will be renamed and your analysis starts afresh with new settings.
-
-
+- 
 
 ## Identify & score mitotic cells
 Results are saved after each analyzed cell to avoid losing data after crashes or mistakes. Furthermore, previous progress can be loaded when re-running the macro for the same experiment so that you can stop in the middle of an analysis and carry on another time without losing track of where you were. Also, at any point you can close the current image and open a different (or the same) one without crashing the macro or losing your progress.
@@ -87,6 +84,7 @@ Results will be automatically written to the scoring table and saved (the file i
 
 ### Back to step 1
 Wash, rinse, repeat...
+
 
 ## Use custom observation list
 It is possible to customize the observation list in a pretty uncomplicated yet versatile way.  
