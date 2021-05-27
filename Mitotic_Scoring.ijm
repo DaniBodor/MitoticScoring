@@ -16,7 +16,7 @@ all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Teloph
 nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 progressOptions = newArray("Draw + t", "Draw only", "Click OK");
-scoringOptions = newArray("None", "Load default", "Set new default");
+scoringOptions = newArray("None", "Default", "Custom");
 overlay_file = "";
 
 
@@ -47,6 +47,7 @@ if (File.exists(defaults_path)){
 		default_array = loaded_array;
 	}
 }
+obslist_path = default_array[nDefaults - nAllStages - 2];
 //Array.print(default_array);	// for troubleshooting
 
 if(nImages > 0)		Overlay.remove;
@@ -78,7 +79,9 @@ Dialog.create("Setup");
 	Dialog.setInsets(20, 0, 0);
 	Dialog.addMessage("SCORING SETTINGS");
 	Dialog.setInsets(0, 20, 0);
-	Dialog.addChoice("Score observations?",  scoringOptions, default_array[nDefaults - nAllStages - 1]);
+	Dialog.addChoice("Score observations",  scoringOptions, default_array[nDefaults - nAllStages - 1]);
+	Dialog.setInsets(-3, 50, 0);
+	Dialog.addMessage("If you select  'Custom', another window will pop up after this to select file");
 	Dialog.setInsets(2, 10, 0);
 	Dialog.addMessage("Which mitotic stages should be monitored?")
 	Dialog.setInsets(-5, 20, 0);
@@ -88,7 +91,7 @@ Dialog.create("Setup");
 Dialog.show();
 	saveloc = Dialog.getString();
 	expname = Dialog.getString();
-		if (expname == "")	expname = "mitotic_scoring";
+		if (expname == "")	expname = "Mitotic_Scoring";
 	timestep = Dialog.getNumber();
 
 	box_progress = Dialog.getChoice();
@@ -116,13 +119,21 @@ if (!File.isDirectory(saveloc))		File.makeDirectory(saveloc);
 if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; please choose valid directory");
 
 // load observation list
-obslist_path = default_array[nDefaults - nAllStages - 2];
 if (scoring == scoringOptions[2] || !File.exists(obslist_path) ){	// either select new default OR default file not found
-	obslist_path = File.openDialog("Choose new default observation list csv file");
+	Dialog.create("Choose observation list");
+	Dialog.addFile("Choose csv file for custom observation list", "");
+	Dialog.addMessage("This list will be the default for future experiments " +
+	"(so next time you can select 'default' to use this list)");
+	Dialog.addMessage(	"Note that this window can pop up the first time you run the macro (or after moving macro files),\n" +
+						"irrespective of choice for scoring Default / Custom / None");
+
+	Dialog.show();
+	obslist_path = Dialog.getString();
+
 	if (scoring == scoringOptions[2]) scoring = scoringOptions[1];
 }
 
-if (!endsWith(obslist_path, ".csv"))				exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
+if (!endsWith(obslist_path, ".csv") || !File.exists(obslist_path))				exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
 obsCSV = split(File.openAsString(obslist_path), "\n");
 //for (i = 0; i < obsCSV.length; i++) print(i, obsCSV[i]);
 
@@ -428,7 +439,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 		Dialog.setInsets(0, 0, 0);
 		Dialog.addMessage("You are currently scoring cell# " + c + " (the double boxed cell).\n");
 	}
-	
+
 	for (l = 1; l < CSV_lines.length; l++) {
 		currLine = split(CSV_lines[l],",");
 
@@ -513,13 +524,13 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 			if (out_order[i] == "opt")	output[i] = Dialog.getChoice();
 		}
 		if (Dialog.getCheckbox() )	return newArray();	// i.e. if delete the entry --> return empty array
-		
+
 		// replace overlay names and remove temp boxes
 		Overlay.removeRois("temp_overlay");
 		//Overlay.setLabelFontSize(8,"scale");
 		Overlay.drawLabels(true);
 		Overlay.show();
-		
+
 		return output;
 	}
 	else{
@@ -608,7 +619,7 @@ function expandBox(input, n){
 	input[3] += 2*n;
 
 	return input;
-	
+
 }
 
 
