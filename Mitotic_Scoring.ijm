@@ -175,7 +175,7 @@ if	(Table.size > 0){
 	prev_c =	Table.get		("cell#", Table.size-1);
 }
 else {
-	prev_im = "";
+	prev_im = "no_prev_im";
 	prev_c = 0;
 }
 
