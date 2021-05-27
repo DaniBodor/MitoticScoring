@@ -1,8 +1,8 @@
-// MITOTIC SCORING MACRO v1.10
-
+// MITOTIC SCORING MACRO v1.11
+print("\\Clear");
 
 // general stuff
-requires("1.53d");
+requires("1.53f");
 setJustification("center");
 setFont("SansSerif", 9, "antialiased");
 
@@ -223,8 +223,16 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		}
 
 		im = getTitle();
-		if (tp == 0 && im != prev_im){
-			c = 1;
+		selectWindow(table);
+		// %%%%%%%%%%%%%%%%%%%
+		print(im, prev_im, Table.size());
+		if (tp == 0 && im != prev_im ){
+			if (Table.size ==0)	c = 1;
+			else{
+				imArray = Table.getColumn("movie");
+				filtered = Array.filter(imArray, im);
+				c = filtered.length + 1;
+			}
 			prev_im = im;
 			Stack.getDimensions(_, _, ch, sl, fr);
 			if (fr == 1){
@@ -279,8 +287,10 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		xywhttzz_string = String.join(xywhttzz,"_");
 		results = Array.concat(results, xywhttzz_string);
 
-		results_str = String.join(results,"\t");
-		print(_table_, results_str);
+		updateTable(Table.size);
+		//results_str = String.join(results,"\t");
+		//print(_table_, results_str);
+		//Table.update;
 
 		// save overlay
 		run("To ROI Manager");
@@ -290,6 +300,11 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		roiManager("save", overlay_file);
 
 		// save results progress
+		if (isOpen("Results")){
+			selectWindow(table);
+			run("Close");
+			Table.rename("Results", table);
+		}
 		selectWindow(table);
 		saveAs("Text", results_file);
 	}
@@ -368,6 +383,7 @@ function loadPreviousProgress(headers){
 	else make_table_now = 1; // no previous log file and no current open scoring table
 
 	if (make_table_now){
+		// %%%%%%%%%%%%%%%%%%%
 		run("Table...", "name="+_table_+" width=1200 height=300");
 		print(_table_, "\\Headings:" + headers);
 		Overlay.remove();
@@ -647,5 +663,14 @@ function findPrevOverlay(roi_path){
 		run("From ROI Manager");
 		roiManager("delete");
 		overlayFormatting();
+	}
+}
+
+
+function updateTable(S){
+	for (i = 0; i < headers.length; i++) {
+		Table.set(headers[i], S, results[i]);
+		Table.update;
+		Table.showRowNumbers(true);
 	}
 }
