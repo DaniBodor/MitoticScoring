@@ -542,19 +542,21 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 function keepWaiting(){
 	keep_waiting = 1;
 
-	if (box_progress == progressOptions[1]) { // draw only
-		getRawStatistics(area);
+	if (nImages > 0) {
+		if (box_progress == progressOptions[1]) { // draw only
+			getRawStatistics(area);
 
-		getCursorLoc(_, _, _, flags);	// flag=16 means left mouse button is down
-		if (area < getWidth()*getHeight() && area > 0){		// checks if there is a selection
-			if ( flags&16 == 0 ){							// checks whether left mouse button is down
-				keep_waiting = 0;
+			getCursorLoc(_, _, _, flags);	// flag=16 means left mouse button is down
+			if (area < getWidth()*getHeight() && area > 0){		// checks if there is a selection
+				if ( flags&16 == 0 ){							// checks whether left mouse button is down
+					keep_waiting = 0;
+				}
 			}
 		}
-	}
 
-	else if (roiManager("count") > 0){	// draw + t
-		keep_waiting = 0;
+		else if (roiManager("count") > 0){	// draw + t
+			keep_waiting = 0;
+		}
 	}
 
 	return keep_waiting;
