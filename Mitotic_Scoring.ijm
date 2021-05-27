@@ -1,5 +1,4 @@
 // MITOTIC SCORING MACRO v1.11
-print("\\Clear");
 
 // general stuff
 requires("1.53f");
@@ -165,6 +164,10 @@ headers_str = String.join(headers,"\t");
 
 // load progress
 table = expname + "_Scoring.csv";
+if (isOpen(table)){
+	selectWindow(table);
+	run("Close");
+}
 _table_ = "["+table+"]";
 results_file = saveloc + table;
 overlay_file_prefix = saveloc + expname + "_ROIs_";
@@ -223,9 +226,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		}
 
 		im = getTitle();
-		selectWindow(table);
-		// %%%%%%%%%%%%%%%%%%%
-		print(im, prev_im, Table.size());
 		if (tp == 0 && im != prev_im ){
 			if (Table.size ==0)	c = 1;
 			else{
@@ -374,7 +374,7 @@ function loadPreviousProgress(headers){
 	// find previous results
 	if (File.exists(results_file)){
 		Table.open(results_file);
-		make_table_now = checkHeaders(headers);
+		make_table_now = 0; //checkHeaders(headers);
 	}
 	else make_table_now = 1;
 
