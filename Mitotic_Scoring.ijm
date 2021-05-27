@@ -1,4 +1,4 @@
-// MITOTIC SCORING MACRO v1.11
+// MITOTIC SCORING MACRO v1.20
 
 // general stuff
 requires("1.53f");
