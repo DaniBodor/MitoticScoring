@@ -55,7 +55,8 @@ A dialog window will open to ask you for the settings for this experiment. Your 
     - 'Load default': use the [default observation list](https://github.com/DaniBodor/MitoticScoring/#step-2-score-events) for keeping track
     - 'Set new default': you are prompted to choose a custom observation list csv file ([see below](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list))
         - the very first time you run the macro, it may prompt you for the file location of the observation list (as below) irrespective of the your choice. Select 'DefaultObservationList.csv' from the folder you downloaded.
-- Mitotic stages: at least one must be selected
+- Mitotic stages: choose which stages you want to track.
+    - If there is interest in this, I can create a way to customize this list. Alternatively, just choose an unused stage and rename it in your excel file.
 
 ## Identify & score mitotic cells
 Results are saved after each analyzed cell to avoid losing data after crashes or mistakes. Furthermore, previous progress can be loaded when re-running the macro for the same experiment so that you can stop in the middle of an analysis and carry on another time without losing track of where you were. Also, at any point you can close the current image and open a different (or the same) one without crashing the macro or losing your progress.
