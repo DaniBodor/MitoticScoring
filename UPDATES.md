@@ -2,6 +2,7 @@ Back to [home](https://github.com/DaniBodor/MitoticScoring)
 
 ## v1.21 - 28 May 2021 (PM)
 - Allows for skipping drawing a box for a certain stage by typing 'skip' in the wait window
+- Active observationlist is stored in FiJi.app folder, as are copies of previous defaults
 
 
 ## v1.20 - 28 May 2021 (AM)
