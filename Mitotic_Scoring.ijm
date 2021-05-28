@@ -217,12 +217,9 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 				wait(250);
 				if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
 			}
-
+			selectWindow("Waiting");
+			run("Close");
 			run("Collect Garbage");
-			if (isOpen("Waiting")){
-				selectWindow("Waiting");
-				run("Close");
-			}
 		}
 
 		im = getTitle();
@@ -288,9 +285,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		results = Array.concat(results, xywhttzz_string);
 
 		updateTable(Table.size);
-		//results_str = String.join(results,"\t");
-		//print(_table_, results_str);
-		//Table.update;
 
 		// save overlay
 		run("To ROI Manager");
@@ -635,7 +629,6 @@ function overlayFormatting(){
 	Overlay.useNamesAsLabels(true);
 	Overlay.drawLabels(true);
 	Overlay.setLabelFontSize(8,"scale");
-//	Overlay.setLabelColor(c);
 }
 
 
