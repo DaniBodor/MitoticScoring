@@ -107,7 +107,7 @@ Dialog.show();
 
 	scoring = Dialog.getChoice();
 	stages_used = newArray();
-	t=0;
+	t = 0;
 	for (i = 0; i < nAllStages; i++) {
 		default_stages[i] = Dialog.getCheckbox();
 		if (default_stages[i]) {
@@ -247,7 +247,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		}
 
 		if (selectionType == -1) {	// if no selection
-			x=0;y=0;w=0;h=0;f=0;z=0;
+			x=NaN;y=NaN;w=NaN;h=NaN;f=NaN;z=NaN;
 			nSkip ++;
 			skipArray[tp] = 1;
 		}
