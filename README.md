@@ -128,6 +128,9 @@ Note that the "Remove this entry?" option will always remain present in the obse
 The file as downloaded would give you the [default list above](https://github.com/DaniBodor/MitoticScoring#step-2-score-events) with some extras to illustrate some of the available options.  
 Editing this is simpler than it might seem. Play around for a few minutes and you'll quickly figure it out.
 
+### Current and previous default lists are stored in FiJi.app or ImageJ folder
+Your current default observation list is stored, along with all previous defaults, in your FiJi folder. You can restore a prevous default from your local '...\Fiji.app\macros\MitoticScoringDefaults\' folder to see your history of observation lists.
+
 
 # SubImage Extractor
 This macro is intended to create representative or highlighted movies of only an event as scored above.
