@@ -240,16 +240,21 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		}
 
 		// get coordinates
-		getSelectionBounds(x, y, w, h);
-		if (dup_overlay)	x = x % (getWidth()/2);
-		Stack.getPosition(_, z, f);
+		if (selectionType == -1) {
+			x=0;y=0;w=0;h=0;f=0;z=0;
+		}
+		else {
+			getSelectionBounds(x, y, w, h);
+			if (dup_overlay)	x = x % (getWidth()/2);
+			Stack.getPosition(_, z, f);
+		}
 		overlay_coord = newArray(x, y, w, h, f, f, z, z);
 		rearranged = newArray(x, y, x+w, y+h, f, z);
 		coordinates_array = Array.concat(coordinates_array, rearranged);
 
 		// create overlay of mitotic timepoint (t0, t1, etc)
 		overlay_name = "c" + c + "_t" + tp;
-		makeOverlay(overlay_coord, overlay_name, overlay_color1);
+		if(x+y+w+h > 0)	makeOverlay(overlay_coord, overlay_name, overlay_color1);
 	}
 	run("Select None");
 
@@ -536,6 +541,12 @@ function keepWaiting(){
 	keep_waiting = 1;
 
 	if (nImages > 0) {	// check if all files were closed
+		selectWindow("Waiting");	// $$$$$$$$$$$$$
+		if (endsWith(getInfo("window.contents"), "SKIP") || endsWith(getInfo("window.contents"), "skip")){
+			run("Select None");
+			keep_waiting = 0;
+		}
+		
 		if (box_progress == progressOptions[1]) { // draw only
 			getRawStatistics(area);
 
