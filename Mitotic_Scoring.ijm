@@ -1,4 +1,4 @@
-// MITOTIC SCORING MACRO v1.20
+// MITOTIC SCORING MACRO v1.21
 
 // general stuff
 requires("1.53f");
@@ -199,42 +199,38 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	skipArray = newArray(nStages);
 	nSkip = 0;
 	// for each time point included, pause to allow user to define coordinates
-	for (tp = 0; tp < nStages; tp++) {	// put box making into function?
+	for (tp = 0; tp < nStages; tp++) {
 		run("Select None");
 		// allow user to box mitotic cell
-		wait_string = "Draw a box around a cell at " + stages_used[tp] + " of mitotic event.";
-		if (tp > 0) wait_string = wait_string + "\n ---- t" + tp-1 + " at frame " + f;
 
-// I discontinued the 'Click OK' option for now. Don't want to remove the code in case issues pop up with the wait function
-/*if (box_progress == progressOptions[2]) {	// click OK to progress
-	waitForUser(wait_string);
-}*/	if (1==0){A=1;}
-
-		else {
-			// make new waiting log window
-			wait_string = "*****Close this window to finish session\n" + wait_string;
-			wait_string = wait_string + "\nif you close all images, a window will pop up asking you to open a new file";
-			if (box_progress == progressOptions[0]){	// draw + t
-				roiManager("reset");
-				wait_string = wait_string + "\nPress t or add to ROI Manager when done";
-			}
-			wait_string = wait_string + "\nType 'skip' or 'SKIP' to skip this box and progress";
-			getLocationAndSize(im_x, im_y, im_w, im_h);
-			run("Text Window...", "name=Waiting width=80 height=6 menu");
-			setLocation(im_x, im_y + im_h);
-			print("[Waiting]", wait_string + "\n");
-			selectWindow("Waiting");
-
-			while (keepWaiting())	wait(250);
-
-			selectWindow("Waiting");
-			run("Close");
-			run("Collect Garbage");
+		// generate wait window information
+		wait_string =	"*****Close this window to finish session*****\n\n" +
+						"Draw a box around a cell at " + stages_used[tp] + " of mitotic event";
+		if (box_progress == progressOptions[0]){	// draw + t
+			roiManager("reset");
+			wait_string = wait_string + " and press 't' or add to ROI Manager";
 		}
+		if (nSkip < tp)		wait_string = wait_string + "\n ---- t" + tp-nSkip-1 + " at frame " + overlay_coord[4];
+		wait_string = wait_string + "\nIf you close all images, a window will pop up asking you to open a new image file";
+		wait_string = wait_string + "\n\nType 'skip' or 'SKIP' in whis window if you don't have an entry for this stage";
 
+		// generate wait window under image
+		getLocationAndSize(im_x, im_y, im_w, im_h);
+		run("Text Window...", "name=Waiting width=100 height=10 menu");
+		setLocation(im_x, im_y + im_h);
+		print("[Waiting]", wait_string + "\n");
+		selectWindow("Waiting");
+
+		// wait for drawing a box
+		while (keepWaiting())	wait(250);
+		selectWindow("Waiting");
+		run("Close");
+		run("Collect Garbage");
+
+		// fix entry numbers, etc
 		im = getTitle();
 		if (tp == 0 && im != prev_im ){
-			if (Table.size ==0)	c = 1;
+			if (Table.size == 0)	c = 1;
 			else{
 				imArray = Table.getColumn("movie");
 				filtered = Array.filter(imArray, im);
@@ -249,12 +245,14 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			}
 		}
 
-		if (selectionType == -1) {	// if no selection
+		// get data from box
+		if (selectionType == -1) {	// if no selection (i.e. skipped)
 			x=NaN;y=NaN;w=NaN;h=NaN;f=NaN;z=NaN;
 			nSkip ++;
 			skipArray[tp] = 1;
 		}
-		else {						// get coordinates
+		else {
+			// get coordinates
 			getSelectionBounds(x, y, w, h);
 			if (dup_overlay)	x = x % (getWidth()/2);
 			Stack.getPosition(_, z, f);
@@ -264,6 +262,8 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			overlay_name = "c" + c + "_t" + tp;
 			makeOverlay(overlay_coord, overlay_name, overlay_color1);
 		}
+
+		// rearrange and store coordinates
 		rearranged = newArray(x, y, x+w, y+h, f, z);
 		coordinates_array = Array.concat(coordinates_array, rearranged);
 	}
