@@ -1,5 +1,8 @@
 Back to [home](https://github.com/DaniBodor/MitoticScoring)
 
+## v1.21 - 28 May 2021 (PM)
+- Allows for skipping drawing a box for a certain stage by typing 'skip' in the wait window
+
 
 ## v1.20 - 28 May 2021 (AM)
 - Numbering fixed for going back to a previously opened image
