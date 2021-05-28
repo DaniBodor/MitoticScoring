@@ -188,6 +188,7 @@ setTool("rectangle");
 for (c = prev_c+1; c > 0; c++){	// loop through cells
 
 	coordinates_array = newArray();
+	nSkip = 0;
 	// for each time point included, pause to allow user to define coordinates
 	for (tp = 0; tp < nStages; tp++) {	// put box making into function?
 		run("Select None");
@@ -211,12 +212,10 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			getLocationAndSize(im_x, im_y, im_w, im_h);
 			run("Text Window...", "name=Waiting width=80 height=6 menu");
 			setLocation(im_x, im_y + im_h);
-			print("[Waiting]", wait_string);
+			print("[Waiting]", wait_string + "\n");
 
-			while (keepWaiting() ){
-				wait(250);
-				if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
-			}
+			while (keepWaiting())	wait(250);
+			
 			selectWindow("Waiting");
 			run("Close");
 			run("Collect Garbage");
@@ -242,6 +241,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		// get coordinates
 		if (selectionType == -1) {
 			x=0;y=0;w=0;h=0;f=0;z=0;
+			nSkip ++;
 		}
 		else {
 			getSelectionBounds(x, y, w, h);
@@ -540,12 +540,16 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 function keepWaiting(){
 	keep_waiting = 1;
 
+	if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
+	
 	if (nImages > 0) {	// check if all files were closed
+		id = getTitle();
 		selectWindow("Waiting");	// $$$$$$$$$$$$$
 		if (endsWith(getInfo("window.contents"), "SKIP") || endsWith(getInfo("window.contents"), "skip")){
 			run("Select None");
 			keep_waiting = 0;
 		}
+		selectImage(id);
 		
 		if (box_progress == progressOptions[1]) { // draw only
 			getRawStatistics(area);
