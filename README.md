@@ -64,9 +64,9 @@ Results are saved after each analyzed cell to avoid losing data after crashes or
 The macro will ask you to draw a box around the mitotic cell at the for each stage selected in the settings. These boxes are used to visually keep track of which cells have already been analyzed. Boxes should show up nicely in 2D or 3D and multichannel movies.  
 These boxes are saved in your save location after each analyzed cell, and are automatically reloaded when you restart the macro on the same cell.
 
-If boxes are getting too crowded, it might be useful to create keyboard shortcuts for 'Hide Overlay' and 'Show Overlay'.  
-To do this, click on 'Plugins>Shortcuts>Add Shortcut...'. Then select any available Shortcut key and 'Hide Overlay'. Repeat this for  for 'Show Overlay'.  
-Now you can use the assigned shortcut keys to flip on and off the box overlays.  
+**Pro tip:** If boxes are getting too crowded, it might be useful to create keyboard shortcuts for 'Hide Overlay' and 'Show Overlay'.  
+To do this, click on 'Plugins>Shortcuts>Add Shortcut...'. Then select any available Shortcut key and 'Hide Overlay'. Repeat this for  for 'Show Overlay'. Now you can use the assigned shortcut keys to flip on and off the box overlays.
+
 <img src="Images/AddShortcut.png" width=90%>
 
 
