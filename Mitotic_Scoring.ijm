@@ -300,11 +300,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		roiManager("save", overlay_file);
 
 		// save results progress
-		if (isOpen("Results")){
-			selectWindow(table);
-			run("Close");
-			Table.rename("Results", table);
-		}
+		if (isOpen("Results"))	Table.rename("Results", table);
 		selectWindow(table);
 		saveAs("Text", results_file);
 	}
@@ -376,7 +372,7 @@ function loadPreviousProgress(headers){
 		Table.open(results_file);
 		make_table_now = 0; //checkHeaders(headers);
 	}
-	else make_table_now = 1;
+	else make_table_now = 0;
 
 	if (make_table_now){
 		// %%%%%%%%%%%%%%%%%%%
@@ -394,23 +390,13 @@ function loadPreviousProgress(headers){
 function checkHeaders(new){
 	selectWindow(table);
 	old = Table.headings();
-	if (Table.size() == 0){
-		run("Close");
-		return 1;
-	} else if (old != new){
-			//print("_" + old);
-			//print("_" + new);
-
-			waitForUser("***ERROR***\n" +
-			"Previous settings do not match current settings for this experiment.\n" +
-			"The results and overlays from the previous experiment will be stored,\n" +
-			"and a new results table and overlay file will be created for this experiment.\n \n" +
-			"Alternatively, abort now [Esc] and restart using a different experiment name.");
-
-			renameOldFiles(results_file);
-			return 1;
-	} else	return 0;
+	if (Table.size() == 0)		run("Close");
+	else if (old != new){
+		// fix table order
+		
+	}
 }
+
 
 
 function makeOverlay(coord, name, color){
