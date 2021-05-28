@@ -119,7 +119,9 @@ Dialog.show();
 
 // check input
 nStages = stages_used.length;
-if (nStages == 0)					exit("Macro aborted because no stages are tracked.\nSelect at least 1 stage to track");
+if (nStages == 0)	use_overlays = false;
+else				use_overlays = true;
+
 if (!File.isDirectory(saveloc))		File.makeDirectory(saveloc);
 if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; please choose valid directory");
 
@@ -193,6 +195,7 @@ else {
 
 // analyze individual events
 setTool("rectangle");
+im = getTitle();
 for (c = prev_c+1; c > 0; c++){	// loop through cells
 
 	coordinates_array = newArray();
@@ -307,11 +310,13 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		updateTable(Table.size);
 
 		// save overlay
-		run("To ROI Manager");
-		roiManager("Show All without labels");
-		roiManager("deselect");
-		overlay_file = overlay_file_prefix + getTitle() + ".zip";
-		roiManager("save", overlay_file);
+		if (use_overlays){
+			run("To ROI Manager");
+			roiManager("Show All without labels");
+			roiManager("deselect");
+			overlay_file = overlay_file_prefix + getTitle() + ".zip";
+			roiManager("save", overlay_file);
+		}
 
 		// save results progress
 		selectWindow(table);
@@ -538,10 +543,11 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 		if (Dialog.getCheckbox() )	return newArray();	// i.e. if delete the entry --> return empty array
 
 		// replace overlay names and remove temp boxes
-		Overlay.removeRois("temp_overlay");
-		//Overlay.setLabelFontSize(8,"scale");
-		Overlay.drawLabels(true);
-		Overlay.show();
+		if (use_overlays){
+			Overlay.removeRois("temp_overlay");
+			Overlay.drawLabels(true);
+			Overlay.show();
+		}
 
 		return output;
 	}
@@ -630,12 +636,14 @@ function resaveTif(){
 
 
 function removeOverlays(index) {
-	Overlay.removeRois("temp_overlay");
-	Overlay.removeRois("c" + index);
-	for (t = 0; t < nStages; t++) {
-		Overlay.removeRois("c" + index + "_t" + t);
+	if (use_overlays){
+		Overlay.removeRois("temp_overlay");
+		Overlay.removeRois("c" + index);
+		for (t = 0; t < nStages; t++) {
+			Overlay.removeRois("c" + index + "_t" + t);
+		}
+		 Overlay.show
 	}
-	 Overlay.show
 }
 
 
@@ -651,10 +659,12 @@ function expandBox(input, n){
 
 
 function overlayFormatting(){
-	Overlay.show;
-	Overlay.useNamesAsLabels(true);
-	Overlay.drawLabels(true);
-	Overlay.setLabelFontSize(8,"scale");
+	if (use_overlays){
+		Overlay.show;
+		Overlay.useNamesAsLabels(true);
+		Overlay.drawLabels(true);
+		Overlay.setLabelFontSize(8,"scale");
+	}
 }
 
 
