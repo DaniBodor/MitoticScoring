@@ -159,7 +159,9 @@ end_headers = newArray();
 
 for (i = 0; i < nStages; i++) {
 	init_headers[i+2] = "t"+i;
-	if (i > 0)	interv_headers = Array.concat(interv_headers, "time_t" + i-1 + "-->t"+i);
+	for (j = 0; j < i; j++) {
+		interv_headers = Array.concat(interv_headers, "time_t" + i-j-1 + "-->t"+i);
+	}
 	end_headers[i] = stages_used[i];
 }
 obs_headers = observationsDialog(obsCSV, "headers");
@@ -203,12 +205,12 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		wait_string = "Draw a box around a cell at " + stages_used[tp] + " of mitotic event.";
 		if (tp > 0) wait_string = wait_string + "\n ---- t" + tp-1 + " at frame " + f;
 
-		// I discontinued the 'Click OK' option for now
-		/*if (box_progress == progressOptions[2]) {	// click OK to progress
-			waitForUser(wait_string);
-		}*/
-		if (1==0){A=1;}
-		else {	// draw box to progress
+// I discontinued the 'Click OK' option for now. Don't want to remove the code in case issues pop up with the wait function
+/*if (box_progress == progressOptions[2]) {	// click OK to progress
+	waitForUser(wait_string);
+}*/	if (1==0){A=1;}
+
+		else {
 			// make new waiting log window
 			wait_string = "*****Close this window to finish session\n" + wait_string;
 			wait_string = wait_string + "\nif you close all images, a window will pop up asking you to open a new file";
@@ -216,14 +218,15 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 				roiManager("reset");
 				wait_string = wait_string + "\nPress t or add to ROI Manager when done";
 			}
-			//wait_string
+			wait_string = wait_string + "\nType 'skip' or 'SKIP' to skip this box and progress";
 			getLocationAndSize(im_x, im_y, im_w, im_h);
 			run("Text Window...", "name=Waiting width=80 height=6 menu");
 			setLocation(im_x, im_y + im_h);
 			print("[Waiting]", wait_string + "\n");
+			selectWindow("Waiting");
 
 			while (keepWaiting())	wait(250);
-			
+
 			selectWindow("Waiting");
 			run("Close");
 			run("Collect Garbage");
@@ -255,7 +258,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			getSelectionBounds(x, y, w, h);
 			if (dup_overlay)	x = x % (getWidth()/2);
 			Stack.getPosition(_, z, f);
-	
+
 			// create overlay of mitotic timepoint (t0, t1, etc)
 			overlay_coord = newArray(x, y, w, h, f, f, z, z);
 			overlay_name = "c" + c + "_t" + tp;
@@ -279,13 +282,11 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	intervals = newArray();
 
 	for (i = 0; i < nStages; i++) {
-		if (!skipArray[i]){
-			tps[i] = reorganized_coord_array[4*nStages+i];
-			if (i > 0) intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
-		}
-		else if (i == nStages-1){
-			tps[i] = NaN;
-			intervals[i-1] = NaN;
+		if (skipArray[i])	tps[i] = NaN;
+		else 				tps[i] = reorganized_coord_array[4*nStages+i];
+
+		for (j = 0; j < i; j++) {
+			intervals = Array.concat(intervals, (tps[i] - tps[i-j-1]) * timestep);
 		}
 	}
 
@@ -405,7 +406,7 @@ function checkHeaders(new){
 	if (Table.size() == 0)		run("Close");
 	else if (old != new){
 		// fix table order
-		
+
 	}
 }
 
@@ -554,14 +555,13 @@ function keepWaiting(){
 	keep_waiting = 1;
 
 	if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
-	
+
 	if (nImages > 0) {	// check if all files were closed
-		selectWindow("Waiting");	// $$$$$$$$$$$$$
 		if (endsWith(getInfo("window.contents"), "SKIP") || endsWith(getInfo("window.contents"), "skip")){
 			run("Select None");
 			keep_waiting = 0;
 		}
-		
+
 		if (box_progress == progressOptions[1]) { // draw only
 			getRawStatistics(area);
 
@@ -674,5 +674,5 @@ function updateTable(S){
 		Table.update;
 		Table.showRowNumbers(true);
 	}
-	Table.rename(Table.title, table);
+	if (Table.title != table)	Table.rename(Table.title, table);
 }
