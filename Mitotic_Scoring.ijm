@@ -10,6 +10,12 @@ if (isOpen("Waiting")){
 	run("Close");
 }
 
+if (Table.size > 0){
+	T = Table.title;
+	selectWindow(T);
+	run("Close");
+}
+
 // variables used in code below
 all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Telophase", "Decondensation", "G1");
 nAllStages = all_stages.length;
@@ -188,6 +194,7 @@ setTool("rectangle");
 for (c = prev_c+1; c > 0; c++){	// loop through cells
 
 	coordinates_array = newArray();
+	skipArray = newArray(nStages);
 	nSkip = 0;
 	// for each time point included, pause to allow user to define coordinates
 	for (tp = 0; tp < nStages; tp++) {	// put box making into function?
@@ -209,6 +216,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 				roiManager("reset");
 				wait_string = wait_string + "\nPress t or add to ROI Manager when done";
 			}
+			//wait_string
 			getLocationAndSize(im_x, im_y, im_w, im_h);
 			run("Text Window...", "name=Waiting width=80 height=6 menu");
 			setLocation(im_x, im_y + im_h);
@@ -238,23 +246,23 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			}
 		}
 
-		// get coordinates
-		if (selectionType == -1) {
+		if (selectionType == -1) {	// if no selection
 			x=0;y=0;w=0;h=0;f=0;z=0;
 			nSkip ++;
+			skipArray[tp] = 1;
 		}
-		else {
+		else {						// get coordinates
 			getSelectionBounds(x, y, w, h);
 			if (dup_overlay)	x = x % (getWidth()/2);
 			Stack.getPosition(_, z, f);
+	
+			// create overlay of mitotic timepoint (t0, t1, etc)
+			overlay_coord = newArray(x, y, w, h, f, f, z, z);
+			overlay_name = "c" + c + "_t" + tp;
+			makeOverlay(overlay_coord, overlay_name, overlay_color1);
 		}
-		overlay_coord = newArray(x, y, w, h, f, f, z, z);
 		rearranged = newArray(x, y, x+w, y+h, f, z);
 		coordinates_array = Array.concat(coordinates_array, rearranged);
-
-		// create overlay of mitotic timepoint (t0, t1, etc)
-		overlay_name = "c" + c + "_t" + tp;
-		if(x+y+w+h > 0)	makeOverlay(overlay_coord, overlay_name, overlay_color1);
 	}
 	run("Select None");
 
@@ -271,8 +279,14 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	intervals = newArray();
 
 	for (i = 0; i < nStages; i++) {
-		tps[i] = reorganized_coord_array[4*nStages+i];
-		if (i > 0) intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
+		if (!skipArray[i]){
+			tps[i] = reorganized_coord_array[4*nStages+i];
+			if (i > 0) intervals[i-1] = (tps[i] - tps[i-1]) * timestep;
+		}
+		else if (i == nStages-1){
+			tps[i] = NaN;
+			intervals[i-1] = NaN;
+		}
 	}
 
 	observations = observationsDialog(obsCSV, "results");
@@ -299,7 +313,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		roiManager("save", overlay_file);
 
 		// save results progress
-		if (isOpen("Results"))	Table.rename("Results", table);
 		selectWindow(table);
 		saveAs("Text", results_file);
 	}
@@ -543,13 +556,11 @@ function keepWaiting(){
 	if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
 	
 	if (nImages > 0) {	// check if all files were closed
-		id = getTitle();
 		selectWindow("Waiting");	// $$$$$$$$$$$$$
 		if (endsWith(getInfo("window.contents"), "SKIP") || endsWith(getInfo("window.contents"), "skip")){
 			run("Select None");
 			keep_waiting = 0;
 		}
-		selectImage(id);
 		
 		if (box_progress == progressOptions[1]) { // draw only
 			getRawStatistics(area);
@@ -663,4 +674,5 @@ function updateTable(S){
 		Table.update;
 		Table.showRowNumbers(true);
 	}
+	Table.rename(Table.title, table);
 }
