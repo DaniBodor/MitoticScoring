@@ -35,7 +35,6 @@ default_array = newArray(
 	"red", //6 default_color1
 	"white", //7 default_color2
 	progressOptions[0], //8 default_promptOK
-	getDir("file") + "DefaultObservationList.csv", // -2 default_obslist_location
 	scoringOptions[1], // -1 default_scoring
 	0,1,0,0,1,0,0,0); // default_stages
 nDefaults = default_array.length;
@@ -43,16 +42,16 @@ nDefaults = default_array.length;
 
 // load previous defaults (if any)
 defaults_dir = getDirectory("macros") + "MitoticScoringDefaults" + File.separator;
-defaults_path = defaults_dir+ "DefaultSettings.txt";
+default_settings = defaults_dir+ "DefaultSettings.txt";
 if (!File.isDirectory(defaults_dir))	File.makeDirectory(defaults_dir);
-if (File.exists(defaults_path)){
-	loaded_str = File.openAsString(defaults_path);
+if (File.exists(default_settings)){
+	loaded_str = File.openAsString(default_settings);
 	loaded_array = split(loaded_str, "\n");
 	if (loaded_array.length == nDefaults){
 		default_array = loaded_array;
 	}
 }
-obslist_path = default_array[nDefaults - nAllStages - 2];
+
 //Array.print(default_array);	// for troubleshooting
 
 if(nImages > 0)		Overlay.remove;
@@ -126,7 +125,15 @@ if (!File.isDirectory(saveloc))		File.makeDirectory(saveloc);
 if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; please choose valid directory");
 
 // load observation list
-if (scoring == scoringOptions[2] || !File.exists(obslist_path) ){	// either select new default OR default file not found
+// search in default location or for default downloaded list.
+obslist_path = defaults_dir + "ObservationList.csv";
+if (!File.exists(obslist_path)){
+	assumed_obslist_path = getDir("file") + "DefaultObservationList.csv";
+	if (File.exists(assumed_obslist_path) )		File.copy(assumed_obslist_path, obslist_path);
+	else	scoring = scoringOptions[2];
+}
+// if non-default is used or default not found, ask for location
+if (scoring == scoringOptions[2]){
 	Dialog.create("Choose observation list");
 	Dialog.addFile("Choose csv file for custom observation list", "");
 	Dialog.addMessage("This list will be the default for future experiments " +
@@ -135,24 +142,29 @@ if (scoring == scoringOptions[2] || !File.exists(obslist_path) ){	// either sele
 						"irrespective of choice for scoring Default / Custom / None");
 
 	Dialog.show();
-	obslist_path = Dialog.getString();
+	new_obslist_path = Dialog.getString();
+	if (!File.exists(new_obslist_path) || !endsWith(new_obslist_path, ".csv"))	exit("***ERROR:\nA non-existing or non-csv file was chosen as observation list");
+	scoring = scoringOptions[1];
 
-	if (scoring == scoringOptions[2]) scoring = scoringOptions[1];
+	// store prev default obslist and copy new one to default
+	if (obslist_path != new_obslist_path) {
+		if (File.exists(obslist_path))	File.rename(obslist_path, obslist_path + "_" + getDatetime() + ".csv" );
+		File.copy(new_obslist_path, obslist_path);
+		obslist_path = new_obslist_path;
+	}
 }
-
-if (!endsWith(obslist_path, ".csv") || !File.exists(obslist_path))				exit("***ERROR***\nmake sure you choose an existing csv file as your observation list");
 obsCSV = split(File.openAsString(obslist_path), "\n");
-//for (i = 0; i < obsCSV.length; i++) print(i, obsCSV[i]);
 
 new_default = Array.concat(saveloc, expname, timestep,
 							dup_overlay, zboxspread, overlay_color1, overlay_color2, box_progress,
-							obslist_path, scoring, default_stages);
+							scoring, default_stages);
 
 // save defaults for next time
 Array.show(new_default);
 selectWindow("new_default");
-saveAs("Text", defaults_path);
+saveAs("Text", default_settings);
 run("Close");
+
 
 // make headers string ##HEADERS##
 init_headers = newArray("movie", "cell#");
@@ -685,4 +697,20 @@ function updateTable(S){
 		Table.showRowNumbers(true);
 	}
 	if (Table.title != table)	Table.rename(Table.title, table);
+}
+
+
+function getDatetime(){
+	getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
+
+	y = d2s(year,0);
+	mo = IJ.pad(month+1,2);
+	d = IJ.pad(dayOfMonth,2);
+	date = y + mo + d;
+
+	h = IJ.pad(hour,2);
+	min = IJ.pad(minute,2);
+	time = h + min;
+
+	return "d" + date + "_t" + time;
 }
