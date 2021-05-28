@@ -61,8 +61,15 @@ A dialog window will open to ask you for the settings for this experiment. Your 
 Results are saved after each analyzed cell to avoid losing data after crashes or mistakes. Furthermore, previous progress can be loaded when re-running the macro for the same experiment so that you can stop in the middle of an analysis and carry on another time without losing track of where you were. Also, at any point you can close the current image and open a different (or the same) one without crashing the macro or losing your progress.
 
 ### Step 1: indicate cell
-The macro will ask you to draw a box around the mitotic cell at the for each stage selected in the settings. These boxes are used to visually keep track of which cells have already been analyzed. Boxes should show up nicely in 2D or 3D and multichannel movies.  
-These boxes are saved in your save location after each analyzed cell, and are automatically reloaded when you restart the macro on the same cell.
+The macro will pause and a text window will pop up instructing you to draw a box around the mitotic cell at the for each stage selected in the settings. These boxes are used to visually keep track of which cells have already been analyzed and are saved in your save location after each analyzed cell and automatically reloaded when you restart the macro on the same cell (same experiment name).
+
+Now you can:
+- Draw a box around the cell of interest. Depending on your [settings](https://github.com/DaniBodor/MitoticScoring#settings-for-visual-tracking), you do or do not have to add the box to the ROI manager (hit t)
+- Type 'SKIP' or 'skip' at the end of the text window to skip the box for any particular stage, and the macro will progress without an entry for this stage
+- Close the text wiondow to end the session
+- Open a different image and carry on there (if you close all open images while the text window is open, a pop up will appear allowing you to open another image).  
+<img src="Images/Wait_screen.png" width=50%>
+
 
 **Pro tip:** If boxes are getting too crowded, it might be useful to create keyboard shortcuts for 'Hide Overlay' and 'Show Overlay'.  
 To do this, click on 'Plugins>Shortcuts>Add Shortcut...'. Then select any available Shortcut key and 'Hide Overlay'. Repeat this for  for 'Show Overlay'. Now you can use the assigned shortcut keys to flip on and off the box overlays.
