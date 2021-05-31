@@ -110,7 +110,7 @@ Dialog.show();
 	for (i = 0; i < nAllStages; i++) {
 		default_stages[i] = Dialog.getCheckbox();
 		if (default_stages[i]) {
-			curr_header = "t" + t + "_" + all_stages[i];
+			curr_header = "t" + t + "_" + all_stages[i] + "_(Xmin, Ymin, Xmax, Ymax, T, Z)";
 			stages_used[t] = curr_header;
 			t++;
 		}
@@ -227,7 +227,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		}
 		if (nSkip < tp)		wait_string = wait_string + "\n ---- t" + tp-nSkip-1 + " at frame " + overlay_coord[4];
 		wait_string = wait_string + "\nIf you close all images, a window will pop up asking you to open a new image file";
-		wait_string = wait_string + "\n\nType 'skip' or 'SKIP' in whis window if you don't have an entry for this stage";
+		wait_string = wait_string + "\n\nIf you do not want to draw a box for this timepoint, type 'skip' or 'SKIP' (without quotation marks) on the line below";
 
 		// generate wait window under image
 		getLocationAndSize(im_x, im_y, im_w, im_h);
@@ -400,6 +400,17 @@ function loadPreviousProgress(headers){
 	// find previous results
 	if (File.exists(results_file)){
 		Table.open(results_file);
+		old_headers = split(Table.headings);
+
+		// fix old table format for tps
+		for (h = 0; h < old_headers.length; h++) {
+			oldName = old_headers[h]
+			suffix = "_(Xmin, Ymin, Xmax, Ymax, T, Z)";
+			if (startsWith(oldName, "t") && !isNaN(oldName, 1, 2) && substring(oldName, 1, 2) == "_" && !endsWith (oldName, suffix) )  {
+				// i.e. starts with t, then number, then underscore, but not already new format
+				Table.renameColumn(oldName, oldName + suffix);
+			}
+		}
 		make_table_now = 0; //checkHeaders(headers);
 	}
 	else make_table_now = 0;
@@ -654,7 +665,8 @@ function removeOverlays(index) {
 		for (t = 0; t < nStages; t++) {
 			Overlay.removeRois("c" + index + "_t" + t);
 		}
-		 Overlay.show
+		run("Select None");
+		Overlay.show
 	}
 }
 
