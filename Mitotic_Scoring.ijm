@@ -5,8 +5,10 @@ requires("1.53f");
 setJustification("center");
 setFont("SansSerif", 9, "antialiased");
 
-if (isOpen("Waiting")){
-	selectWindow("Waiting");
+waitwindowname = "Close this window to finish session";
+
+if (isOpen(waitwindowname)){
+	selectWindow(waitwindowname);
 	run("Close");
 }
 
@@ -219,26 +221,26 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		// allow user to box mitotic cell
 
 		// generate wait window information
-		wait_string =	"*****Close this window to finish session*****\n\n" +
-						"Draw a box around a cell at " + stages_used[tp] + " of mitotic event";
+//		waitstring = "";
+//		waitstring = waitstring + substring_tp(tp) + "\t ----- draw box around cell";
+		waitstring = "Draw box around cell at:  " + substring_tp(tp);
 		if (box_progress == progressOptions[0]){	// draw + t
 			roiManager("reset");
-			wait_string = wait_string + " and press 't' or add to ROI Manager";
+			waitstring = waitstring + " and press 't' or add to ROI Manager";
 		}
-		if (nSkip < tp)		wait_string = wait_string + "\n ---- t" + tp-nSkip-1 + " at frame " + overlay_coord[4];
-		wait_string = wait_string + "\nIf you close all images, a window will pop up asking you to open a new image file";
-		wait_string = wait_string + "\n\nIf you do not want to draw a box for this timepoint, type 'skip' or 'SKIP' (without quotation marks) on the line below";
+		if (nSkip < tp)		waitstring = waitstring + "\n\t( " + substring_tp(tp-nSkip-1) + " at frame " + overlay_coord[4] + " )";
+		waitstring = waitstring + "\n\nIf you do not want to draw a box for this timepoint, type 'skip' on the line below\n\n";
 
 		// generate wait window under image
 		getLocationAndSize(im_x, im_y, im_w, im_h);
-		run("Text Window...", "name=Waiting width=100 height=10 menu");
+		run("Text Window...", "name=[" + waitwindowname + "] width=80 height=8 menu");
 		setLocation(im_x, im_y + im_h);
-		print("[Waiting]", wait_string + "\n");
-		selectWindow("Waiting");
+		print("[" + waitwindowname + "]", waitstring);
+		selectWindow(waitwindowname);
 
 		// wait for drawing a box
 		while (keepWaiting())	wait(250);
-		selectWindow("Waiting");
+		selectWindow(waitwindowname);
 		run("Close");
 		run("Collect Garbage");
 
@@ -587,10 +589,14 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 function keepWaiting(){
 	keep_waiting = 1;
 
-	if (!isOpen("Waiting"))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
+	if (!isOpen(waitwindowname))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
 
 	if (nImages > 0) {	// check if all files were closed
-		if (endsWith(getInfo("window.contents"), "SKIP") || endsWith(getInfo("window.contents"), "skip")){
+		winContent = getInfo("window.contents");
+		winContent = split(winContent);
+		winContent = winContent[winContent.length-1].toLowerCase;
+		
+		if (indexOf(winContent, "skip") >= 0 ) {
 			run("Select None");
 			keep_waiting = 0;
 		}
@@ -729,4 +735,9 @@ function getDatetime(){
 	time = h + min;
 
 	return "d" + date + "_t" + time;
+}
+
+
+function substring_tp(tp){
+	return substring(stages_used[tp], 0, indexOf(stages_used[tp], "_(" ));
 }
