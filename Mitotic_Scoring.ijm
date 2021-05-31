@@ -112,7 +112,8 @@ Dialog.show();
 	for (i = 0; i < nAllStages; i++) {
 		default_stages[i] = Dialog.getCheckbox();
 		if (default_stages[i]) {
-			curr_header = "t" + t + "_" + all_stages[i] + "_(Xmin, Ymin, Xmax, Ymax, T, Z)";
+			t_header_suffix = "_(Xmin_Ymin_Xmax_Ymax_T_Z)";
+			curr_header = "t" + t + "_" + all_stages[i] + t_header_suffix;
 			stages_used[t] = curr_header;
 			t++;
 		}
@@ -221,8 +222,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		// allow user to box mitotic cell
 
 		// generate wait window information
-//		waitstring = "";
-//		waitstring = waitstring + substring_tp(tp) + "\t ----- draw box around cell";
 		waitstring = "Draw box around cell at:  " + substring_tp(tp);
 		if (box_progress == progressOptions[0]){	// draw + t
 			roiManager("reset");
@@ -286,45 +285,48 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	}
 	run("Select None");
 
-	// reorganize coordinates
+	// reorganize coordinates and create box overlay of cells already analyzed (only on relevant slices)
 	reorganized_coord_array = reorganizeCoord(coordinates_array);
 	xywhttzz = getFullSelectionBounds(reorganized_coord_array);
-
-	// create box overlay of cells already analyzed (only on relevant slices)
 	makeOverlay(xywhttzz, "c" + c, overlay_color2);
 
 	// create and print results line
-	// need to organize/comment on the below !!
-	tps = newArray();
-	intervals = newArray();
+	tps = newArray();		// array containing time frame for each stage
+	intervals = newArray();	// array containing time interval between any combination of 2 stages
 
 	for (i = 0; i < nStages; i++) {
-		if (skipArray[i])	tps[i] = NaN;
-		else 				tps[i] = reorganized_coord_array[4*nStages+i];
-
-		for (j = 0; j < i; j++) {
-			intervals = Array.concat(intervals, (tps[i] - tps[i-j-1]) * timestep);
-		}
+		if (skipArray[i])			tps[i] = NaN;
+		else 						tps[i] = reorganized_coord_array[4*nStages+i];							// look up frame number in reorganized_coord_array
+		for (j = 0; j < i; j++)		intervals = Array.concat(intervals, (tps[i] - tps[i-j-1]) * timestep);	// calculate frame differece * timestep for each comination
 	}
 
+	// run dialog window and extract information 
 	observations = observationsDialog(obsCSV, "results");
-
 	//Array.print(observations);
-	if (observations.length > 0){
+	
+	if (observations.length == 0){	// i.e. remove entry (effectively undo)
+		removeOverlays(c);
+		c--;
+	}
+	else {
+		// generate results array with all inputs until tp coordinates
 		results = Array.concat(im, c, tps, intervals, observations);
 
+		// add coordinates for each stage
 		for (i = 0; i < nStages; i++){
 			curr_coord = Array.slice(coordinates_array, i*rearranged.length, (i+1)*rearranged.length);
 			coord_string = String.join(curr_coord,"_");
 			results = Array.concat(results,coord_string);
 		}
+
+		// add extract code (i.e. extremes coordinates of all stages)
 		xywhttzz_string = String.join(xywhttzz,"_");
 		results = Array.concat(results, xywhttzz_string);
 
-		updateTable(Table.size);
+		writeToTable();
 
 		// save overlay
-		if (use_overlays){
+		if (use_overlays && Overlay.size > 0){
 			run("To ROI Manager");
 			roiManager("Show All without labels");
 			roiManager("deselect");
@@ -335,10 +337,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		// save results progress
 		selectWindow(table);
 		saveAs("Text", results_file);
-	}
-	else {	// i.e. REMOVE CURRENT INPUT
-		removeOverlays(c);
-		c--;
 	}
 
 	if( roiManager("count") > 0 )	run("From ROI Manager");
@@ -407,12 +405,11 @@ function loadPreviousProgress(headers){
 		// fix old table format for tps
 		for (h = 0; h < old_headers.length; h++) {
 			oldName = old_headers[h];
-			suffix = "_(Xmin, Ymin, Xmax, Ymax, T, Z)";
 			print(oldName);
 			if (lengthOf(oldName) > 2) {
-				if (startsWith(oldName, "t") && !isNaN(parseInt(substring(oldName, 1, 2))) && substring(oldName, 2, 3) == "_" && !endsWith (oldName, suffix) )  {
+				if (startsWith(oldName, "t") && !isNaN(parseInt(substring(oldName, 1, 2))) && substring(oldName, 2, 3) == "_" && !endsWith (oldName, t_header_suffix) )  {
 					// i.e. starts with t, then number, then underscore, but not already new format
-					Table.renameColumn(oldName, oldName + suffix);
+					Table.renameColumn(oldName, oldName + t_header_suffix);
 				}
 			}
 			Table.update;
@@ -572,7 +569,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 		if (Dialog.getCheckbox() )	return newArray();	// i.e. if delete the entry --> return empty array
 
 		// replace overlay names and remove temp boxes
-		if (use_overlays){
+		if (use_overlays && Overlay.size > 0){
 			Overlay.removeRois("temp_overlay");
 			Overlay.drawLabels(true);
 			Overlay.show();
@@ -595,7 +592,7 @@ function keepWaiting(){
 		winContent = getInfo("window.contents");
 		winContent = split(winContent);
 		winContent = winContent[winContent.length-1].toLowerCase;
-		
+
 		if (indexOf(winContent, "skip") >= 0 ) {
 			run("Select None");
 			keep_waiting = 0;
@@ -669,7 +666,7 @@ function resaveTif(){
 
 
 function removeOverlays(index) {
-	if (use_overlays){
+	if (use_overlays && Overlay.size > 0){
 		Overlay.removeRois("temp_overlay");
 		Overlay.removeRois("c" + index);
 		for (t = 0; t < nStages; t++) {
@@ -693,7 +690,7 @@ function expandBox(input, n){
 
 
 function overlayFormatting(){
-	if (use_overlays){
+	if (use_overlays && Overlay.size > 0){
 		Overlay.show;
 		Overlay.useNamesAsLabels(true);
 		Overlay.drawLabels(true);
@@ -712,13 +709,13 @@ function findPrevOverlay(roi_path){
 }
 
 
-function updateTable(S){
-	for (i = 0; i < headers.length; i++) {
-		Table.set(headers[i], S, results[i]);
-		Table.update;
-		Table.showRowNumbers(true);
-	}
+function writeToTable(){
+	nRows = Table.size;
+	
+	for (i = 0; i < headers.length; i++)	Table.set(headers[i], nRows, results[i]);
 	if (Table.title != table)	Table.rename(Table.title, table);
+	Table.showRowNumbers(true);
+	Table.update;
 }
 
 
