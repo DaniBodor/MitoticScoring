@@ -404,12 +404,16 @@ function loadPreviousProgress(headers){
 
 		// fix old table format for tps
 		for (h = 0; h < old_headers.length; h++) {
-			oldName = old_headers[h]
+			oldName = old_headers[h];
 			suffix = "_(Xmin, Ymin, Xmax, Ymax, T, Z)";
-			if (startsWith(oldName, "t") && !isNaN(oldName, 1, 2) && substring(oldName, 1, 2) == "_" && !endsWith (oldName, suffix) )  {
-				// i.e. starts with t, then number, then underscore, but not already new format
-				Table.renameColumn(oldName, oldName + suffix);
+			print(oldName);
+			if (lengthOf(oldName) > 2) {
+				if (startsWith(oldName, "t") && !isNaN(parseInt(substring(oldName, 1, 2))) && substring(oldName, 2, 3) == "_" && !endsWith (oldName, suffix) )  {
+					// i.e. starts with t, then number, then underscore, but not already new format
+					Table.renameColumn(oldName, oldName + suffix);
+				}
 			}
+			Table.update;
 		}
 		make_table_now = 0; //checkHeaders(headers);
 	}
