@@ -1,5 +1,11 @@
 Back to [home](https://github.com/DaniBodor/MitoticScoring)
 
+## v1.24 - 01 June 2021
+- Column renaming for timepoint coordinates to clarify what it is
+- Fixed bug when skipping each stage in the first entry of an experiment 
+- Bunch of minor edits and fixes
+
+
 ## v1.21 - 28 May 2021 (PM)
 - Allows for skipping drawing a box for a certain stage by typing 'skip' in the wait window
 - Active observationlist is stored in FiJi.app folder, as are copies of previous defaults
