@@ -22,8 +22,7 @@ The macro is pretty uncomplicated and in principle will always tell you what to 
 
 Open the macro by dragging the \*.ijm file into FiJi and clicking 'Run' or hit Ctrl+R.  
 Alternatively drop the \*.ijm file into your ImageJ plugins\Analyze folder and select it from _Plugins > Analyze_ dropdown menu 
-(requires a restart after you first drop the file there).  
-You can then also create a custom shortcut key via _Plugins > Shortcuts > Add Shortcut..._.
+(requires a restart after you first drop the file there). You can then also create a custom shortcut key via _Plugins > Shortcuts > Add Shortcut..._.
 
 If there is currently no image file open, a window will pop up asking you to open a file.
 
