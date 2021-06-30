@@ -182,7 +182,7 @@ for (i = 0; i < nStages; i++) {
 	end_headers[i] = stages_used[i];
 }
 obs_headers = observationsDialog(obsCSV, "headers");
-headers = Array.concat(init_headers, interv_headers, obs_headers, end_headers, "extract_code");
+headers = Array.concat(init_headers, interv_headers, obs_headers, end_headers, "image_size", "extract_code");
 
 headers_str = String.join(headers,"\t");
 
@@ -245,6 +245,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 
 		// fix entry numbers, etc
 		im = getTitle();
+		im_size = d2s(getWidth(),) + "x" d2s(getHeight(),0);
 		if (tp == 0 && im != prev_im ){
 			if (Table.size == 0)	c = 1;
 			else{
@@ -311,12 +312,12 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	else {
 		// generate results array with all inputs until tp coordinates
 		results = Array.concat(im, c, tps, intervals, observations);
-
-		// add coordinates for each stage
+		
+		// add coordinates for each stage and full image size
 		for (i = 0; i < nStages; i++){
 			curr_coord = Array.slice(coordinates_array, i*rearranged.length, (i+1)*rearranged.length);
 			coord_string = String.join(curr_coord,"_");
-			results = Array.concat(results,coord_string);
+			results = Array.concat(results, coord_string, im_size);
 		}
 
 		// add extract code (i.e. extremes coordinates of all stages)
