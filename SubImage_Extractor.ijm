@@ -4,7 +4,10 @@ defaults = newArray("", "", 0, 10, 10, 0, 0, 0);
 
 if (File.exists(defaults_file)) {
 	defaults_str = File.openAsString(defaults_file);
-	loaded = split(defaults_str, ", ");
+	loaded = split(defaults_str, ",");
+	for (i = 0; i < loaded.length; i++) {
+		loaded[i] = loaded[i].trim();
+	}
 	if (loaded.length == defaults.length)	defaults = loaded;
 }
 else 	File.makeDirectory(File.getParent(defaults_file));
@@ -47,7 +50,7 @@ File.saveString(newDefaults, defaults_file);
 coordinates = adjustCoordinates(xywhttzz_string);
 run("Bio-Formats Importer", "open=[" + movie + "] autoscale color_mode=Default crop rois_import=[ROI manager] specify_range view=Hyperstack stack_order=XYCZT " +
 	"z_begin=" + coordinates[6] + " z_end=" + coordinates[7] + " z_step=1 " +
-	"t_begin=" + coordinates[4] + " t_end=" + coordinates[5] + " t_step=1" +
+	"t_begin=" + coordinates[4] + " t_end=" + coordinates[5] + " t_step=1 " +
 	"x_coordinate_1=" + coordinates[0] + " y_coordinate_1=" + coordinates[1] + " width_1=" + coordinates[2] + " height_1=" + coordinates[3]);
 
 Stack.getDimensions(_, _, ch, _, _);
