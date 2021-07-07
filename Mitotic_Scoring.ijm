@@ -304,7 +304,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	// run dialog window and extract information 
 	observations = observationsDialog(obsCSV, "results");
 	//Array.print(observations); // FOR TROUBLESHOOTING
-	
+
 	if (observations.length == 0){	// i.e. remove entry (effectively undo)
 		removeOverlays(c);
 		c--;
@@ -554,8 +554,8 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 	if (Results_Or_Header == "results") {
 
 		// temporarily swap the overlay names with an extra box around the current cell
-		xywhttzz2 = expandBox(xywhttzz, 2);
-		makeOverlay(xywhttzz2, "temp_overlay", overlay_color2);
+		expanded = expandBox(xywhttzz, 2);
+		makeOverlay(expanded, "temp_overlay", overlay_color2);
 		Overlay.drawLabels(false);
 
 		if (scoring != scoringOptions[0])	Dialog.show();
@@ -679,12 +679,15 @@ function removeOverlays(index) {
 
 
 function expandBox(input, n){
-	input[0] -= n;
-	input[1] -= n;
-	input[2] += 2*n;
-	input[3] += 2*n;
+	output = newArray();
+	output[0] = input[0] - n;
+	output[1] = input[1] + n;
+	output[2] = input[2] + 2*n;
+	output[3] = input[3] + 2*n;
 
-	return input;
+	for (i = 4; i < input.length; i++) output[i] = input[i];
+	
+	return output;
 
 }
 
