@@ -245,7 +245,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 
 		// fix entry numbers, etc
 		im = getTitle();
-		im_size = d2s(getWidth(),) + "x" d2s(getHeight(),0);
+		im_size = d2s(getWidth(),0) + "x" + d2s(getHeight(),0);
 		if (tp == 0 && im != prev_im ){
 			if (Table.size == 0)	c = 1;
 			else{
@@ -317,12 +317,12 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		for (i = 0; i < nStages; i++){
 			curr_coord = Array.slice(coordinates_array, i*rearranged.length, (i+1)*rearranged.length);
 			coord_string = String.join(curr_coord,"_");
-			results = Array.concat(results, coord_string, im_size);
+			results = Array.concat(results, coord_string);
 		}
 
 		// add extract code (i.e. extremes coordinates of all stages)
 		xywhttzz_string = String.join(xywhttzz,"_");
-		results = Array.concat(results, xywhttzz_string);
+		results = Array.concat(results, im_size, xywhttzz_string);
 
 		writeToTable();
 
