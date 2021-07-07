@@ -231,7 +231,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 
 		// generate wait window under image
 		getLocationAndSize(im_x, im_y, im_w, im_h);
-		run("Text Window...", "name=[" + waitwindowname + "] width=80 height=8 menu");
+		run("Text Window...", "name=[" + waitwindowname + "] width=80 height=8");
 		setLocation(im_x, im_y + im_h);
 		print("[" + waitwindowname + "]", waitstring);
 		selectWindow(waitwindowname);
@@ -680,7 +680,7 @@ function removeOverlays(index) {
 function expandBox(input, n){
 	output = newArray();
 	output[0] = input[0] - n;
-	output[1] = input[1] + n;
+	output[1] = input[1] - n;
 	output[2] = input[2] + 2*n;
 	output[3] = input[3] + 2*n;
 
