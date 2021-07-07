@@ -14,8 +14,7 @@ if (isOpen(waitwindowname)){
 
 if (Table.size > 0){
 	T = Table.title;
-	selectWindow(T);
-	run("Close");
+	Table.reset(T);
 }
 
 // variables used in code below
@@ -60,7 +59,7 @@ if(nImages > 0)		Overlay.remove;
 else				open();
 
 // open setup window
-Dialog.create("Setup");
+Dialog.createNonBlocking("Setup");
 	Dialog.setInsets(0, 0, 0);
 	Dialog.addMessage("GENERAL SETTINGS");
 	Dialog.addDirectory("Save location", default_array[1]);
