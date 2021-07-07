@@ -274,27 +274,27 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			if (dup_overlay)	x = x % (getWidth()/2);
 			Stack.getPosition(_, z, f);
 
-			// create overlay of mitotic timepoint (t0, t1, etc)
+			// create overlay for current stage (t0, t1, etc)
 			overlay_coord = newArray(x, y, w, h, f, f, z, z);
 			overlay_name = "c" + c + "_t" + tp;
 			makeOverlay(overlay_coord, overlay_name, overlay_color1);
 		}
 
 		// rearrange and store coordinates
-		rearranged = newArray(x, y, x+w, y+h, f, z);
-		coordinates_array = Array.concat(coordinates_array, rearranged);
+		stage_coordinates = newArray(x, y, x+w, y+h, f, z);
+		coordinates_array = Array.concat(coordinates_array, stage_coordinates);
 	}
 	run("Select None");
 
 	// reorganize coordinates and create box overlay of cells already analyzed (only on relevant slices)
+	nCoordinates = coordinates_array.length/nStages;
 	reorganized_coord_array = reorganizeCoord(coordinates_array);
 	xywhttzz = getFullSelectionBounds(reorganized_coord_array);
 	makeOverlay(xywhttzz, "c" + c, overlay_color2);
 
-	// create and print results line
+	// store time and coordinate data for each time point
 	tps = newArray();		// array containing time frame for each stage
 	intervals = newArray();	// array containing time interval between any combination of 2 stages
-
 	for (i = 0; i < nStages; i++) {
 		if (skipArray[i])			tps[i] = NaN;
 		else 						tps[i] = reorganized_coord_array[4*nStages+i];							// look up frame number in reorganized_coord_array
@@ -303,7 +303,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 
 	// run dialog window and extract information 
 	observations = observationsDialog(obsCSV, "results");
-	//Array.print(observations);
+	//Array.print(observations); // FOR TROUBLESHOOTING
 	
 	if (observations.length == 0){	// i.e. remove entry (effectively undo)
 		removeOverlays(c);
@@ -315,12 +315,12 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		
 		// add coordinates for each stage and full image size
 		for (i = 0; i < nStages; i++){
-			curr_coord = Array.slice(coordinates_array, i*rearranged.length, (i+1)*rearranged.length);
+			curr_coord = Array.slice(coordinates_array, i*nCoordinates, (i+1)*nCoordinates);
 			coord_string = String.join(curr_coord,"_");
 			results = Array.concat(results, coord_string);
 		}
 
-		// add extract code (i.e. extremes coordinates of all stages)
+		// add image size and extract code (i.e. extremes coordinates of all stages)
 		xywhttzz_string = String.join(xywhttzz,"_");
 		results = Array.concat(results, im_size, xywhttzz_string);
 
@@ -351,8 +351,8 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 
 function reorganizeCoord(coord_group){
 	reorganized = newArray();
-	for (j = 0; j < coord_group.length/nStages; j++) {
-		for (i = 0; i < coord_group.length; i+=rearranged.length) {
+	for (j = 0; j < nCoordinates; j++) {
+		for (i = 0; i < coord_group.length; i += nCoordinates) {
 			reorganized = Array.concat(reorganized, coord_group[i+j]);
 		}
 	}
@@ -577,7 +577,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 
 		return output;
 	}
-	else{
+	else {
 		return headers;
 	}
 }
