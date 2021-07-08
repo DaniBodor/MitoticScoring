@@ -1,5 +1,12 @@
 Back to [home](https://github.com/DaniBodor/MitoticScoring)
 
+## v1.25 - 08 July 2021
+- __Added python code to create XMLs from results table (for YOLO training)__
+- Exporting image size to results table (needed for above)
+- SubImage Extractor faster and bug fix for filenames with a space
+- Bunch of minor edits and fixes
+
+
 ## v1.24 - 01 June 2021
 - Column renaming for timepoint coordinates to clarify what it is
 - Fixed bug when skipping each stage in the first entry of an experiment 
