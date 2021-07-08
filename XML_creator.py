@@ -21,13 +21,20 @@ import os
 #%% SETTINGS
 
 # Data import/export
-inData = r'.\ManualScoring\210625_Scoring.csv'  #CSV from scoring macro
-limit_movies = '48nm noco.tif' # movie name or list of movie names to include (empty/False means include all)
+inData = r'.\ManualScoring\Unstitched_1NW_Scoring.csv'  #CSV from scoring macro
+limit_movies = '' # movie name or list of movie names to include (empty/False means include all)
 tp_used = 0 # timepoint to use for training
 project_name = 'my-project-name'
-outdir = './Model_Training/'
-xmldir = outdir + 'Training_Annotations/'
+outdir = './ManualScoring/'
+xmldir = outdir + 'Unstitched_Annotations/'
 unlabeled = 'Normal' # label for cells that have no other marks
+
+# create libraries to select subset of all events.
+#subset_include = {'Mitotic_Stage': ['Early Anaphase', 'Anaphase']}
+subset_exclude = {'Mitotic_Stage': ['Telophase']}
+
+# list columns to drop from dataframe)
+drop_columns = ['New_Cell']
 
 # Naming of indivisual stills
 extension = 'png'       # file extension without the dot
@@ -37,13 +44,13 @@ filenaming_digits = 4   # how many digits are used in numbering (FiJi default is
 load_new_data = 1
 save_df = 1
 do_XML = 1
-export = 1
+export = 0
 
 
 #%% PRELIMINARIES
 
 # list of headers to remove from label_list
-non_data_headers = ['movie','cell#','extract_code', 'highlight', 'highlight_note', 'still_image', 'image_size']
+non_data_headers = ['movie','event#','extract_code', 'highlight', 'highlight_note', 'still_image', 'image_size']
 
 # lists using for looping
 Unspecified = ['pose','truncated','difficult']
@@ -63,12 +70,30 @@ if load_new_data:
     
     # drop some movies from df
     if limit_movies:
-        if type(limit_movies)== str:
+        if type(limit_movies) == str:
             limit_movies = [limit_movies]
         df = df[df['movie'].isin(limit_movies) == True]
+    
+    # create subset of all data to analyze
+    try:
+        for col in subset_exclude:
+            indexNames = df[df[col].isin(subset_exclude[col])].index
+            df.drop(indexNames, inplace = True)
+    except NameError:
+        pass
 
-    # remove all empty columns
+    try:
+        for col in subset_include:
+            indexNames = df[df[col].isin(subset_exclude[col])].index
+            df.drop(indexNames)
+    except NameError:
+        pass
+    
+
+    # remove all empty columns and any columns listed at beginning
     df = df.loc[:, (df != 0).any(axis=0)].dropna(axis=1, how='all')
+    for col in drop_columns:
+        df.drop(col, axis=1, inplace = True)
         
     # get list of all potential labels
     label_list = list(df.columns)
@@ -89,9 +114,9 @@ if load_new_data:
     
     # get total numbers for each label
     counter = df.groupby('movie').sum()
-    counter = counter.drop(['cell#',tp_used], axis = 1) # this needs to be made so that it drops all tp data
+    counter = counter.drop(['event#',tp_used], axis = 1) # this needs to be made so that it drops all tp data
     counter = counter.loc[:, (counter != 0).any(axis=0)]
-    counter['Total'] = df.groupby('movie')['cell#'].count()
+    counter['Total'] = df.groupby('movie')['event#'].count()
 
     # get name of header used for defining coord
     coord_header = [x for x in list(df.columns) if (x.startswith(coord_prefix) and x.endswith(coord_suffix) )][0]
@@ -99,7 +124,10 @@ if load_new_data:
     if save_df:
         if not os.path.exists(outdir):
             os.mkdir (outdir)
-        df.to_csv(outdir + 'Scoring_data.csv')
+        try:
+            df.to_csv(outdir + 'Scoring_data.csv')
+        except PermissionError:
+            print("could not save csv (probably becuase it's still open")
         
 #%% FUNCTIONS FOR XML CREATION
 
