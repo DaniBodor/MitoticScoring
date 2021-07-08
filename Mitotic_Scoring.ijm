@@ -1,4 +1,4 @@
-// MITOTIC SCORING MACRO v1.24
+// MITOTIC SCORING MACRO v1.25
 
 // general stuff
 requires("1.53f");
@@ -169,7 +169,7 @@ run("Close");
 
 
 // make headers string ##HEADERS##
-init_headers = newArray("movie", "cell#");
+init_headers = newArray("movie", "event#");
 interv_headers = newArray();
 end_headers = newArray();
 
@@ -199,7 +199,7 @@ overlay_file = overlay_file_prefix + getTitle() + ".zip";
 loadPreviousProgress(headers_str);
 if	(Table.size > 0){
 	prev_im =	Table.getString	("movie", Table.size-1);
-	prev_c =	Table.get		("cell#", Table.size-1);
+	prev_c =	Table.get		("event#", Table.size-1);
 }
 else {
 	prev_im = "no_prev_im";
@@ -289,7 +289,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	nCoordinates = coordinates_array.length/nStages;
 	reorganized_coord_array = reorganizeCoord(coordinates_array);
 	xywhttzz = getFullSelectionBounds(reorganized_coord_array);
-	makeOverlay(xywhttzz, "c" + c, overlay_color2);
+	if (nStages > 1)	makeOverlay(xywhttzz, "c" + c, overlay_color2);
 
 	// store time and coordinate data for each time point
 	tps = newArray();		// array containing time frame for each stage
@@ -479,7 +479,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 
 	if (Results_Or_Header == "results"){
 		Dialog.setInsets(0, 0, 0);
-		Dialog.addMessage("You are currently scoring cell# " + c + " (the double boxed cell).\n");
+		Dialog.addMessage("You are currently scoring the double boxed cell (event# " + c + ").\n");
 	}
 
 	for (l = 1; l < CSV_lines.length; l++) {
