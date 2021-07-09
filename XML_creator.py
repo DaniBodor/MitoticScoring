@@ -12,6 +12,8 @@ Created on Tue Jun 29 16:00:13 2021
 #   - create tkinter tool for GUI feedback on this
 
 
+
+
 import pandas as pd
 import xml.etree.ElementTree as ET # modeled after: https://openwritings.net/pg/python/python-how-write-xml-file
 from xml.dom import minidom
@@ -21,17 +23,17 @@ import os
 #%% SETTINGS
 
 # Data import/export
-inData = r'.\ManualScoring\Unstitched_1NW_Scoring.csv'  #CSV from scoring macro
+directory = './output/'
+csv_name = 'Unstitched_All'  #CSV from scoring macro
 limit_movies = '' # movie name or list of movie names to include (empty/False means include all)
 tp_used = 0 # timepoint to use for training
 project_name = 'my-project-name'
-outdir = './ManualScoring/'
-xmldir = outdir + 'Unstitched_Annotations/'
 unlabeled = 'Normal' # label for cells that have no other marks
 
 # create libraries to select subset of all events.
-#subset_include = {'Mitotic_Stage': ['Early Anaphase', 'Anaphase']}
-subset_exclude = {'Mitotic_Stage': ['Telophase']}
+subset_include = {'Mitotic_Stage': ['Anaphase']}
+#subset_exclude = {'Mitotic_Stage': ['Telophase']}
+subset_exclude = {}
 
 # list columns to drop from dataframe)
 drop_columns = ['New_Cell']
@@ -44,10 +46,17 @@ filenaming_digits = 4   # how many digits are used in numbering (FiJi default is
 load_new_data = 1
 save_df = 1
 do_XML = 1
-export = 0
+export = 1
 
 
 #%% PRELIMINARIES
+
+
+inData = directory + csv_name +'.csv' #CSV from scoring macro
+if inData.endswith('.csv.csv'):
+    inData = inData[:-4]
+xmldir = directory + csv_name + '_Annotations/'
+
 
 # list of headers to remove from label_list
 non_data_headers = ['movie','event#','extract_code', 'highlight', 'highlight_note', 'still_image', 'image_size']
@@ -61,12 +70,15 @@ tp_used = 't' + str(tp_used)
 coord_prefix = tp_used + '_'
 coord_suffix = '_(Xmin_Ymin_Xmax_Ymax_T_Z)'
 
+labeled = 'non-' + unlabeled
+
 
 #%% LOAD DATA FROM CSV
 
 if load_new_data:
     # read CSV
-    df = pd.read_csv(inData, index_col=0)
+    df = pd.read_csv(inData)
+    df = df.drop(df.columns[0], axis=1)
     
     # drop some movies from df
     if limit_movies:
@@ -75,21 +87,16 @@ if load_new_data:
         df = df[df['movie'].isin(limit_movies) == True]
     
     # create subset of all data to analyze
-    try:
-        for col in subset_exclude:
-            indexNames = df[df[col].isin(subset_exclude[col])].index
-            df.drop(indexNames, inplace = True)
-    except NameError:
-        pass
-
-    try:
-        for col in subset_include:
-            indexNames = df[df[col].isin(subset_exclude[col])].index
-            df.drop(indexNames)
-    except NameError:
-        pass
+    for col in subset_include:
+        indexNames = df[~df[col].isin(subset_include[col])].index
+        df = df.drop(indexNames).reset_index(drop=True)
+        print(f'keep data: {col} - {subset_include[col]}')
     
-
+    for col in subset_exclude:
+        indexNames = df[df[col].isin(subset_exclude[col])].index
+        df = df.drop(indexNames).reset_index(drop=True)
+        print(f'remove data : {col} - {subset_exclude[col]}')
+    
     # remove all empty columns and any columns listed at beginning
     df = df.loc[:, (df != 0).any(axis=0)].dropna(axis=1, how='all')
     for col in drop_columns:
@@ -108,26 +115,26 @@ if load_new_data:
     df['still_image'] = df['still_image'] + '.' + extension
 
     # add column for total events found and column for no other events
-    df.insert(3,'nEvents',df[label_list].sum(axis=1))
-    df.insert(4, unlabeled, (df['nEvents'] == 0).astype(int) )
+    df.insert(3,labeled,df[label_list].sum(axis=1))
+    df.insert(3, unlabeled, (df[labeled] == 0).astype(int) )
     label_list = [unlabeled] + label_list
     
     # get total numbers for each label
     counter = df.groupby('movie').sum()
     counter = counter.drop(['event#',tp_used], axis = 1) # this needs to be made so that it drops all tp data
     counter = counter.loc[:, (counter != 0).any(axis=0)]
-    counter['Total'] = df.groupby('movie')['event#'].count()
+    counter['Events'] = df.groupby('movie')['event#'].count()
+    if len(counter > 1):
+        counter.loc['Total',:]= counter.sum(axis=0)
 
     # get name of header used for defining coord
     coord_header = [x for x in list(df.columns) if (x.startswith(coord_prefix) and x.endswith(coord_suffix) )][0]
 
     if save_df:
-        if not os.path.exists(outdir):
-            os.mkdir (outdir)
         try:
-            df.to_csv(outdir + 'Scoring_data.csv')
+            df.to_csv(directory + 'XML_Dataframe_' + csv_name + '.csv')
         except PermissionError:
-            print("could not save csv (probably becuase it's still open")
+            print("no permission to save csv (probably becuase it's still open")
         
 #%% FUNCTIONS FOR XML CREATION
 
@@ -168,6 +175,9 @@ def makeXML(im):
 
     # Write XML file
     if export:
+        if not os.path.exists(xmldir):
+            os.mkdir (xmldir)
+
         xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml(indent="   ") 
         with open(xmldir + im[:-3] + "xml", "w") as f:
             f.write(xmlstr) 
@@ -188,9 +198,6 @@ def BoundingBox(row, parent):
 
 if do_XML:
     # create output folder
-    if not os.path.exists(xmldir):
-        os.mkdir (xmldir)
-    
     
     for im in df['still_image'].unique():
         makeXML(im)
