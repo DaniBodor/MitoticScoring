@@ -10,7 +10,7 @@ Created on Tue Jun 29 16:00:13 2021
 #   - create separate label for each combination OR label same cell multiple times, once for each problem OR some mix of the two
 #   - think about 'dominance' of label_list. If a certain label causes/obliges another, maybe only label with top label?
 #   - create tkinter tool for GUI feedback on this
-
+#   - create mode to select from multiple
 
 
 
@@ -23,24 +23,28 @@ import os
 #%% SETTINGS
 
 # Data import/export
-directory = './output/'
-csv_name = 'Unstitched_All'  #CSV from scoring macro
+directory = './output/YOLO/'
+csv_name = 'MitoticStages_Scoring_bin'  #CSV from scoring macro
 limit_movies = '' # movie name or list of movie names to include (empty/False means include all)
 tp_used = 0 # timepoint to use for training
 project_name = 'my-project-name'
 unlabeled = 'Normal' # label for cells that have no other marks
+tag_by = 'dropdown' # dropdown OR checkmark
+
+# Naming of indivisual stills
+extension = 'png'       # file extension without the dot
+filenaming_digits = 4   # how many digits are used in numbering (FiJi default is 4)
+
 
 # create libraries to select subset of all events.
-subset_include = {'Mitotic_Stage': ['Anaphase']}
+#subset_include = {'Mitotic_Stage': ['Anaphase']}
 #subset_exclude = {'Mitotic_Stage': ['Telophase']}
+subset_include = {}
 subset_exclude = {}
 
 # list columns to drop from dataframe)
 drop_columns = ['New_Cell']
 
-# Naming of indivisual stills
-extension = 'png'       # file extension without the dot
-filenaming_digits = 4   # how many digits are used in numbering (FiJi default is 4)
 
 # processes to run through in code
 load_new_data = 1
@@ -100,7 +104,10 @@ if load_new_data:
     # remove all empty columns and any columns listed at beginning
     df = df.loc[:, (df != 0).any(axis=0)].dropna(axis=1, how='all')
     for col in drop_columns:
-        df.drop(col, axis=1, inplace = True)
+        try:
+            df.drop(col, axis=1, inplace = True)
+        except KeyError:
+            print(col + ' not found in df, proceed without dropping')
         
     # get list of all potential labels
     label_list = list(df.columns)
