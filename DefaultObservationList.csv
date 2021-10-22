@@ -5,16 +5,17 @@ Group,Record events,,,,
 Checkbox,Lagger,1,0,0,
 Checkbox,Bridge,1,0,0,
 Checkbox,Misaligned,1,0,1,"During anaphase, Before anaphase"
-Checkbox,Cohesion defect,0,0,0,
-Checkbox,Apoptosis,0,0,1,"During mitosis, After mitosis, During interphase"
 Checkbox,Multipolar,1,0,0,
+Checkbox,Exit without anaphase,0,1,1,"Checkpoint defect, Slippage, Other"
 Checkbox,Micronucleus,1,0,1,"Before div, After div, Both"
-Checkbox,Multinucleated,1,0,1,"Before div, After div, Both"
+Checkbox,Apoptosis,0,0,1,"During mitosis, After mitosis, During interphase"
+Group,Fuzzy events,,,,
+Checkbox,Lagger OR Misaligned,1,0,0,
 Checkbox,Pseudo-lagger,1,0,0,
 Checkbox,Pseudo-bridge,1,0,0,
+Checkbox,Multinucleated,1,0,1,"Before div, After div, Both"
 Checkbox,Slow alignment,0,0,0,
-Checkbox,Lagger OR Misaligned,1,0,0,
-Checkbox,Exit without anaphase,0,1,1,"Checkpoint defect, Slippage"
+Checkbox,Cohesion defect,0,0,0,
 Checkbox,Other,0,1,0,
 Checkbox,Unclear,0,0,0,
 Group,Notes,,,,
