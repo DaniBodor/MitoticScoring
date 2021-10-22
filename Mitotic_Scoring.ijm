@@ -18,7 +18,7 @@ if (Table.size > 0){
 }
 
 // variables used in code below
-all_stages = newArray("G2", "NEBD", "Prophase", "Metaphase", "Anaphase", "Telophase", "Decondensation", "G1");
+all_stages = newArray("G2", "NEBD", "Prophase", "Pseudometaphase", "Metaphase", "Anaphase", "Telophase", "G1");
 nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 progressOptions = newArray("Draw + t", "Draw only");	//, "Click OK");
@@ -254,7 +254,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			}
 			prev_im = im;
 			Stack.getDimensions(_, _, ch, sl, fr);
-			if (fr == 1){
+			if (fr == 1 && ch*sl*fr>1){
 				Stack.setDimensions(ch, fr, sl);
 				Stack.getDimensions(_, _, ch, sl, fr);
 				resaveTif();
