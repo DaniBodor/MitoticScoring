@@ -18,7 +18,7 @@ if (Table.size > 0){
 }
 
 // variables used in code below
-all_stages = newArray("G2", "NEBD", "Prophase", "Pseudometaphase", "Metaphase", "Anaphase", "Telophase", "G1");
+all_stages = newArray("G2", "NEBD", "Prophase", "Pseudo-metaphase", "Metaphase", "Anaphase", "Telophase", "G1");
 nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 progressOptions = newArray("Draw + t", "Draw only");	//, "Click OK");
