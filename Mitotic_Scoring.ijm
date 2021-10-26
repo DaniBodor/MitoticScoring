@@ -18,7 +18,9 @@ if (Table.size > 0){
 }
 
 // variables used in code below
-all_stages = newArray("G2", "NEBD", "Prophase", "Pseudo-metaphase", "Metaphase", "Anaphase", "Telophase", "G1");
+all_stages = newArray(	"G2", 			"NEBD", 			"Prophase", 
+						"Prometaphase", "Pseudo-metaphase", "Metaphase", 
+						"Anaphase", 	"Telophase", 		"G1");
 nAllStages = all_stages.length;
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 progressOptions = newArray("Draw + t", "Draw only");	//, "Click OK");
@@ -37,7 +39,9 @@ default_array = newArray(
 	"white", //7 default_color2
 	progressOptions[0], //8 default_promptOK
 	scoringOptions[1], // -1 default_scoring
-	0,1,0,0,1,0,0,0); // default_stages
+	0,1,0,
+	0,0,0,
+	1,0,0); // default_stages
 nDefaults = default_array.length;
 //Array.print(default_array);	// for troubleshooting
 
@@ -91,7 +95,7 @@ Dialog.createNonBlocking("Setup");
 	Dialog.addMessage("Which mitotic stages should be monitored?")
 	Dialog.setInsets(-5, 20, 0);
 	default_stages = Array.slice(default_array, nDefaults - nAllStages, nDefaults);
-	Dialog.addCheckboxGroup(2, 4, all_stages, default_stages);
+	Dialog.addCheckboxGroup(3, 3, all_stages, default_stages);
 	Dialog.addHelp("https://github.com/DaniBodor/MitoticScoring#setup");
 Dialog.show();
 	saveloc = Dialog.getString();
