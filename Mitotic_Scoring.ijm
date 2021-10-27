@@ -234,11 +234,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		waitstring = waitstring + "\n\nIf you do not want to draw a box for this timepoint, type 'skip' on the line below\n\n";
 
 		// generate wait window under image
-		getLocationAndSize(im_x, im_y, im_w, im_h);
-		run("Text Window...", "name=[" + waitwindowname + "] width=80 height=8");
-		setLocation(im_x, im_y + im_h);
-		print("[" + waitwindowname + "]", waitstring);
-		selectWindow(waitwindowname);
+		makeWaitWindow();
 
 		// wait for drawing a box
 		while (keepWaiting())	wait(250);
@@ -743,4 +739,57 @@ function getDatetime(){
 
 function substring_tp(tp){
 	return substring(stages_used[tp], 0, indexOf(stages_used[tp], "_(" ));
+}
+
+
+function makeWaitWindow(){
+	/*
+	 * this is an overly complicated function
+	 * to find the best location for the wait window
+	 */
+	
+	//define waitwindow size
+	waitwindow_w = 80;
+	waitwindow_h = 8;
+	
+	// get screen & image size
+	scr_w = screenWidth;
+	scr_h = screenHeight;
+	getLocationAndSize(im_x, im_y, im_w, im_h);
+	print_coords = false;
+	if (print_coords){ // for testing offsets
+		print("screen size", scr_w,scr_h);
+		print("image loc", im_x,im_y);
+		print("image size", im_w,im_h);
+	}	
+	
+	// find potential location for waitwindow
+	x_offset = 600;
+	y_offset = 200;
+	fitUnder = false; fitLeft = false; fitAbove=false; fitRight = false;
+	if (im_y + im_h < scr_h - y_offset)		fitUnder = true;
+	if (im_x + im_w < scr_w - x_offset)		fitLeft  = true;
+	if (im_y > y_offset)					fitAbove = true;
+	if (im_x > x_offset)					fitRight = true;
+	
+	// open waitwindow
+	run("Text Window...", "name=[&waitwindowname] width=&waitwindow_w height=&waitwindow_h");
+	print("[" + waitwindowname + "]", waitstring);
+	
+	// place waitwindow
+	// in this order of preference: below, right, above, left
+	selectWindow(waitwindowname);
+	if (fitUnder){
+		if (scr_w - im_x < x_offset) setLocation(im_x + im_w - x_offset, 	im_y + im_h);
+		else 						 setLocation(im_x, 						im_y + im_h);
+	}
+	
+	else if (fitLeft)				 setLocation(im_x + im_w , 				im_y/2 + im_h/2);
+	
+	else if (fitAbove){
+		if (scr_w - im_x < x_offset) setLocation(im_x + im_w - x_offset, 	im_y - y_offset);
+		else 						 setLocation(im_x, 						im_y - y_offset);
+	}
+
+	else if (fitRight)				 setLocation(im_x - x_offset , 			im_y/2 + im_h/2);
 }
