@@ -1,6 +1,6 @@
 Back to [home](https://github.com/DaniBodor/MitoticScoring)
 
-## v1.30 - 08 July 2021
+## v1.26 - 27 Oct 2021
 - updates to observation list and options for mitotic stages, etc.
 
 ## v1.25 - 08 July 2021
