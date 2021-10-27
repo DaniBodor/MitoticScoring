@@ -490,7 +490,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 		currLine = split(CSV_lines[l],",");
 
 		if (currLine [0] == "Group") {
-			Dialog.setInsets(10, 0, 0);
+			Dialog.setInsets(3, 0, 0);
 			Dialog.addMessage(currLine[1]);
 		}
 
@@ -550,9 +550,9 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 		}
 	}
 
-	Dialog.setInsets(25, 20, 0);
-	Dialog.addMessage("Remove this entry?\nNo results for this cell will be written to the results table\nand ROI boxes for this cell will be deleted");
-	Dialog.addCheckbox("REMOVE THIS ENTRY?", 0);
+	Dialog.setInsets(20, 20, 0);
+	Dialog.addMessage("Remove this entry?  No results or ROIs will be recorded for this cell.");
+	Dialog.addCheckbox("REMOVE THIS ENTRY", 0);
 
 	if (Results_Or_Header == "results") {
 
