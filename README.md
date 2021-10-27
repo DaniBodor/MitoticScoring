@@ -17,11 +17,11 @@ The main goals of this macro are:
 The macro is pretty uncomplicated and in principle will always tell you what to do. Below is a short explanation of the individual steps anyway.  
 
 
-## Start macro
+## Install and start macro
 [Download](https://github.com/DaniBodor/MitoticScoring/archive/refs/heads/main.zip) this repository by clicking the green 'Code' button above and 'Download ZIP' (or use git pull).
 
 Open the macro by dragging the \*.ijm file into FiJi and clicking 'Run' or hit Ctrl+R.  
-Alternatively drop the \*.ijm file into your ImageJ plugins\Analyze folder and select it from _Plugins > Analyze_ dropdown menu 
+Alternatively drop the _Mitotic_Scoring.ijm_ file into your ImageJ plugins\Analyze folder and select it from _Plugins > Analyze_ dropdown menu 
 (requires a restart after you first drop the file there). You can then also create a custom shortcut key via _Plugins > Shortcuts > Add Shortcut..._.
 
 If there is currently no image file open, a window will pop up asking you to open a file.
