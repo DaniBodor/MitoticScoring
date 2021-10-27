@@ -1,5 +1,8 @@
 Back to [home](https://github.com/DaniBodor/MitoticScoring)
 
+## v1.30 - 08 July 2021
+- updates to observation list and options for mitotic stages, etc.
+
 ## v1.25 - 08 July 2021
 - __Added python code to create XMLs from results table (for YOLO training)__
 - Exporting image size to results table (needed for above)
