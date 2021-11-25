@@ -154,7 +154,10 @@ if (scoring == scoringOptions[2]){
 
 	// store prev default obslist and copy new one to default
 	if (obslist_path != new_obslist_path) {
-		if (File.exists(obslist_path))	File.rename(obslist_path, obslist_path + "_" + getDatetime() + ".csv" );
+		if (File.exists(obslist_path)){
+			File.rename(obslist_path, obslist_path + "_" + getDatetime() + ".csv" );
+			print("\\Update:previously used scoring table saved in "+File.getDirectory(obslist_path));
+		}
 		File.copy(new_obslist_path, obslist_path);
 		obslist_path = new_obslist_path;
 	}
