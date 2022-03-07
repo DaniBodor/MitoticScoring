@@ -4,50 +4,45 @@
 requires("1.53f");
 setJustification("center");
 setFont("SansSerif", 9, "antialiased");
-waitwindowname = "Close this window to finish session";
 
 // close stuff before starting
+waitwindowname = "Close this window to finish session";
 if (isOpen(waitwindowname)){
 	selectWindow(waitwindowname);
 	run("Close");
 }
-
 if (Table.size > 0){
 	T = Table.title;
 	Table.reset(T);
 }
-
 if(nImages > 0)		Overlay.remove;
 else				open();
 
 
 ////  SETTINGS
+
 // dialog option lists
 colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 selectOptions = newArray("Draw only", "Draw + t");
 scoringOptions = newArray("None", "Default", "Custom");
-// fetch settings
+
+// fetch settings and move common ones into variable
 fetchSettings();
 InputSettings = List.getList;
+nStages = parseInt(List.get("nStages"));
 
 
-// check input
-nStages = stages_used.length;
-if (nStages == 0)	use_overlays = false;
-else				use_overlays = true;
-
-if (!File.isDirectory(saveloc))		File.makeDirectory(saveloc);
-if (!File.isDirectory(saveloc))		exit("Chosen save location does not exist; please choose valid directory");
-
-// load observation list
-// search in default location or for default downloaded list.
+// load observation list 
+	// search in default location or for default downloaded list.
 obslist_path = defaults_dir + "ObservationList.csv";
+scoring = List.get("scorechoice");
 if (!File.exists(obslist_path)){
 	assumed_obslist_path = getDir("file") + "DefaultObservationList.csv";
 	if (File.exists(assumed_obslist_path) )		File.copy(assumed_obslist_path, obslist_path);
 	else	scoring = scoringOptions[2];
 }
-// if non-default is used or default not found, ask for location
+
+	// if non-default is used or default not found, ask for location
 if (scoring == scoringOptions[2]){
 	Dialog.create("Choose observation list");
 	Dialog.addFile("Choose csv file for custom observation list", "");
@@ -59,7 +54,6 @@ if (scoring == scoringOptions[2]){
 	Dialog.show();
 	new_obslist_path = Dialog.getString();
 	if (!File.exists(new_obslist_path) || !endsWith(new_obslist_path, ".csv"))	exit("***ERROR:\nA non-existing or non-csv file was chosen as observation list");
-	scoring = scoringOptions[1];
 
 	// store prev default obslist and copy new one to default
 	if (obslist_path != new_obslist_path) {
@@ -73,18 +67,8 @@ if (scoring == scoringOptions[2]){
 }
 obsCSV = split(File.openAsString(obslist_path), "\n");
 
-new_default = Array.concat(saveloc, expname, timestep,
-							dup_overlay, zboxspread, overlay_color1, overlay_color2, box_progress,
-							scoring, default_stages);
 
-// save defaults for next time
-Array.show(new_default);
-selectWindow("new_default");
-saveAs("Text", default_settings);
-run("Close");
-
-
-// make headers string ##HEADERS##
+// make headers string
 init_headers = newArray("movie", "event#");
 interv_headers = newArray();
 end_headers = newArray();
@@ -94,11 +78,10 @@ for (i = 0; i < nStages; i++) {
 	for (j = 0; j < i; j++) {
 		interv_headers = Array.concat(interv_headers, "time_t" + i-j-1 + "-->t"+i);
 	}
-	end_headers[i] = stages_used[i];
+	end_headers[i] = "t"+i+"_XYWHTZ";
 }
 obs_headers = observationsDialog(obsCSV, "headers");
 headers = Array.concat(init_headers, interv_headers, obs_headers, end_headers, "image_size", "extract_code");
-
 headers_str = String.join(headers,"\t");
 
 
@@ -743,7 +726,7 @@ function fetchSettings(){
 		
 		Dialog.setInsets(10, 0, 0);
 		Dialog.addMessage("GENERAL SETTINGS",title_fontsize);
-		Dialog.addDirectory("Save Location", List.get("savelocation"));
+		Dialog.addDirectory("Save Location", List.get("saveloc"));
 		Dialog.addString("Experiment Name", List.get("expname"), colw-2);
 		Dialog.addNumber("Time step", List.get("timestep"), 0, colw, "");
 		
@@ -769,8 +752,7 @@ function fetchSettings(){
 	Dialog.show();
 		// move settings from dialog window into a key/value list
 		// general settings
-		List.set("savelocation", Dialog.getString());
-			if (List.get("savelocation") == "")		exit("no save location selected");
+		List.set("saveloc", Dialog.getString());
 		List.set("expname", Dialog.getString());
 			if (List.get("expname") == "")	List.set("expname", "_Scoring");
 		List.set("timestep", Dialog.getNumber());
@@ -793,14 +775,14 @@ function fetchSettings(){
 function default_settings(){
 	List.clear();
 	// general settings
-	List.set("savelocation", "");
-	List.set("expname", "");
+	List.set("saveloc", getDirectory("image"));
+	List.set("expname", "_Scoring");
 	List.set("timestep", 1);
 	// scoring settings		
-	List.set("selectionoption", "Draw only");
+	List.set("selectionoption", selectOptions[0]);
 	List.set("nStages", 2);
 	List.set("jumptot0", 0);
-	List.set("scorechoice", "Default");
+	List.set("scorechoice", scoringOptions[1]);
 	//visual settings
 	List.set("maincolor", "red");
 	List.set("minorcolor", "white");
