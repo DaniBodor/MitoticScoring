@@ -86,6 +86,7 @@ headers_str = String.join(headers,"\t");
 
 
 // load progress
+expname = List.get("expname");
 table = expname + "_Scoring.csv";
 if (isOpen(table)){
 	selectWindow(table);
@@ -121,7 +122,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 
 		// generate wait window information
 		waitstring = "Draw box around cell at:  " + substring_tp(tp);
-		if (box_progress == progressOptions[0]){	// draw + t
+		if (List.get("selectionoption") == progressOptions[1]){	// draw + t
 			roiManager("reset");
 			waitstring = waitstring + " and press 't' or add to ROI Manager";
 		}
@@ -167,13 +168,13 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		else {
 			// get coordinates
 			getSelectionBounds(x, y, w, h);
-			if (dup_overlay)	x = x % (getWidth()/2);
+			if ( List.get("duplicatebox") )		x = x % (getWidth()/2);
 			Stack.getPosition(_, z, f);
 
 			// create overlay for current stage (t0, t1, etc)
 			overlay_coord = newArray(x, y, w, h, f, f, z, z);
 			overlay_name = "c" + c + "_t" + tp;
-			makeOverlay(overlay_coord, overlay_name, overlay_color1);
+			makeOverlay(overlay_coord, overlay_name, List.get("maincolor"));
 		}
 
 		// rearrange and store coordinates
@@ -186,7 +187,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	nCoordinates = coordinates_array.length/nStages;
 	reorganized_coord_array = reorganizeCoord(coordinates_array);
 	xywhttzz = getFullSelectionBounds(reorganized_coord_array);
-	if (nStages > 1)	makeOverlay(xywhttzz, "c" + c, overlay_color2);
+	if (nStages > 1)	makeOverlay(xywhttzz, "c" + c, List.get("minorcolor"));
 
 	// store time and coordinate data for each time point
 	tps = newArray();		// array containing time frame for each stage
@@ -194,7 +195,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	for (i = 0; i < nStages; i++) {
 		if (skipArray[i])			tps[i] = NaN;
 		else 						tps[i] = reorganized_coord_array[4*nStages+i];							// look up frame number in reorganized_coord_array
-		for (j = 0; j < i; j++)		intervals = Array.concat(intervals, (tps[i] - tps[i-j-1]) * timestep);	// calculate frame differece * timestep for each comination
+		for (j = 0; j < i; j++)		intervals = Array.concat(intervals, (tps[i] - tps[i-j-1]) * List.get("timestep"));	// calculate frame difference * timestep for each comination
 	}
 
 	// run dialog window and extract information 
@@ -343,9 +344,11 @@ function makeOverlay(coord, name, color){
 	// create rect at each frame
 	//Array.print(coord);
 	for (f = coord[4]; f <= coord[5]; f++) {
-		for (i = 0; i < dup_overlay+1; i++) {	// 1 or 2 boxes, depending on dup_overlay
+		for (i = 0; i < List.get("duplicatebox")+1; i++) {	// 1 or 2 boxes, depending on List.get("duplicatebox")
 			Stack.getDimensions(_, _, ch, sl, fr);
-			for (z = maxOf(1, coord[6] - zboxspread); z <= minOf(sl, coord[7] + zboxspread); z++) {
+			zmin = maxOf(1, coord[6] - List.get("zspread"));
+			zmax = minOf(sl, coord[7] + List.get("zspread"));
+			for (z = zmin; z < zmax+1; z++) {
 
 				// fix sizes for duplicate overlay images
 				X = (coord[0] + getWidth()/2 * i) % getWidth();		// changes only if i==1
@@ -451,7 +454,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 
 		// temporarily swap the overlay names with an extra box around the current cell
 		expanded = expandBox(xywhttzz, 2);
-		makeOverlay(expanded, "temp_overlay", overlay_color2);
+		makeOverlay(expanded, "temp_overlay", List.get("minorcolor"));
 		Overlay.drawLabels(false);
 
 		if (scoring != scoringOptions[0])	Dialog.show();
@@ -494,7 +497,7 @@ function keepWaiting(){
 			keep_waiting = 0;
 		}
 
-		if (box_progress == progressOptions[1]) { // draw only
+		if (List.get("selectionoption") == progressOptions[0]) { // draw only
 			getRawStatistics(area);
 
 			getCursorLoc(_, _, _, flags);	// flag=16 means left mouse button is down
