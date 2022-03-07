@@ -4,9 +4,9 @@
 requires("1.53f");
 setJustification("center");
 setFont("SansSerif", 9, "antialiased");
-
 waitwindowname = "Close this window to finish session";
 
+// close stuff before starting
 if (isOpen(waitwindowname)){
 	selectWindow(waitwindowname);
 	run("Close");
@@ -17,110 +17,19 @@ if (Table.size > 0){
 	Table.reset(T);
 }
 
-// variables used in code below
-all_stages = newArray(	"G2", 			"NEBD", 			"Prophase", 
-						"Prometaphase", "Pseudo-metaphase", "Metaphase", 
-						"Anaphase", 	"Telophase", 		"G1");
-nAllStages = all_stages.length;
-colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
-progressOptions = newArray("Draw + t", "Draw only");	//, "Click OK");
-scoringOptions = newArray("None", "Default", "Custom");
-overlay_file = "";
-
-
-default_array = newArray(
-	"_", // 0 Value (ignored)
-	"", //1 default_saveloc
-	"", //2 default_expname
-	3,  //3 default_timestep
-	0,  //4 default_duplic
-	0,  //5 default_zspread
-	"red", //6 default_color1
-	"white", //7 default_color2
-	progressOptions[0], //8 default_promptOK
-	scoringOptions[1], // -1 default_scoring
-	0,1,0,
-	0,0,0,
-	1,0,0); // default_stages
-nDefaults = default_array.length;
-//Array.print(default_array);	// for troubleshooting
-
-// load previous defaults (if any)
-defaults_dir = getDirectory("macros") + "MitoticScoringDefaults" + File.separator;
-default_settings = defaults_dir+ "DefaultSettings.txt";
-if (!File.isDirectory(defaults_dir))	File.makeDirectory(defaults_dir);
-if (File.exists(default_settings)){
-	loaded_str = File.openAsString(default_settings);
-	loaded_array = split(loaded_str, "\n");
-	if (loaded_array.length == nDefaults){
-		default_array = loaded_array;
-	}
-}
-
-//Array.print(default_array);	// for troubleshooting
-
 if(nImages > 0)		Overlay.remove;
 else				open();
 
-// open setup window
-Dialog.createNonBlocking("Setup");
-	Dialog.setInsets(0, 0, 0);
-	Dialog.addMessage("GENERAL SETTINGS");
-	Dialog.addDirectory("Save location", default_array[1]);
-	Dialog.addString("Experiment name",  default_array[2]);
-	Dialog.setInsets(0, 0, 0);
-	Dialog.addNumber("Time step", default_array[3]);
 
-	Dialog.setInsets(25, 0, 0);
-	Dialog.addMessage("SETTINGS FOR VISUAL TRACKING");
-	Dialog.setInsets(3, 15, 5);
-	Dialog.addChoice("Progress to next box by", progressOptions, default_array[8]);
-	Dialog.setInsets(-3, 15, 5);
-	Dialog.addChoice("ROI color of drawn box", colorArray, default_array[6]);
-	Dialog.setInsets(0, 15, 5);
-	Dialog.addChoice("ROI color of large box", colorArray, default_array[7]);
-	Dialog.setInsets(0, 15, 0);
-	Dialog.addNumber("Draw box on ", default_array[5], 0, 1, "Z-planes above and below indicated plane");
-	Dialog.setInsets(3, 15, 0);
-	Dialog.addCheckbox("Duplicate boxes left and right? "+
-						"(for OrgaMovie output that contains the same organoid twice)",  default_array[4]);
+////  SETTINGS
+// dialog option lists
+colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
+selectOptions = newArray("Draw only", "Draw + t");
+scoringOptions = newArray("None", "Default", "Custom");
+// fetch settings
+fetchSettings();
+InputSettings = List.getList;
 
-	Dialog.setInsets(20, 0, 0);
-	Dialog.addMessage("SCORING SETTINGS");
-	Dialog.setInsets(0, 20, 0);
-	Dialog.addChoice("Score observations",  scoringOptions, default_array[nDefaults - nAllStages - 1]);
-	Dialog.setInsets(-3, 50, 0);
-	Dialog.addMessage("If you select  'Custom', another window will pop up after this to select file");
-	Dialog.setInsets(2, 10, 0);
-	Dialog.addMessage("Which mitotic stages should be monitored?")
-	Dialog.setInsets(-5, 20, 0);
-	default_stages = Array.slice(default_array, nDefaults - nAllStages, nDefaults);
-	Dialog.addCheckboxGroup(3, 3, all_stages, default_stages);
-	Dialog.addHelp("https://github.com/DaniBodor/MitoticScoring#setup");
-Dialog.show();
-	saveloc = Dialog.getString();
-	expname = Dialog.getString();
-		if (expname == "")	expname = "Mitotic_Scoring";
-	timestep = Dialog.getNumber();
-
-	box_progress = Dialog.getChoice();
-	overlay_color1 = Dialog.getChoice();
-	overlay_color2 = Dialog.getChoice();
-	zboxspread = Dialog.getNumber();
-	dup_overlay = Dialog.getCheckbox();
-
-	scoring = Dialog.getChoice();
-	stages_used = newArray();
-	t = 0;
-	for (i = 0; i < nAllStages; i++) {
-		default_stages[i] = Dialog.getCheckbox();
-		if (default_stages[i]) {
-			t_header_suffix = "_(Xmin_Ymin_Xmax_Ymax_T_Z)";
-			curr_header = "t" + t + "_" + all_stages[i] + t_header_suffix;
-			stages_used[t] = curr_header;
-			t++;
-		}
-	}
 
 // check input
 nStages = stages_used.length;
@@ -800,10 +709,6 @@ function makeWaitWindow(){
 }
 
 
-fetchSettings();
-
-
-
 function fetchSettings(){
 	// load default settings
 	default_settings();
@@ -832,11 +737,6 @@ function fetchSettings(){
 	title_fontsize = 12;
 	github = "https://github.com/DaniBodor/MitoticScoring#setup";
 
-	// dialog option lists
-	colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
-	selectOptions = newArray("Draw only", "Draw + t");
-	scoringOptions = newArray("None", "Default", "Custom");
-	
 	// open dialog
 	Dialog.createNonBlocking("Scoting Macro");
 		Dialog.addHelp(github);
@@ -870,12 +770,16 @@ function fetchSettings(){
 		// move settings from dialog window into a key/value list
 		// general settings
 		List.set("savelocation", Dialog.getString());
+			if (List.get("savelocation") == "")		exit("no save location selected");
 		List.set("expname", Dialog.getString());
+			if (List.get("expname") == "")	List.set("expname", "_Scoring");
 		List.set("timestep", Dialog.getNumber());
+			if (List.get("timestep") == 0)	List.set("timestep", 1);
 		// scoring settings		
 		List.set("scorechoice", Dialog.getChoice());
 		List.set("selectionoption", Dialog.getChoice());
 		List.set("nStages", Dialog.getNumber());
+			if (List.get("nStages") == 0)	List.set("nStages", 1);
 		List.set("jumptot0", Dialog.getCheckbox());
 		//visual settings
 		List.set("maincolor", Dialog.getChoice());
