@@ -237,7 +237,9 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		waitstring = waitstring + "\n\nIf you do not want to draw a box for this timepoint, type 'skip' on the line below\n\n";
 
 		// generate wait window under image
+		img = getTitle();
 		makeWaitWindow();
+		selectImage(img);
 
 		// wait for drawing a box
 		while (keepWaiting())	wait(250);
@@ -795,4 +797,109 @@ function makeWaitWindow(){
 	}
 
 	else if (fitRight)				 setLocation(im_x - x_offset , 			im_y/2 + im_h/2);
+}
+
+
+fetchSettings();
+
+
+
+function fetchSettings(){
+	// load default settings
+	default_settings();
+	List.toArrays(def_keys, def_values);
+
+	// load previous settings
+	settings_dir = getDirectory("macros") + "settings" + File.separator;
+	File.makeDirectory(settings_dir);
+	settings_file = settings_dir + "ScoringMacro.txt";
+	if(File.exists(settings_file)){
+		settings_string = File.openAsString(settings_file);
+		List.setList(settings_string);
+		
+		// in case any default settings are missing from saved file, add these back
+			// e.g. due to new settings added in updates or due to corruption of the settings file
+		List.toArrays(load_keys, load_values);
+		for (i = 0; i < def_keys.length; i++) {
+			filtered = Array.filter(load_keys,def_keys[i]);	// either empty array or array of length 1
+			present = lengthOf(filtered);	// should output 0 or 1 --> can be used as boolean
+			if ( !present )		List.set(def_keys[i], def_values[i]);
+		}
+	}
+
+	// dialog layout
+	colw = 8;
+	title_fontsize = 12;
+	github = "https://github.com/DaniBodor/MitoticScoring#setup";
+
+	// dialog option lists
+	colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
+	selectOptions = newArray("Draw only", "Draw + t");
+	scoringOptions = newArray("None", "Default", "Custom");
+	
+	// open dialog
+	Dialog.createNonBlocking("Scoting Macro");
+		Dialog.addHelp(github);
+		
+		Dialog.setInsets(10, 0, 0);
+		Dialog.addMessage("GENERAL SETTINGS",title_fontsize);
+		Dialog.addDirectory("Save Location", List.get("savelocation"));
+		Dialog.addString("Experiment Name", List.get("expname"), colw-2);
+		Dialog.addNumber("Time step", List.get("timestep"), 0, colw, "");
+		
+		Dialog.setInsets(20, 0, 0);
+		Dialog.addMessage("SCORING SETTINGS",title_fontsize);
+		Dialog.addChoice("Score observations",  scoringOptions, List.get("scorechoice") );
+		Dialog.addChoice("Define ROI by", selectOptions, List.get("selectionoption"));
+		Dialog.addNumber("ROIs per event", List.get("nStages"), 0, colw, "");
+		Dialog.addToSameRow();
+		//Dialog.setInsets(0, 135, 0);
+		Dialog.addCheckbox("Always jump to t0", List.get("jumptot0") );
+
+		Dialog.setInsets(20, 0, 0);
+		Dialog.addMessage("VISUAL SETTINGS",title_fontsize);
+		Dialog.addChoice("ROI color - main", colorArray, List.get("maincolor"));
+		Dialog.addChoice("ROI color - minor", colorArray, List.get("minorcolor"));
+		Dialog.addNumber("Z-spread (+/-)", List.get("zspread"), 0, colw, "");
+		
+		Dialog.setInsets(20, 0, 0);
+		Dialog.addMessage("For OrgaMovies");
+		Dialog.addCheckbox("Duplicate left and right?", List.get("duplicatebox"));
+
+	Dialog.show();
+		// move settings from dialog window into a key/value list
+		// general settings
+		List.set("savelocation", Dialog.getString());
+		List.set("expname", Dialog.getString());
+		List.set("timestep", Dialog.getNumber());
+		// scoring settings		
+		List.set("scorechoice", Dialog.getChoice());
+		List.set("selectionoption", Dialog.getChoice());
+		List.set("nStages", Dialog.getNumber());
+		List.set("jumptot0", Dialog.getCheckbox());
+		//visual settings
+		List.set("maincolor", Dialog.getChoice());
+		List.set("minorcolor", Dialog.getChoice());
+		List.set("zspread", Dialog.getNumber());
+		//orgamovies
+		List.set("duplicatebox", Dialog.getCheckbox());
+}
+
+
+function default_settings(){
+	List.clear();
+	// general settings
+	List.set("savelocation", "");
+	List.set("expname", "");
+	List.set("timestep", 1);
+	// scoring settings		
+	List.set("selectionoption", "Draw only");
+	List.set("nStages", 2);
+	List.set("jumptot0", 0);
+	List.set("scorechoice", "Default");
+	//visual settings
+	List.set("maincolor", "red");
+	List.set("minorcolor", "white");
+	List.set("zspread", 0);
+	List.set("duplicatebox", 0);
 }
