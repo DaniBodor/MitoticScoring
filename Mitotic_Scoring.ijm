@@ -769,6 +769,15 @@ function fetchSettings(){
 		List.set("zspread", Dialog.getNumber());
 		//orgamovies
 		List.set("duplicatebox", Dialog.getCheckbox());
+
+	// save settings
+	InputSettings = List.getList;
+	replace(InputSettings,"scorechoice="+scoringOptions[2],"scorechoice="+scoringOptions[1]);	// custom list becomes new default
+	File.saveString(InputSettings, settings_file);
+
+	// check if save location is a valid path
+	if (!File.isDirectory(List.get("saveloc")))		File.makeDirectory(List.get("saveloc"));
+	if (!File.isDirectory(List.get("saveloc")))		exit("Chosen save location does not exist; please choose valid directory");
 }
 
 
