@@ -22,7 +22,7 @@ else				open();
 ////  SETTINGS
 
 // dialog option lists
-colorArray = newArray("None","white","red","green","blue","cyan","magenta","yellow","orange","pink");
+colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
 selectOptions = newArray("Draw only", "Draw + t");
 scoringOptions = newArray("None", "Default", "Custom");
 
@@ -30,7 +30,7 @@ scoringOptions = newArray("None", "Default", "Custom");
 fetchSettings();
 InputSettings = List.getList;
 nStages = parseInt(List.get("nStages"));
-saveloc = List.get("saveloc");
+saveloc = List.get("saveloc")  + File.separator;
 
 
 // load observation list 
@@ -82,7 +82,8 @@ for (i = 0; i < nStages; i++) {
 	for (j = 0; j < i; j++) {
 		interv_headers = Array.concat(interv_headers, "time_t" + i-j-1 + "-->t"+i);
 	}
-	end_headers[i] = "t"+i+"_XYWHTZ";
+	t_header_suffix = "_XYWHTZ";
+	end_headers[i] = "t"+i+t_header_suffix;
 }
 obs_headers = observationsDialog(obsCSV, "headers");
 headers = Array.concat(init_headers, interv_headers, obs_headers, end_headers, "image_size", "extract_code");
@@ -747,6 +748,7 @@ function fetchSettings(){
 		Dialog.addChoice("ROI color - main", colorArray, List.get("maincolor"));
 		Dialog.addChoice("ROI color - minor", colorArray, List.get("minorcolor"));
 		Dialog.addNumber("Z-spread (+/-)", List.get("zspread"), 0, colw, "");
+		Dialog.addCheckbox("Show intermediate timepoints", List.get("intermediateboxes"));
 		
 		Dialog.setInsets(20, 0, 0);
 		Dialog.addMessage("For OrgaMovies");
@@ -755,7 +757,11 @@ function fetchSettings(){
 	Dialog.show();
 		// move settings from dialog window into a key/value list
 		// general settings
-		List.set("saveloc", File.getDirectory(Dialog.getString()) );
+		saveloc_input = Dialog.getString();
+			// reading save location is a bit buggy, this fixes it
+			saveloc_parent = File.getDirectory(saveloc_input);
+			saveloc_folder = File.getName(saveloc_input);
+			List.set("saveloc", saveloc_parent + saveloc_folder);
 		List.set("expname", Dialog.getString());
 			if (List.get("expname") == "")	List.set("expname", "_Scoring");
 		List.set("timestep", Dialog.getNumber());
@@ -770,12 +776,14 @@ function fetchSettings(){
 		List.set("maincolor", Dialog.getChoice());
 		List.set("minorcolor", Dialog.getChoice());
 		List.set("zspread", Dialog.getNumber());
+		List.set("intermediateboxes", Dialog.getCheckbox());
 		//orgamovies
 		List.set("duplicatebox", Dialog.getCheckbox());
 
 	// save settings
 	InputSettings = List.getList;
-	replace(InputSettings,"scorechoice="+scoringOptions[2],"scorechoice="+scoringOptions[1]);	// custom list becomes new default
+		// custom list becomes new default (change only recorded for export string, the setting itself is not changed)
+	InputSettings = replace(InputSettings,"scorechoice="+scoringOptions[2],"scorechoice="+scoringOptions[1]);
 	File.saveString(InputSettings, settings_file);
 
 	// check if save location is a valid path
@@ -799,5 +807,7 @@ function default_settings(){
 	List.set("maincolor", "red");
 	List.set("minorcolor", "white");
 	List.set("zspread", 0);
+	List.set("intermediateboxes", 1);
+	//for orgamovies
 	List.set("duplicatebox", 0);
 }
