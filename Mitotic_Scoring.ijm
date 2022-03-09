@@ -22,7 +22,7 @@ else				open();
 ////  SETTINGS
 
 // dialog option lists
-colorArray = newArray("white","red","green","blue","cyan","magenta","yellow","orange","pink");
+colorArray = newArray("None","white","red","green","blue","cyan","magenta","yellow","orange","pink");
 selectOptions = newArray("Draw only", "Draw + t");
 scoringOptions = newArray("None", "Default", "Custom");
 
@@ -30,11 +30,15 @@ scoringOptions = newArray("None", "Default", "Custom");
 fetchSettings();
 InputSettings = List.getList;
 nStages = parseInt(List.get("nStages"));
+saveloc = List.get("saveloc");
 
 
 // load observation list 
 	// search in default location or for default downloaded list.
-obslist_path = defaults_dir + "ObservationList.csv";
+obslist_dir = getDirectory("macros") + "_ObservationLists" + File.separator;
+if (!File.exists(obslist_dir))	File.makeDirectory(obslist_dir);
+
+obslist_path = obslist_dir + "ObservationList.csv";
 scoring = List.get("scorechoice");
 if (!File.exists(obslist_path)){
 	assumed_obslist_path = getDir("file") + "DefaultObservationList.csv";
@@ -42,7 +46,7 @@ if (!File.exists(obslist_path)){
 	else	scoring = scoringOptions[2];
 }
 
-	// if non-default is used or default not found, ask for location
+// if non-default is used or default not found, ask for location
 if (scoring == scoringOptions[2]){
 	Dialog.create("Choose observation list");
 	Dialog.addFile("Choose csv file for custom observation list", "");
@@ -59,7 +63,7 @@ if (scoring == scoringOptions[2]){
 	if (obslist_path != new_obslist_path) {
 		if (File.exists(obslist_path)){
 			File.rename(obslist_path, obslist_path + "_" + getDatetime() + ".csv" );
-			print("\\Update:previously used scoring table saved in "+File.getDirectory(obslist_path));
+			print("\\Update:previous scoring table backed up in "+File.getDirectory(obslist_path));
 		}
 		File.copy(new_obslist_path, obslist_path);
 		obslist_path = new_obslist_path;
@@ -121,12 +125,12 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		// allow user to box mitotic cell
 
 		// generate wait window information
-		waitstring = "Draw box around cell at:  " + substring_tp(tp);
-		if (List.get("selectionoption") == progressOptions[1]){	// draw + t
+		waitstring = "Draw box around cell at:  " + tp;
+		if (List.get("selectionoption") == selectOptions[1]){	// draw + t
 			roiManager("reset");
 			waitstring = waitstring + " and press 't' or add to ROI Manager";
 		}
-		if (nSkip < tp)		waitstring = waitstring + "\n\t( " + substring_tp(tp-nSkip-1) + " at frame " + overlay_coord[4] + " )";
+		if (nSkip < tp)		waitstring = waitstring + "\n\t( " + tp-nSkip-1 + " at frame " + overlay_coord[4] + " )";
 		waitstring = waitstring + "\n\nIf you do not want to draw a box for this timepoint, type 'skip' on the line below\n\n";
 
 		// generate wait window under image
@@ -224,7 +228,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		writeToTable();
 
 		// save overlay
-		if (use_overlays && Overlay.size > 0){
+		if (Overlay.size > 0){
 			run("To ROI Manager");
 			roiManager("Show All without labels");
 			roiManager("deselect");
@@ -468,7 +472,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 		if (Dialog.getCheckbox() )	return newArray();	// i.e. if delete the entry --> return empty array
 
 		// replace overlay names and remove temp boxes
-		if (use_overlays && Overlay.size > 0){
+		if (Overlay.size > 0){
 			Overlay.removeRois("temp_overlay");
 			Overlay.drawLabels(true);
 			Overlay.show();
@@ -497,7 +501,7 @@ function keepWaiting(){
 			keep_waiting = 0;
 		}
 
-		if (List.get("selectionoption") == progressOptions[0]) { // draw only
+		if (List.get("selectionoption") == selectOptions[0]) { // draw only
 			getRawStatistics(area);
 
 			getCursorLoc(_, _, _, flags);	// flag=16 means left mouse button is down
@@ -565,7 +569,7 @@ function resaveTif(){
 
 
 function removeOverlays(index) {
-	if (use_overlays && Overlay.size > 0){
+	if (Overlay.size > 0){
 		Overlay.removeRois("temp_overlay");
 		Overlay.removeRois("c" + index);
 		for (t = 0; t < nStages; t++) {
@@ -592,7 +596,7 @@ function expandBox(input, n){
 
 
 function overlayFormatting(){
-	if (use_overlays && Overlay.size > 0){
+	if (Overlay.size > 0){
 		Overlay.show;
 		Overlay.useNamesAsLabels(true);
 		Overlay.drawLabels(true);
@@ -636,10 +640,6 @@ function getDatetime(){
 	return "d" + date + "_t" + time;
 }
 
-
-function substring_tp(tp){
-	return substring(stages_used[tp], 0, indexOf(stages_used[tp], "_(" ));
-}
 
 
 function makeWaitWindow(){
@@ -702,7 +702,7 @@ function fetchSettings(){
 
 	// load previous settings
 	settings_dir = getDirectory("macros") + "settings" + File.separator;
-	File.makeDirectory(settings_dir);
+	if(!File.exists(settings_dir))	File.makeDirectory(settings_dir);
 	settings_file = settings_dir + "ScoringMacro.txt";
 	if(File.exists(settings_file)){
 		settings_string = File.openAsString(settings_file);
@@ -755,7 +755,7 @@ function fetchSettings(){
 	Dialog.show();
 		// move settings from dialog window into a key/value list
 		// general settings
-		List.set("saveloc", Dialog.getString());
+		List.set("saveloc", File.getDirectory(Dialog.getString()) );
 		List.set("expname", Dialog.getString());
 			if (List.get("expname") == "")	List.set("expname", "_Scoring");
 		List.set("timestep", Dialog.getNumber());
@@ -779,7 +779,7 @@ function fetchSettings(){
 	File.saveString(InputSettings, settings_file);
 
 	// check if save location is a valid path
-	if (!File.isDirectory(List.get("saveloc")))		File.makeDirectory(List.get("saveloc"));
+	if (!File.isDirectory(List.get("saveloc")))		File.makeDirectory(List.get("saveloc"));	// I don't think this still works. dir needs to exist before running macro
 	if (!File.isDirectory(List.get("saveloc")))		exit("Chosen save location does not exist; please choose valid directory");
 }
 
