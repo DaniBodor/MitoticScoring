@@ -162,10 +162,8 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			overlay_name = "c" + c + "_t" + tp;
 			makeOverlay(overlay_coord, overlay_name, List.get("maincolor"));
 		}
-		tpArray[tp] = f;
-		for (j = 0; j < tp; j++)		intervalArray = Array.concat(intervalArray, (tpArray[tp] - tpArray[tp-j-1]) * List.get("timestep"));	// calculate frame difference * timestep for each comination
-
-				
+		
+		// close waitwindow
 		selectWindow(waitwindowname);
 		run("Close");
 		run("Collect Garbage");
@@ -189,11 +187,16 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			}
 		}
 
-
+		// store tp and interval data in arrays
+		tpArray[tp] = f;
+		for (j = 0; j < tp; j++)		intervalArray = Array.concat(intervalArray, (tpArray[tp] - tpArray[tp-j-1]) * List.get("timestep"));	// calculate frame difference * timestep for each comination
 
 		// rearrange and store coordinates
 		stage_coordinates = newArray(x, y, x+w, y+h, f, z);
 		coordinates_array = Array.concat(coordinates_array, stage_coordinates);
+
+		// find first existing timepoint and set slice accordingly
+		if(List.get("jumptot0"))	jumpFunction();
 	}
 	run("Select None");
 
@@ -344,6 +347,16 @@ function checkHeaders(new){
 	}
 }
 
+
+function jumpFunction(){
+	for (q = 0; q < tp; q++) {
+		jump_tp = tpArray[q];
+		if (!isNaN(jump_tp)){
+			Stack.setFrame(jump_tp);
+			q = tp;
+		}
+	}
+}
 
 
 function makeOverlay(coord, name, color){
