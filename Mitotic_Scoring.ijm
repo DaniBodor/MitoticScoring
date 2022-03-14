@@ -1,4 +1,4 @@
-// MITOTIC SCORING MACRO v1.26
+// MITOTIC SCORING MACRO v1.3
 
 // general stuff
 requires("1.53f");
@@ -118,20 +118,25 @@ im = getTitle();
 for (c = prev_c+1; c > 0; c++){	// loop through cells
 
 	coordinates_array = newArray();
-	skipArray = newArray(nStages);
-	nSkip = 0;
+	tpArray = newArray();				// array containing time frame for each stage
+	intervalArray = newArray();			// array containing time interval between any combination of 2 stages	
+	
 	// for each time point included, pause to allow user to define coordinates
 	for (tp = 0; tp < nStages; tp++) {
 		run("Select None");
 		// allow user to box mitotic cell
 
 		// generate wait window information
-		waitstring = "Draw box around cell at:  " + tp;
+		waitstring = "Draw box around cell at t" + tp;
 		if (List.get("selectionoption") == selectOptions[1]){	// draw + t
 			roiManager("reset");
 			waitstring = waitstring + " and press 't' or add to ROI Manager";
 		}
-		if (nSkip < tp)		waitstring = waitstring + "\n\t( " + tp-nSkip-1 + " at frame " + overlay_coord[4] + " )";
+		for (prev = 0; prev < tp; prev++) {
+			// print frame number for each previous tp
+			if(isNaN(tpArray[prev]))	waitstring = waitstring + "\n\t t" + prev + " not defined";
+			else						waitstring = waitstring + "\n\t t" + prev + " at frame " + tpArray[prev];
+		}
 		waitstring = waitstring + "\n\nIf you do not want to draw a box for this timepoint, type 'skip' on the line below\n\n";
 
 		// generate wait window under image
@@ -139,8 +144,28 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		makeWaitWindow();
 		selectImage(img);
 
-		// wait for drawing a box
-		while (keepWaiting())	wait(250);
+		// wait for drawing a box or skipping
+		while (waitFunction())		wait(250);
+
+		// get data from box
+		if (selectionType == -1) {	// if no selection (i.e. skipped)
+			x=NaN;y=NaN;w=NaN;h=NaN;f=NaN;z=NaN;
+		}
+		else {
+			// get coordinates
+			getSelectionBounds(x, y, w, h);
+			if ( List.get("duplicatebox") )		x = x % (getWidth()/2);
+			Stack.getPosition(_, z, f);
+
+			// create overlay for current stage (t0, t1, etc)
+			overlay_coord = newArray(x, y, w, h, f, f, z, z);
+			overlay_name = "c" + c + "_t" + tp;
+			makeOverlay(overlay_coord, overlay_name, List.get("maincolor"));
+		}
+		tpArray[tp] = f;
+		for (j = 0; j < tp; j++)		intervalArray = Array.concat(intervalArray, (tpArray[tp] - tpArray[tp-j-1]) * List.get("timestep"));	// calculate frame difference * timestep for each comination
+
+				
 		selectWindow(waitwindowname);
 		run("Close");
 		run("Collect Garbage");
@@ -164,23 +189,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			}
 		}
 
-		// get data from box
-		if (selectionType == -1) {	// if no selection (i.e. skipped)
-			x=NaN;y=NaN;w=NaN;h=NaN;f=NaN;z=NaN;
-			nSkip ++;
-			skipArray[tp] = 1;
-		}
-		else {
-			// get coordinates
-			getSelectionBounds(x, y, w, h);
-			if ( List.get("duplicatebox") )		x = x % (getWidth()/2);
-			Stack.getPosition(_, z, f);
 
-			// create overlay for current stage (t0, t1, etc)
-			overlay_coord = newArray(x, y, w, h, f, f, z, z);
-			overlay_name = "c" + c + "_t" + tp;
-			makeOverlay(overlay_coord, overlay_name, List.get("maincolor"));
-		}
 
 		// rearrange and store coordinates
 		stage_coordinates = newArray(x, y, x+w, y+h, f, z);
@@ -194,14 +203,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	xywhttzz = getFullSelectionBounds(reorganized_coord_array);
 	if (nStages > 1)	makeOverlay(xywhttzz, "c" + c, List.get("minorcolor"));
 
-	// store time and coordinate data for each time point
-	tps = newArray();		// array containing time frame for each stage
-	intervals = newArray();	// array containing time interval between any combination of 2 stages
-	for (i = 0; i < nStages; i++) {
-		if (skipArray[i])			tps[i] = NaN;
-		else 						tps[i] = reorganized_coord_array[4*nStages+i];							// look up frame number in reorganized_coord_array
-		for (j = 0; j < i; j++)		intervals = Array.concat(intervals, (tps[i] - tps[i-j-1]) * List.get("timestep"));	// calculate frame difference * timestep for each comination
-	}
 
 	// run dialog window and extract information 
 	observations = observationsDialog(obsCSV, "results");
@@ -213,7 +214,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	}
 	else {
 		// generate results array with all inputs until tp coordinates
-		results = Array.concat(im, c, tps, intervals, observations);
+		results = Array.concat(im, c, tpArray, intervalArray, observations);
 		
 		// add coordinates for each stage and full image size
 		for (i = 0; i < nStages; i++){
@@ -305,7 +306,7 @@ function loadPreviousProgress(headers){
 		Table.open(results_file);
 		old_headers = split(Table.headings);
 
-		// fix old table format for tps
+		// fix old table format for tpArray
 		for (h = 0; h < old_headers.length; h++) {
 			oldName = old_headers[h];
 			if (lengthOf(oldName) > 2) {
@@ -487,7 +488,7 @@ function observationsDialog(CSV_lines, Results_Or_Header){
 }
 
 
-function keepWaiting(){
+function waitFunction(){
 	keep_waiting = 1;
 
 	if (!isOpen(waitwindowname))	exit("Session finished.\nYou can carry on later using the same experiment name and settings");
@@ -502,7 +503,7 @@ function keepWaiting(){
 			keep_waiting = 0;
 		}
 
-		if (List.get("selectionoption") == selectOptions[0]) { // draw only
+		else if (List.get("selectionoption") == selectOptions[0]) { // draw only
 			getRawStatistics(area);
 
 			getCursorLoc(_, _, _, flags);	// flag=16 means left mouse button is down
@@ -796,7 +797,7 @@ function default_settings(){
 	List.clear();
 	// general settings
 	List.set("saveloc", getDirectory("image"));
-	List.set("expname", "_Scoring");
+	List.set("expname", "");
 	List.set("timestep", 1);
 	// scoring settings		
 	List.set("selectionoption", selectOptions[0]);
