@@ -68,22 +68,20 @@ A dialog window will open to ask you for the settings for this experiment. Your 
 Results are saved after each analyzed cell to avoid losing data after crashes or mistakes. Furthermore, previous progress can be loaded when re-running the macro for the same experiment so that you can stop in the middle of an analysis and carry on another time without losing track of where you were. Also, at any point you can close the current image and open a different (or the same) one without crashing the macro or losing your progress.
 
 ### Step 1: indicate cell
-A text window opens instructing you to draw a box around the mitotic cell for each stage selected in the settings.  
-Boxes remain visible to keep track of which cells have been analyzed.  
-Boxes are saved in your save location after each analyzed cell and automatically reloaded when you restart the macro on the same cell (same experiment name).
+<img src="https://user-images.githubusercontent.com/14219087/158399302-36f1f1f0-7297-47e3-8f94-2460da1848fa.png" width=50% align="right">
+A text window opens instructing you how to proceed. For each time point, the window will re-appear stating the frame number of the previous time points to help keep track.  
+Boxes from previous events remain visible to keep track of which cells have already been scored. Also boxes are saved in your save location after each analyzed cell and automatically reloaded when you restart the macro on the same cell (same experiment name).  
 
-Now you can:
+##### Now you can:
 - draw a box around the cell of interest. Depending on your [settings](https://github.com/DaniBodor/MitoticScoring#settings-for-visual-tracking), you do or do not have to add the box to the ROI manager (hit t); or
-- type 'SKIP' or 'skip' at the end of the text window to skip the box for any particular stage, and the macro will progress without an entry for this stage; or
+- type 'skip' at the end of the text window to skip the box for a time point, and the macro will progress without an entry for this stage; or
 - close the text wiondow to end the session; or
 - open a different image and carry on there (if you close all open images while the text window is open, a pop up will appear allowing you to open another image).  
-<img src="Images/Wait_screen.png" width=50%>
-
-
-**Pro tip:** If boxes are getting too crowded, it might be useful to create keyboard shortcuts for 'Hide Overlay' and 'Show Overlay'.  
-To do this, click on 'Plugins>Shortcuts>Add Shortcut...'. Then select any available Shortcut key and 'Hide Overlay'. Repeat this for  for 'Show Overlay'. Now you can use the assigned shortcut keys to flip on and off the box overlays.
-
-<img src="Images/AddShortcut.png" width=90%>
+- type 'hide' or 'show' to toggle whether or not previous ROIs are displayed in the image in case it is getting too crowded; or
+    - alternatively, it could be useful to create keyboard shortcuts for 'Hide Overlay' and 'Show Overlay'. To do this, click on 'Plugins>Shortcuts>Add Shortcut...'. Then select any available Shortcut key and 'Hide Overlay'. Repeat this for  for 'Show Overlay'. Now you can use the assigned shortcut keys to flip on and off the box overlays.  
+<p align="center">
+    <img src="Images/AddShortcut.png" width=70% align="centre">
+</p>
 
 
 ### Step 2: score events
