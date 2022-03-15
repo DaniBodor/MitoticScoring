@@ -137,7 +137,9 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 			if(isNaN(tpArray[prev]))	waitstring = waitstring + "\n\t t" + prev + " not defined";
 			else						waitstring = waitstring + "\n\t t" + prev + " at frame " + tpArray[prev];
 		}
-		waitstring = waitstring + "\n\nIf you do not want to draw a box for this timepoint, type 'skip' on the line below\n\n";
+		waitstring = waitstring + "\n\nIf you do not want to draw a box for this timepoint, type 'skip' on the line below.";
+		waitstring = waitstring + "\nType 'hide' or 'show' to toggle whether previous ROIs are shown.";
+		waitstring = waitstring + "\n\n";
 
 		// generate wait window under image
 		img = getTitle();
@@ -511,6 +513,14 @@ function waitFunction(){
 		winContent = split(winContent);
 		winContent = winContent[winContent.length-1].toLowerCase;
 
+		if (indexOf(winContent, "hide") >= 0 ) {
+			run("Hide Overlay");
+		}
+		else if (indexOf(winContent, "show") >= 0 ) {
+			run("Show Overlay");
+		}
+
+		
 		if (indexOf(winContent, "skip") >= 0 ) {
 			run("Select None");
 			keep_waiting = 0;
@@ -777,7 +787,6 @@ function fetchSettings(){
 			saveloc_folder = File.getName(saveloc_input);
 			List.set("saveloc", saveloc_parent + saveloc_folder);
 		List.set("expname", Dialog.getString());
-			if (List.get("expname") == "")	List.set("expname", "_Scoring");
 		List.set("timestep", Dialog.getNumber());
 			if (List.get("timestep") == 0)	List.set("timestep", 1);
 		// scoring settings		
