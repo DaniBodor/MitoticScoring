@@ -1,9 +1,10 @@
 // MITOTIC SCORING MACRO v1.3
 
 // general stuff
-requires("1.53f");
+requires("1.53g");
 setJustification("center");
 setFont("SansSerif", 9, "antialiased");
+setOption("ExpandableArrays",true);
 
 // close stuff before starting
 waitwindowname = "Close this window to finish session";
