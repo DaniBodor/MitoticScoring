@@ -2,10 +2,14 @@ Back to [home](https://github.com/DaniBodor/MitoticScoring)
 
 ## v1.3 - March 2022 - Facilitate long-term tracking
 - Allow for jumping back to t0 after each box (for long-term daughter tracking)
-- Print frame number of each time point in the waitwindow
 - Allow to not show box around each timepoint
+- Print frame number of each time point in the waitwindow
 - Allow typing show/hide to toggle displaying of ROIs
-- Changed way (previous) settings are stored and recalled to avoid crashes in case of changes
+- Individual timepoints are now just called t0, t1, etc, rather than giving them specific names relating to mitosis
+  - If you use this version to carry on with same experiment that was scored with previous version, there will now be new columns made for the timepoints. This should be easy to fix manually in excel or similar.
+- Changed way settings from last time are stored and recalled
+  - The current format avoids crashes or complicated workarounds each time settings are changed
+  - This means that settings from previous version cannot be read and need to be re-set (but it should be future proof, which was the whole point of doing this)
 
 ## v1.26 - 27 Oct 2021
 - Updates to observation list and options for mitotic stages, etc.
