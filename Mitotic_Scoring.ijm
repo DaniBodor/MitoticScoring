@@ -91,7 +91,7 @@ headers = Array.concat(init_headers, interv_headers, obs_headers, end_headers, "
 headers_str = String.join(headers,"\t");
 
 
-// load progress
+// define window and file names
 expname = List.get("expname");
 table = expname + "_Scoring.csv";
 if (isOpen(table)){
@@ -221,7 +221,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	else {
 		// generate results array with all inputs until tp coordinates
 		results = Array.concat(im, c, tpArray, intervalArray, observations);
-		
+
 		// add coordinates for each stage and full image size
 		for (i = 0; i < nStages; i++){
 			curr_coord = Array.slice(coordinates_array, i*nCoordinates, (i+1)*nCoordinates);
@@ -234,7 +234,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		results = Array.concat(results, im_size, xywhttzz_string);
 
 		writeToTable();
-
 		// save overlay
 		if (Overlay.size > 0){
 			run("To ROI Manager");
@@ -672,6 +671,7 @@ function makeWaitWindow(){
 	/*
 	 * this is an overly complicated function
 	 * to find the best location for the wait window
+	 * ###### also: it doesn't really work!
 	 */
 	
 	//define waitwindow size
@@ -722,6 +722,11 @@ function makeWaitWindow(){
 
 
 function fetchSettings(){
+	// when adding any new settings to the dialog, make sure to add a line in 3 places:
+	// - under Dialog.create --- to ask for the new setting from GUI
+	// - under Dialog.show --- to fetch the new setting from input
+	// - under default_settings() function --- to initiate a default setting
+	
 	// load default settings
 	default_settings();
 	List.toArrays(def_keys, def_values);
@@ -750,7 +755,7 @@ function fetchSettings(){
 	github = "https://github.com/DaniBodor/MitoticScoring#setup";
 
 	// open dialog
-	Dialog.createNonBlocking("Scoting Macro");
+	Dialog.createNonBlocking("Scoring Macro");
 		Dialog.addHelp(github);
 		
 		Dialog.setInsets(10, 0, 0);
@@ -774,6 +779,7 @@ function fetchSettings(){
 		Dialog.addChoice("ROI color - minor", colorArray, List.get("minorcolor"));
 		Dialog.addNumber("Z-spread (+/-)", List.get("zspread"), 0, colw, "");
 		Dialog.addCheckbox("Show intermediate timepoints", List.get("intermediateboxes"));
+		Dialog.addCheckbox("Run on TrackMate files", List.get("trackmate_integration"));
 		
 		Dialog.setInsets(20, 0, 0);
 		Dialog.addMessage("For OrgaMovies");
@@ -801,6 +807,7 @@ function fetchSettings(){
 		List.set("minorcolor", Dialog.getChoice());
 		List.set("zspread", Dialog.getNumber());
 		List.set("intermediateboxes", Dialog.getCheckbox());
+		List.set("trackmate_integration", Dialog.getCheckbox());
 		//orgamovies
 		List.set("duplicatebox", Dialog.getCheckbox());
 
@@ -832,6 +839,7 @@ function default_settings(){
 	List.set("minorcolor", "white");
 	List.set("zspread", 0);
 	List.set("intermediateboxes", 1);
+	List.set("trackmate_integration", 0);
 	//for orgamovies
 	List.set("duplicatebox", 0);
 }
