@@ -540,10 +540,12 @@ function waitFunction(){
 		}
 	}
 	else {	// if no files are open
-		open();	// open new image
-		run("Select None");
-		overlay_file = overlay_file_prefix + getTitle() + ".zip";
-		findPrevOverlay(overlay_file);
+		if (List.get("trackmate_integration") == 1)		exit("Session finished.\nYou can carry on later using the same experiment name and settings");
+		else {
+			open();	// open new image
+			run("Select None");
+			findPrevOverlay();
+		}
 	}
 
 	return keep_waiting;
