@@ -23,8 +23,8 @@ import os
 #%% SETTINGS
 
 # Data import/export
-directory = './output/YOLO/'
-csv_name = 'MitoticStages_Scoring_bin'  #CSV from scoring macro
+directory = r'D:\From Joana\RPEscrp53_p53KO_Longtermtreat_20210203\stills/'
+csv_name = 'JoanaData_Scoring_bin'  #CSV from scoring macro
 limit_movies = '' # movie name or list of movie names to include (empty/False means include all)
 tp_used = 0 # timepoint to use for training
 project_name = 'my-project-name'
@@ -55,11 +55,11 @@ export = 1
 
 #%% PRELIMINARIES
 
-
+if csv_name.endswith('.csv'):
+    csv_name = csv_name[:-4]
 inData = directory + csv_name +'.csv' #CSV from scoring macro
-if inData.endswith('.csv.csv'):
-    inData = inData[:-4]
 xmldir = directory + csv_name + '_Annotations/'
+#imdir = directory + csv_name + '_IMs/'
 
 
 # list of headers to remove from label_list
