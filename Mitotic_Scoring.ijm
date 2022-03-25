@@ -16,9 +16,7 @@ if (Table.size > 0){
 	T = Table.title;
 	Table.reset(T);
 }
-if(nImages > 0)		Overlay.remove;
-else				open();
-
+roiManager("reset");
 
 ////  SETTINGS
 
@@ -101,7 +99,8 @@ if (isOpen(table)){
 _table_ = "["+table+"]";
 results_file = saveloc + table;
 overlay_file_prefix = saveloc + expname + "_ROIs_";
-overlay_file = overlay_file_prefix + getTitle() + ".zip";
+
+// load progress
 loadPreviousProgress(headers_str);
 if	(Table.size > 0){
 	prev_im =	Table.getString	("movie", Table.size-1);
@@ -334,8 +333,7 @@ function loadPreviousProgress(headers){
 	}
 
 	// find previous overlay
-	overlay_file = overlay_file_prefix + getTitle() + ".zip";
-	findPrevOverlay(overlay_file);
+	findPrevOverlay();
 }
 
 
@@ -630,12 +628,36 @@ function overlayFormatting(){
 }
 
 
-function findPrevOverlay(roi_path){
-	if (File.exists(roi_path)){
-		roiManager("Open", roi_path);
-		run("From ROI Manager");
-		roiManager("delete");
-		overlayFormatting();
+function findPrevOverlay(){
+	if (List.get("trackmate_integration") == 0){
+		if (nImages > 0)	Overlay.remove;
+		else				open();
+		
+		roi_path = overlay_file_prefix + getTitle() + ".zip";
+		if (File.exists(roi_path)){
+			roiManager("Open", roi_path);
+			run("From ROI Manager");
+			roiManager("delete");
+			overlayFormatting();
+		}
+	}
+	else {	// run on trackmate file
+		if (nImages == 0)	run("Load a TrackMate file");
+		roi_path = overlay_file_prefix + getTitle() + ".zip";
+		
+		if (File.exists(roi_path)){
+			run("To ROI Manager");
+			while (roiManager("count") > 2) {
+				roiManager("select", 2);
+				roiManager("delete");
+			}
+			roiManager("Open", roi_path);
+			roiManager("select", newArray(2,3));
+			roiManager("delete");
+			run("From ROI Manager");
+			roiManager("delete");
+			overlayFormatting();
+		}
 	}
 }
 
