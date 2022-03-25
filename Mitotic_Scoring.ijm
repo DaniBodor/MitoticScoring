@@ -1,4 +1,4 @@
-// MITOTIC SCORING MACRO v1.3
+// MITOTIC SCORING MACRO v1.4
 
 // general stuff
 requires("1.53g");
@@ -16,9 +16,7 @@ if (Table.size > 0){
 	T = Table.title;
 	Table.reset(T);
 }
-if(nImages > 0)		Overlay.remove;
-else				open();
-
+roiManager("reset");
 
 ////  SETTINGS
 
@@ -91,7 +89,7 @@ headers = Array.concat(init_headers, interv_headers, obs_headers, end_headers, "
 headers_str = String.join(headers,"\t");
 
 
-// load progress
+// define window and file names
 expname = List.get("expname");
 table = expname + "_Scoring.csv";
 if (isOpen(table)){
@@ -101,7 +99,8 @@ if (isOpen(table)){
 _table_ = "["+table+"]";
 results_file = saveloc + table;
 overlay_file_prefix = saveloc + expname + "_ROIs_";
-overlay_file = overlay_file_prefix + getTitle() + ".zip";
+
+// load progress
 loadPreviousProgress(headers_str);
 if	(Table.size > 0){
 	prev_im =	Table.getString	("movie", Table.size-1);
@@ -221,7 +220,7 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 	else {
 		// generate results array with all inputs until tp coordinates
 		results = Array.concat(im, c, tpArray, intervalArray, observations);
-		
+
 		// add coordinates for each stage and full image size
 		for (i = 0; i < nStages; i++){
 			curr_coord = Array.slice(coordinates_array, i*nCoordinates, (i+1)*nCoordinates);
@@ -234,7 +233,6 @@ for (c = prev_c+1; c > 0; c++){	// loop through cells
 		results = Array.concat(results, im_size, xywhttzz_string);
 
 		writeToTable();
-
 		// save overlay
 		if (Overlay.size > 0){
 			run("To ROI Manager");
@@ -335,8 +333,7 @@ function loadPreviousProgress(headers){
 	}
 
 	// find previous overlay
-	overlay_file = overlay_file_prefix + getTitle() + ".zip";
-	findPrevOverlay(overlay_file);
+	findPrevOverlay();
 }
 
 
@@ -543,10 +540,12 @@ function waitFunction(){
 		}
 	}
 	else {	// if no files are open
-		open();	// open new image
-		run("Select None");
-		overlay_file = overlay_file_prefix + getTitle() + ".zip";
-		findPrevOverlay(overlay_file);
+		if (List.get("trackmate_integration") == 1)		exit("Session finished.\nYou can carry on later using the same experiment name and settings");
+		else {
+			open();	// open new image
+			run("Select None");
+			findPrevOverlay();
+		}
 	}
 
 	return keep_waiting;
@@ -631,12 +630,36 @@ function overlayFormatting(){
 }
 
 
-function findPrevOverlay(roi_path){
-	if (File.exists(roi_path)){
-		roiManager("Open", roi_path);
-		run("From ROI Manager");
-		roiManager("delete");
-		overlayFormatting();
+function findPrevOverlay(){
+	if (List.get("trackmate_integration") == 0){
+		if (nImages > 0)	Overlay.remove;
+		else				open();
+		
+		roi_path = overlay_file_prefix + getTitle() + ".zip";
+		if (File.exists(roi_path)){
+			roiManager("Open", roi_path);
+			run("From ROI Manager");
+			roiManager("delete");
+			overlayFormatting();
+		}
+	}
+	else {	// run on trackmate file
+		if (nImages == 0)	run("Load a TrackMate file");
+		roi_path = overlay_file_prefix + getTitle() + ".zip";
+		
+		if (File.exists(roi_path)){
+			run("To ROI Manager");
+			while (roiManager("count") > 2) {
+				roiManager("select", 2);
+				roiManager("delete");
+			}
+			roiManager("Open", roi_path);
+			roiManager("select", newArray(2,3));
+			roiManager("delete");
+			run("From ROI Manager");
+			roiManager("delete");
+			overlayFormatting();
+		}
 	}
 }
 
@@ -672,6 +695,7 @@ function makeWaitWindow(){
 	/*
 	 * this is an overly complicated function
 	 * to find the best location for the wait window
+	 * ###### also: it doesn't really work!
 	 */
 	
 	//define waitwindow size
@@ -722,6 +746,11 @@ function makeWaitWindow(){
 
 
 function fetchSettings(){
+	// when adding any new settings to the dialog, make sure to add a line in 3 places:
+	// - under Dialog.create --- to ask for the new setting from GUI
+	// - under Dialog.show --- to fetch the new setting from input
+	// - under default_settings() function --- to initiate a default setting
+	
 	// load default settings
 	default_settings();
 	List.toArrays(def_keys, def_values);
@@ -750,7 +779,7 @@ function fetchSettings(){
 	github = "https://github.com/DaniBodor/MitoticScoring#setup";
 
 	// open dialog
-	Dialog.createNonBlocking("Scoting Macro");
+	Dialog.createNonBlocking("Scoring Macro");
 		Dialog.addHelp(github);
 		
 		Dialog.setInsets(10, 0, 0);
@@ -774,6 +803,7 @@ function fetchSettings(){
 		Dialog.addChoice("ROI color - minor", colorArray, List.get("minorcolor"));
 		Dialog.addNumber("Z-spread (+/-)", List.get("zspread"), 0, colw, "");
 		Dialog.addCheckbox("Show intermediate timepoints", List.get("intermediateboxes"));
+		Dialog.addCheckbox("Run on TrackMate files", List.get("trackmate_integration"));
 		
 		Dialog.setInsets(20, 0, 0);
 		Dialog.addMessage("For OrgaMovies");
@@ -801,6 +831,7 @@ function fetchSettings(){
 		List.set("minorcolor", Dialog.getChoice());
 		List.set("zspread", Dialog.getNumber());
 		List.set("intermediateboxes", Dialog.getCheckbox());
+		List.set("trackmate_integration", Dialog.getCheckbox());
 		//orgamovies
 		List.set("duplicatebox", Dialog.getCheckbox());
 
@@ -832,6 +863,7 @@ function default_settings(){
 	List.set("minorcolor", "white");
 	List.set("zspread", 0);
 	List.set("intermediateboxes", 1);
+	List.set("trackmate_integration", 0);
 	//for orgamovies
 	List.set("duplicatebox", 0);
 }

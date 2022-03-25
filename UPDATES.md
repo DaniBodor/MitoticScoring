@@ -1,5 +1,8 @@
 Back to [home](https://github.com/DaniBodor/MitoticScoring)
 
+## v1.4 - March 2022 - TrackMate integration
+- Allow for option to use on TrackMate files without deleting TrackMate overlays
+
 ## v1.3 - March 2022 - Facilitate long-term tracking
 - Allow for jumping back to t0 after each box (for long-term daughter tracking)
 - Allow to not show box around each timepoint
