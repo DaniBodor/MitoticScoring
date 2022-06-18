@@ -1,8 +1,8 @@
 Check [UPDATES](/UPDATES.md) to see what's new
 
-# Integrated Scoring Aid for FiJi (ISAF)
+# Integrated Scoring Aid for Fiji (ISAF)
 
-ISAF in an integrated tool for FiJi/ImageJ that helps keeping track while manually scoring (mitotic) events in images/movies. ISAF keeps track of timings, position, and potential mitotic errors or events (or can be [customized](https://github.com/DaniBodor/MitoticScoring/edit/main/README.md#use-custom-observation-list) to track other types of events)  
+ISAF in an integrated tool for Fiji/ImageJ that helps keeping track while manually scoring (mitotic) events in images/movies. ISAF keeps track of timings, position, and potential mitotic errors or events (or can be [customized](https://github.com/DaniBodor/MitoticScoring/edit/main/README.md#use-custom-observation-list) to track other types of events)  
 
 TLDR: it's pretty self-explanatory. Just start working with it and only check here if something is not right.
 
@@ -19,7 +19,7 @@ ISAF is pretty uncomplicated and in principle will always tell you what to do. B
 ## Installing and starting ISAF
 [Download](https://github.com/DaniBodor/MitoticScoring/archive/refs/heads/main.zip) this repository by clicking the green 'Code' button above and 'Download ZIP' (or use git pull).
 
-Open ISAF by dragging _ISAF.ijm_ into FiJi and clicking 'Run' or hit Ctrl+R.  
+Open ISAF by dragging _ISAF.ijm_ into Fiji and clicking 'Run' or hit Ctrl+R.  
 Alternatively drop the _ISAF.ijm_ file into your ImageJ plugins\Analyze folder and select it from _Plugins > Analyze_ dropdown menu 
 (requires a restart after you first drop the file there). You can then also create a custom shortcut key via _Plugins > Shortcuts > Add Shortcut..._.
 
@@ -134,8 +134,8 @@ Note that the "Remove this entry?" option will always remain present in the obse
 The file as downloaded would give you the [default list above](https://github.com/DaniBodor/MitoticScoring#step-2-score-events) with some extras to illustrate some of the available options.  
 Editing this is simpler than it might seem. Play around for a few minutes and you'll quickly figure it out.
 
-### Current and previous default lists are stored in FiJi.app or ImageJ folder
-Your current default observation list is stored, along with all previous defaults, in your FiJi folder. You can restore a prevous default from your local '...\Fiji.app\macros\MitoticScoringDefaults\' folder to see your history of observation lists.
+### Current and previous default lists are stored in Fiji.app or ImageJ folder
+Your current default observation list is stored, along with all previous defaults, in your Fiji folder. You can restore a prevous default from your local '...\Fiji.app\macros\MitoticScoringDefaults\' folder to see your history of observation lists.
 
 
 # SubImage Extractor
