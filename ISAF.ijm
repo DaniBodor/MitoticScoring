@@ -267,24 +267,6 @@ function reorganizeCoord(coord_group){
 }
 
 
-function getMinOrMaxOfMultiple(array,MinOrMax){
-	// find out whether min or max
-	if		(MinOrMax == "min" || MinOrMax == "MIN" || MinOrMax == "Min" || MinOrMax == "-" || MinOrMax == "--") multipl = -1;
-	else if (MinOrMax == "max" || MinOrMax == "MAX" || MinOrMax == "Max" || MinOrMax == "+" || MinOrMax == "++") multipl =  1;
-	else if (MinOrMax == -1 || MinOrMax == 1)	multipl = MinOrMax;
-	else	exit("MinOrMax set incorrectly, as: " + MinOrMax);
-
-	// find max value (or lowest negative value)
-	return_value = array[0] * multipl;
-	for (i = 1; i < array.length; i++) {
-		current_test = array[i] * multipl;
-		return_value = maxOf(current_test, return_value);
-	}
-	return_value = return_value * multipl;
-	return return_value;
-}
-
-
 function getFullSelectionBounds(A){
 	xA = Array.concat( Array.slice( A, nStages*0, nStages*1), Array.slice( A, nStages*2, nStages*3));
 	yA = Array.concat( Array.slice( A, nStages*1, nStages*2), Array.slice( A, nStages*3, nStages*4));
@@ -311,6 +293,7 @@ function loadPreviousProgress(headers){
 		old_headers = split(Table.headings);
 
 		// fix old table format for tpArray
+		// (for rare case that someone was using the old version and now wants to keep scoring in the same file)
 		for (h = 0; h < old_headers.length; h++) {
 			oldName = old_headers[h];
 			if (lengthOf(oldName) > 2) {
@@ -338,6 +321,7 @@ function loadPreviousProgress(headers){
 
 
 function checkHeaders(new){
+	//function obsolete
 	selectWindow(table);
 	old = Table.headings();
 	if (Table.size() == 0)		run("Close");
@@ -349,6 +333,7 @@ function checkHeaders(new){
 
 
 function jumpFunction(){
+	// jumps to frame of t0 (or lowest t if t0 was skipped)
 	for (q = 0; q < tp; q++) {
 		jump_tp = tpArray[q];
 		if (!isNaN(jump_tp)){
@@ -361,6 +346,7 @@ function jumpFunction(){
 
 function makeOverlay(coord, name, color){
 	// create rect at each frame
+	// coord format: xywhttzz
 	//Array.print(coord);
 	for (f = coord[4]; f <= coord[5]; f++) {
 		for (i = 0; i < List.get("duplicatebox")+1; i++) {	// 1 or 2 boxes, depending on List.get("duplicatebox")
@@ -391,6 +377,7 @@ function makeOverlay(coord, name, color){
 
 
 function observationsDialog(CSV_lines, Results_Or_Header){
+	// creates Dialog window to score observation
 	out_order	= newArray();
 	headers		= newArray();
 	output		= newArray();
@@ -553,6 +540,7 @@ function waitFunction(){
 
 
 function renameOldFiles(path){
+	// function obsolete
 	// extract date & time of last modification
 	str = File.dateLastModified(path);
 	A = split(str, " ");
@@ -631,6 +619,7 @@ function overlayFormatting(){
 
 
 function findPrevOverlay(){
+	// opens and displays overlays from previous session
 	if (List.get("trackmate_integration") == 0){
 		if (nImages > 0)	Overlay.remove;
 		else				open();
@@ -695,7 +684,7 @@ function makeWaitWindow(){
 	/*
 	 * this is an overly complicated function
 	 * to find the best location for the wait window
-	 * ###### also: it doesn't really work!
+	 * ###### also: it doesn't always work for some reason, might depend on screen size or resolution??
 	 */
 	
 	//define waitwindow size
