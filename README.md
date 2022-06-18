@@ -1,27 +1,26 @@
 Check [UPDATES](/UPDATES.md) to see what's new
 
-# Mitotic Scoring Macro
+# Integrated Scoring Aid (ISA)
 
-This macro helps keeps track of manual scoring of (mitotic) events from movies. It keeps track of timings, position, and potential mitotic errors or events.  
-**NOTE:** the macro does NOT automatically track these events from your movies, but facilitates manual scoring.
+ISA in an integrated tool for FiJi/ImageJ that helps keeping track while manually scoring (mitotic) events in images/movies. ISA keeps track of timings, position, and potential mitotic errors or events (or can be [customized](https://github.com/DaniBodor/MitoticScoring/edit/main/README.md#use-custom-observation-list) to track other types of events)  
 
-TLDR: The macro is pretty self-explanatory. Just start working with it and only check here if something is not right.
+TLDR: it's pretty self-explanatory. Just start working with it and only check here if something is not right.
 
-The main goals of this macro are:
+The main goals of ISA are:
 1) minimize clicks and skipping between windows while tracking events
 2) keep track of which cells have already been scored
 3) avoid loss of progress by regular automatic saving
 4) allow for stopping and restarting experiments without losing track of progress
 5) to be versatile and allow for easy adaptation to individual experiments without being overly complex   
 
-The macro is pretty uncomplicated and in principle will always tell you what to do. Below is a short explanation of the individual steps anyway.  
+ISA is pretty uncomplicated and in principle will always tell you what to do. Below is a short explanation of the individual steps anyway.  
 
 
-## Install and start macro
+## Installing and starting ISA
 [Download](https://github.com/DaniBodor/MitoticScoring/archive/refs/heads/main.zip) this repository by clicking the green 'Code' button above and 'Download ZIP' (or use git pull).
 
-Open the macro by dragging the \*.ijm file into FiJi and clicking 'Run' or hit Ctrl+R.  
-Alternatively drop the _Mitotic_Scoring.ijm_ file into your ImageJ plugins\Analyze folder and select it from _Plugins > Analyze_ dropdown menu 
+Open ISA by dragging _ISA.ijm_ into FiJi and clicking 'Run' or hit Ctrl+R.  
+Alternatively drop the _ISA.ijm_ file into your ImageJ plugins\Analyze folder and select it from _Plugins > Analyze_ dropdown menu 
 (requires a restart after you first drop the file there). You can then also create a custom shortcut key via _Plugins > Shortcuts > Add Shortcut..._.
 
 If there is currently no image file open, a window will pop up asking you to open a file.
