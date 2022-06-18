@@ -1,33 +1,33 @@
 Check [UPDATES](/UPDATES.md) to see what's new
 
-# Integrated Scoring Aid (ISA)
+# Integrated Scoring Aid for FiJi (ISAF)
 
-ISA in an integrated tool for FiJi/ImageJ that helps keeping track while manually scoring (mitotic) events in images/movies. ISA keeps track of timings, position, and potential mitotic errors or events (or can be [customized](https://github.com/DaniBodor/MitoticScoring/edit/main/README.md#use-custom-observation-list) to track other types of events)  
+ISAF in an integrated tool for FiJi/ImageJ that helps keeping track while manually scoring (mitotic) events in images/movies. ISAF keeps track of timings, position, and potential mitotic errors or events (or can be [customized](https://github.com/DaniBodor/MitoticScoring/edit/main/README.md#use-custom-observation-list) to track other types of events)  
 
 TLDR: it's pretty self-explanatory. Just start working with it and only check here if something is not right.
 
-The main goals of ISA are:
+The main goals of ISAF are:
 1) minimize clicks and skipping between windows while tracking events
 2) keep track of which cells have already been scored
 3) avoid loss of progress by regular automatic saving
 4) allow for stopping and restarting experiments without losing track of progress
 5) to be versatile and allow for easy adaptation to individual experiments without being overly complex   
 
-ISA is pretty uncomplicated and in principle will always tell you what to do. Below is a short explanation of the individual steps anyway.  
+ISAF is pretty uncomplicated and in principle will always tell you what to do. Below is a short explanation of the individual steps anyway.  
 
 
-## Installing and starting ISA
+## Installing and starting ISAF
 [Download](https://github.com/DaniBodor/MitoticScoring/archive/refs/heads/main.zip) this repository by clicking the green 'Code' button above and 'Download ZIP' (or use git pull).
 
-Open ISA by dragging _ISA.ijm_ into FiJi and clicking 'Run' or hit Ctrl+R.  
-Alternatively drop the _ISA.ijm_ file into your ImageJ plugins\Analyze folder and select it from _Plugins > Analyze_ dropdown menu 
+Open ISAF by dragging _ISAF.ijm_ into FiJi and clicking 'Run' or hit Ctrl+R.  
+Alternatively drop the _ISAF.ijm_ file into your ImageJ plugins\Analyze folder and select it from _Plugins > Analyze_ dropdown menu 
 (requires a restart after you first drop the file there). You can then also create a custom shortcut key via _Plugins > Shortcuts > Add Shortcut..._.
 
 If there is currently no image file open, a window will pop up asking you to open a file.
 
 
 ## Setup
-A dialog window will open to ask you for the settings for this experiment. Your settings will be stored as default and loaded the next time you start ISA, so you can just click OK when carrying with an ongoing experiment.
+A dialog window will open to ask you for the settings for this experiment. Your settings will be stored as default and loaded the next time you start ISAF, so you can just click OK when carrying with an ongoing experiment.
 
 
 
@@ -44,7 +44,7 @@ A dialog window will open to ask you for the settings for this experiment. Your 
     - 'None' &mdash; do not keep track of events, only of timings
     - 'Load default' &mdash; use the [default observation list](https://github.com/DaniBodor/MitoticScoring/#step-2-score-events) for keeping track
     - 'Set new default' &mdash; you are prompted to choose a custom observation list csv file ([see below](https://github.com/DaniBodor/MitoticScoring/#use-custom-observation-list))
-        - the very first time you run ISA, it may prompt you for the file location of the observation list (as below) irrespective of the your choice. Select 'DefaultObservationList.csv' from the folder you downloaded.
+        - the very first time you run ISAF, it may prompt you for the file location of the observation list (as below) irrespective of the your choice. Select 'DefaultObservationList.csv' from the folder you downloaded.
 - Define ROI by &mdash; how to proceed after drawing a box around your tracked cell ([see below](https://github.com/DaniBodor/MitoticScoring/#step-1-indicate-cell))
     - 'Draw + t' &mdash; draw a box, then add it to ROI list (for which the default keyboard shortcut is 't')
     - 'Draw only' &mdash; automatically progress once you drew a box
@@ -65,16 +65,16 @@ A dialog window will open to ask you for the settings for this experiment. Your 
 
 
 ## Identify & score mitotic cells
-Results are saved after each analyzed cell to avoid losing data after crashes or mistakes. Furthermore, previous progress can be loaded when re-running ISA for the same experiment so that you can stop in the middle of an analysis and carry on another time without losing track of where you were. Also, at any point you can close the current image and open a different (or the same) one without crashing or losing your progress.
+Results are saved after each analyzed cell to avoid losing data after crashes or mistakes. Furthermore, previous progress can be loaded when re-running ISAF for the same experiment so that you can stop in the middle of an analysis and carry on another time without losing track of where you were. Also, at any point you can close the current image and open a different (or the same) one without crashing or losing your progress.
 
 ### Step 1: indicate cell
 <img src="https://user-images.githubusercontent.com/14219087/158399302-36f1f1f0-7297-47e3-8f94-2460da1848fa.png" width=50% align="right">
 A text window opens instructing you how to proceed. For each time point, the window will re-appear stating the frame number of the previous time points to help keep track.  
-Boxes from previous events remain visible to keep track of which cells have already been scored. Also boxes are saved in your save location after each analyzed cell and automatically reloaded when you restart ISA on the same cell (same experiment name).  
+Boxes from previous events remain visible to keep track of which cells have already been scored. Also boxes are saved in your save location after each analyzed cell and automatically reloaded when you restart ISAF on the same cell (same experiment name).  
 
 ##### Now you can:
 - draw a box around the cell of interest. Depending on your [settings](https://github.com/DaniBodor/MitoticScoring#settings-for-visual-tracking), you do or do not have to add the box to the ROI manager (hit t); or
-- type 'skip' at the end of the text window to skip the box for a time point, and ISA will progress without an entry for this stage; or
+- type 'skip' at the end of the text window to skip the box for a time point, and ISAF will progress without an entry for this stage; or
 - close the text wiondow to end the session; or
 - open a different image and carry on there (if you close all open images while the text window is open, a pop up will appear allowing you to open another image).  
 - type 'hide' or 'show' to toggle whether or not previous ROIs are displayed in the image in case it is getting too crowded; or
@@ -122,7 +122,7 @@ Note that the "Remove this entry?" option will always remain present in the obse
     - Specifies the type of entry for your observation list with any text listed under event. 
         - Checkbox: adds a checkbox that can be clicked or unclicked
         - Text: adds a line where any text can be added
-        - Number: adds a line where a number can be added. Note that if a non-numerical value is added ISA will either store 'NaN' or potentially crash
+        - Number: adds a line where a number can be added. Note that if a non-numerical value is added ISAF will either store 'NaN' or potentially crash
         - List: adds a dropdown menu with the [listed options](https://github.com/DaniBodor/MitoticScoring#list-options)
         - File: adds a line with a 'Browse' button where you can put a file location
         - Group: will state the text in 'EVENT' and create a white line to separate the following options from the previous ones. No input is given here.
